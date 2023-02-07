@@ -33,10 +33,10 @@ public class GreetingControllerTest {
     @ParameterizedTest
     public void greetingShouldReturnObjectFromService(GreetingModel model) {
 
-        when(service.getGreetingMessage(model.content))
+        when(service.getGreetingMessage(model.content()))
                 .thenReturn(model);
         var controller = new GreetingController(service);
-        var result = controller.greeting(model.content);
+        var result = controller.greeting(model.content());
 
         assertThat(result == model).isTrue();
     }

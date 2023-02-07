@@ -29,7 +29,7 @@ public class GreetingServiceTest {
     public void greetingServiceShouldReturnObject(GreetingModel input,GreetingModel expected) {
 
         var service = new GreetingServiceImpl();
-        var result = service.getGreetingMessage(input.content);
+        var result = service.getGreetingMessage(input.content());
 
         //INFO: deprecated
         assertThat(result)
