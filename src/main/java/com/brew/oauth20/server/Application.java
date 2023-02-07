@@ -3,8 +3,7 @@ package com.brew.oauth20.server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication(scanBasePackages = {
-        "com.brew.oauth20.server"})
+@SpringBootApplication()
 public class Application {
 
     public static void main(String[] args) {
