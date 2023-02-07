@@ -1,2 +1,10 @@
 package com.brew.oauth20.server.model;
-public record GreetingModel(long id, String content) { }
+public class GreetingModel {
+    public GreetingModel(long id, String content) {
+        this.id = id;
+        this.content = content;
+    }
+
+    public long id;
+    public String content;
+}
