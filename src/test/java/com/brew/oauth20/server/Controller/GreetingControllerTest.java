@@ -8,6 +8,7 @@ import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 public class GreetingControllerTest {
     @MockBean
-    private GreetingService service;
+    private GreetingService greetingService;
     private static Faker faker;
 
     @BeforeAll
@@ -32,10 +33,10 @@ public class GreetingControllerTest {
     @MethodSource
     @ParameterizedTest
     public void greetingShouldReturnObjectFromService(GreetingModel model) {
-
-        when(service.getGreetingMessage(model.content()))
+        Mockito.reset(greetingService);
+        when(greetingService.getGreetingModel(model.content()))
                 .thenReturn(model);
-        var controller = new GreetingController(service);
+        var controller = new GreetingController(greetingService);
         var result = controller.greeting(model.content());
 
         assertThat(result == model).isTrue();

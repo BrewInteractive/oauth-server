@@ -11,7 +11,7 @@ public class GreetingServiceImpl implements GreetingService {
     private static final String template = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
     @Override
-    public GreetingModel getGreetingMessage(String name) {
+    public GreetingModel getGreetingModel(String name) {
         return new GreetingModel(counter.incrementAndGet(), String.format(template, name));
     }
 }
