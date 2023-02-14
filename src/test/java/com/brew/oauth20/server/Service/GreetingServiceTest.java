@@ -22,21 +22,18 @@ public class GreetingServiceTest {
     public static void Init(){
         faker = new Faker();
     }
-
-    @SuppressWarnings("deprecation")
     @MethodSource
     @ParameterizedTest
-    public void greetingServiceShouldReturnObject(GreetingModel input,GreetingModel expected) {
+    public void getGreetingModelShouldReturnGreetingModel(GreetingModel input,GreetingModel expected) {
 
         var service = new GreetingServiceImpl();
-        var result = service.getGreetingMessage(input.content());
+        var result = service.getGreetingModel(input.content());
 
-        //INFO: deprecated
-        assertThat(result)
-                .isEqualToComparingFieldByFieldRecursively(expected);
+        assertThat(result).usingRecursiveComparison()
+                          .isEqualTo(expected);
     }
 
-    private static Stream<Arguments> greetingServiceShouldReturnObject() {
+    private static Stream<Arguments> getGreetingModelShouldReturnGreetingModel() {
 
         var name1 = faker.name().firstName();
         var name2 = faker.name().firstName();
