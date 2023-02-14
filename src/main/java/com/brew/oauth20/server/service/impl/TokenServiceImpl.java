@@ -8,7 +8,7 @@ import java.security.SecureRandom;
 @Service
 public class TokenServiceImpl implements TokenService {
     @Override
-    public String GenerateRandomTokenString()  {
+    public String GenerateRandomTokenString() {
         int length = 32;
         String chars = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         SecureRandom secureRandom = new SecureRandom();
