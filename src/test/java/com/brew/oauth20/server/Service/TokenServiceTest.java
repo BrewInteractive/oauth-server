@@ -13,8 +13,8 @@ public class TokenServiceTest {
 
         var tokenService = new TokenServiceImpl();
 
-        String  randomString1 = tokenService.GenerateRandomTokenString();
-        String  randomString2 = tokenService.GenerateRandomTokenString();
+        String  randomString1 = tokenService.generateRandomTokenString();
+        String  randomString2 = tokenService.generateRandomTokenString();
 
         assertNotEquals("", randomString1);
         assertNotEquals("", randomString2);
