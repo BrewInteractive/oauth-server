@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.Service;
+package com.brew.oauth20.server.service;
 
 import com.brew.oauth20.server.model.GreetingModel;
 import com.brew.oauth20.server.service.impl.GreetingServiceImpl;
@@ -22,6 +22,7 @@ public class GreetingServiceTest {
     public static void Init(){
         faker = new Faker();
     }
+
     @MethodSource
     @ParameterizedTest
     public void getGreetingModelShouldReturnGreetingModel(GreetingModel input,GreetingModel expected) {

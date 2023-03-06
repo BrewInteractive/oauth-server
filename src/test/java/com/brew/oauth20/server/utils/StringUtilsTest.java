@@ -1,20 +1,19 @@
-package com.brew.oauth20.server.Service;
+package com.brew.oauth20.server.utils;
 
-import com.brew.oauth20.server.service.impl.TokenServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static com.brew.oauth20.server.utils.StringUtils.GenerateSecureRandomString;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class TokenServiceTest {
+public class StringUtilsTest {
     @Test
-    public void generateRandomTokenStringShouldReturnDifferentResults() {
+    public void generateSecureRandomStringShouldReturnDifferentResults() {
 
-        var tokenService = new TokenServiceImpl();
 
-        String  randomString1 = tokenService.GenerateRandomTokenString();
-        String  randomString2 = tokenService.GenerateRandomTokenString();
+        String  randomString1 = GenerateSecureRandomString();
+        String  randomString2 = GenerateSecureRandomString();
 
         assertNotEquals("", randomString1);
         assertNotEquals("", randomString2);
