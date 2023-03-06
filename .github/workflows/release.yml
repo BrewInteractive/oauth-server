@@ -6,11 +6,8 @@ on:
       - 'release/**'
 
 jobs:
-
-  build:
-
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
     - name: Git Checkout
       uses: actions/checkout@v3
