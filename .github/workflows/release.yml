@@ -26,8 +26,8 @@ jobs:
         echo "RELEASE_VERSION=${RELEASE_VERSION/release\/v/}" >> $GITHUB_OUTPUT
         mvn -B versions:set -DnewVersion=$RELEASE_VERSION
       
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+    - name: Run Tests
+      run: mvn test
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     - name: Update dependency graph
