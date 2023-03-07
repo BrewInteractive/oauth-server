@@ -1,0 +1,22 @@
+{
+  "name": "oauth-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "release": "standard-version"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrewInteractive/oauth-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BrewInteractive/oauth-server/issues"
+  },
+  "homepage": "https://github.com/BrewInteractive/oauth-server#readme",
+  "devDependencies": {
+    "standard-version": "^9.5.0"
+  }
+}

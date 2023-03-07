@@ -1,7 +1,6 @@
-package com.brew.oauth20.server.Controller;
+package com.brew.oauth20.server.controller;
 
 
-import com.brew.oauth20.server.controller.GreetingController;
 import com.brew.oauth20.server.model.GreetingModel;
 import com.brew.oauth20.server.service.GreetingService;
 import com.github.javafaker.Faker;
