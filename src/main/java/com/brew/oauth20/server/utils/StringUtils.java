@@ -3,7 +3,10 @@ package com.brew.oauth20.server.utils;
 import java.security.SecureRandom;
 
 public class StringUtils {
-    public static  String GenerateSecureRandomString() {
+    private StringUtils() {
+    }
+
+    public static String generateSecureRandomString() {
         int length = 32;
         String chars = "0123456789abcdefghijklmnopqrstuvwxyz-_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         SecureRandom secureRandom = new SecureRandom();

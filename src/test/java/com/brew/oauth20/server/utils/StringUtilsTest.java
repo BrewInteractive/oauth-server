@@ -3,17 +3,14 @@ package com.brew.oauth20.server.utils;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static com.brew.oauth20.server.utils.StringUtils.GenerateSecureRandomString;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class StringUtilsTest {
+class StringUtilsTest {
     @Test
-    public void generateSecureRandomStringShouldReturnDifferentResults() {
-
-
-        String  randomString1 = GenerateSecureRandomString();
-        String  randomString2 = GenerateSecureRandomString();
+    void generateSecureRandomStringShouldReturnDifferentResults() {
+        String  randomString1 = StringUtils.generateSecureRandomString();
+        String  randomString2 = StringUtils.generateSecureRandomString();
 
         assertNotEquals("", randomString1);
         assertNotEquals("", randomString2);
