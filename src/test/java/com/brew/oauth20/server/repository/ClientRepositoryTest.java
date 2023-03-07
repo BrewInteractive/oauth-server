@@ -5,10 +5,8 @@ import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -17,16 +15,15 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-@DataJpaTest()
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@SpringJUnitConfig
+@DataJpaTest
 public class ClientRepositoryTest {
+
     private static Faker faker;
+
+    @Autowired
+    ClientRepository repository;
     @Autowired
     private TestEntityManager entityManager;
-    @Autowired
-    private ClientRepository myRepository;
 
     @BeforeAll
     public static void Init() {
@@ -44,11 +41,8 @@ public class ClientRepositoryTest {
         entity.setId(UUID.randomUUID());
         entity.setRefreshTokenExpiresInDays(faker.number().numberBetween(0, 10000));
         entity.setTokenExpiresInMinutes(faker.number().numberBetween(0, 10000));
-
         entityManager.persist(entity);
-
-        Optional<Client> result = myRepository.findById(entity.getId());
-
+        Optional<Client> result = repository.findById(entity.getId());
         assertTrue(result.isPresent());
         assertEquals(entity.getName(), result.get().getName());
     }
