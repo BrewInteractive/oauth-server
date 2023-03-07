@@ -14,5 +14,4 @@ RUN echo "DB_HOST=$DB_HOST" > env.properties && \
     echo "DB_USER=$DB_USER" >> env.properties && \
     echo "DB_PASSWORD=$DB_PASSWORD" >> env.properties
 COPY --from=build /app/target/*.jar app.jar
-COPY env.properties .
 ENTRYPOINT ["java","-jar","/app/app.jar"]
