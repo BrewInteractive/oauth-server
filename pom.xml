@@ -15,9 +15,6 @@
 	<description>Brew OAuth Server</description>
 	<properties>
 		<java.version>19</java.version>
-		<sonar.coverage.jacoco.xmlReportPaths>
-			./target/site/jacoco-aggregate/jacoco.xml
-		</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>
 		<dependency>
