@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.Integration;
+package com.brew.oauth20.server.integration;
 
 
 import org.junit.jupiter.api.Test;
