@@ -87,7 +87,7 @@ jobs:
           merge-method: merge
 
       - name: Auto Approve PR
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+        if: steps.open-pr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
