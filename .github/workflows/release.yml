@@ -32,7 +32,7 @@ jobs:
         run: |
           BRANCH_NAME=${{ steps.branch-name.outputs.current_branch }}
           echo "RELEASE_VERSION=${BRANCH_NAME/release\/v/}" >> $GITHUB_OUTPUT
-          mvn -B versions:set -DnewVersion=$RELEASE_VERSION
+          mvn -B versions:set -DnewVersion=${{ steps.releaseversion.outputs.RELEASE_VERSION }}
           git add pom.xml
 
       - name: Commit & Push changes
