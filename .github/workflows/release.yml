@@ -28,7 +28,7 @@ jobs:
         run: |
           BRANCH_NAME=${{ steps.branch-name.outputs.current_branch }}
           echo "RELEASE_VERSION=${BRANCH_NAME/release\/v/}" >> $GITHUB_ENV
-          mvn -B versions:set -DnewVersion=$RELEASE_VERSION
+          mvn -B versions:set -DnewVersion=${{ env.RELEASE_VERSION }}
           git add pom.xml
 
       - name: Run Tests
@@ -63,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: brewery/oauth-server:latest, brewery/oauth-server:$RELEASE_VERSION
+          tags: brewery/oauth-server:latest, brewery/oauth-server:${{ env.RELEASE_VERSION }}
           platforms: linux/amd64,linux/arm64
 
       # https://github.com/marketplace/actions/github-pull-request-action
