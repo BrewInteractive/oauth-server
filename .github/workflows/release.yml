@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Release to Docker Hub
 
 on:
   push:
@@ -36,6 +36,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: "Set version to $RELEASE_VERSION [skip ci]"
+          branch: ${GITHUB_REF#refs/heads/}
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
