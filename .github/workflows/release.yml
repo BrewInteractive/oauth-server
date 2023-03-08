@@ -68,7 +68,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       # https://github.com/marketplace/actions/github-pull-request-action
-      - name: Create PR to main
+      - name: Create PR to Default Branch
         id: open-pr
         uses: repo-sync/pull-request@v2
         with:
