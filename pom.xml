@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.brew</groupId>
 	<artifactId>oauth20.server</artifactId>
-	<version>release/v1.0.0</version>
+	<version>1.1.0</version>
 	<name>oauth20.server</name>
 	<description>Brew OAuth Server</description>
 	<properties>

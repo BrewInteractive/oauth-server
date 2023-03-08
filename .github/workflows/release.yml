@@ -20,23 +20,27 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run Tests
-        run: mvn test
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v6
 
       - name: Set Release Version
-        id: releaseversion
         run: |
-          RELEASE_VERSION=${GITHUB_REF#refs/*/}
-          echo "RELEASE_VERSION=${RELEASE_VERSION/release\/v/}" >> $GITHUB_OUTPUT
-          mvn -B versions:set -DnewVersion=$RELEASE_VERSION
+          BRANCH_NAME=${{ steps.branch-name.outputs.current_branch }}
+          RELEASE_VERSION=${BRANCH_NAME/release\/v/}
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
+          mvn -B versions:set -DnewVersion=${RELEASE_VERSION} -DgenerateBackupPoms=false
           git add pom.xml
+
+      - name: Run Tests
+        run: mvn test
 
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: "Set version to $RELEASE_VERSION [skip ci]"
-          branch: ${GITHUB_REF#refs/heads/}
+          branch: ${{ steps.branch-name.outputs.current_branch }}
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
@@ -60,15 +64,15 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: brewery/oauth-server:latest, brewery/oauth-server:${{ steps.releaseversion.outputs.RELEASE_VERSION }}
+          tags: brewery/oauth-server:latest, brewery/oauth-server:${{ env.RELEASE_VERSION }}
           platforms: linux/amd64,linux/arm64
 
       # https://github.com/marketplace/actions/github-pull-request-action
-      - name: Create PR to master
+      - name: Create PR to Default Branch
         id: open-pr
         uses: repo-sync/pull-request@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT }}
           destination_branch: ${{ github.event.repository.default_branch }}
           pr_title: "[Automated] Merge ${{ github.ref_name }} into ${{ github.event.repository.default_branch }}"
           pr_body: "Automated Pull Request"
@@ -78,13 +82,13 @@ jobs:
         if: steps.open-pr.outputs.pr_number != ''
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
           pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
           merge-method: merge
 
       - name: Auto Approve PR
-        if: steps.cpr.outputs.pull-request-operation == 'created'
+        if: steps.open-pr.outputs.pr_created == 'true'
         uses: juliangruber/approve-pull-request-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          number: ${{ steps.cpr.outputs.pull-request-number }}
+          number: ${{ steps.open-pr.outputs.pr_number }}
