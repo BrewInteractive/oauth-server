@@ -70,11 +70,12 @@ jobs:
       # https://github.com/marketplace/actions/github-pull-request-action
       - name: Create PR to main
         id: open-pr
-        uses: peter-evans/create-pull-request@v4
+        uses: repo-sync/pull-request@v2
         with:
-          base: ${{ github.event.repository.default_branch }}
-          title: "[Automated] Merge ${{ github.ref_name }} into ${{ github.event.repository.default_branch }}"
-          body: "Automated Pull Request"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          destination_branch: ${{ github.event.repository.default_branch }}
+          pr_title: "[Automated] Merge ${{ github.ref_name }} into ${{ github.event.repository.default_branch }}"
+          pr_body: "Automated Pull Request"
 
       # https://github.com/marketplace/actions/enable-pull-request-automerge
       - name: Auto Merge PR
@@ -86,7 +87,7 @@ jobs:
           merge-method: merge
 
       - name: Auto Approve PR
-        if: steps.open-pr.outputs.pull-request-operation == 'created'
+        if: steps.open-pr.outputs.pr_created == 'true'
         uses: juliangruber/approve-pull-request-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
