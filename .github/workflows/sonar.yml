@@ -3,10 +3,10 @@ on:
   # a pull request.
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 name: Main Workflow
 jobs:
   build:
