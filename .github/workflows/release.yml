@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Release to Docker Hub
 
 on:
   push:
@@ -36,6 +36,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: "Set version to $RELEASE_VERSION [skip ci]"
+          branch: ${GITHUB_REF#refs/heads/}
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
@@ -56,7 +57,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           push: true
           tags: brewery/oauth-server:latest, brewery/oauth-server:${{ steps.releaseversion.outputs.RELEASE_VERSION }}
@@ -73,10 +74,17 @@ jobs:
           pr_body: "Automated Pull Request"
 
       # https://github.com/marketplace/actions/enable-pull-request-automerge
-      - name: Automerge PR
+      - name: Auto Merge PR
         if: steps.open-pr.outputs.pr_number != ''
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
           merge-method: merge
+
+      - name: Auto Approve PR
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: juliangruber/approve-pull-request-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          number: ${{ steps.cpr.outputs.pull-request-number }}
