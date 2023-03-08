@@ -3,11 +3,11 @@ on:
   # a pull request.
   push:
     branches:
-      - master
+      - main
       - 'release/**'
   pull_request:
-    types: [opened, synchronize, reopened]
-name: Main Workflow
+    types: [ opened, synchronize, reopened ]
+name: Sonar Analyze
 jobs:
   build:
     runs-on: ubuntu-latest
