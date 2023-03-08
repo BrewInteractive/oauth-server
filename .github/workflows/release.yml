@@ -20,20 +20,19 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run Tests
-        run: mvn test
-
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v6
 
       - name: Set Release Version
-        id: releaseversion
         run: |
           BRANCH_NAME=${{ steps.branch-name.outputs.current_branch }}
-          echo "RELEASE_VERSION=${BRANCH_NAME/release\/v/}" >> $GITHUB_OUTPUT
-          mvn -B versions:set -DnewVersion=${{ steps.releaseversion.outputs.RELEASE_VERSION }}
+          echo "RELEASE_VERSION=${BRANCH_NAME/release\/v/}" >> $GITHUB_ENV
+          mvn -B versions:set -DnewVersion=$RELEASE_VERSION
           git add pom.xml
+
+      - name: Run Tests
+        run: mvn test
 
       - name: Commit & Push changes
         uses: actions-js/push@master
@@ -64,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: brewery/oauth-server:latest, brewery/oauth-server:${{ steps.releaseversion.outputs.RELEASE_VERSION }}
+          tags: brewery/oauth-server:latest, brewery/oauth-server:$RELEASE_VERSION
           platforms: linux/amd64,linux/arm64
 
       # https://github.com/marketplace/actions/github-pull-request-action
