@@ -14,15 +14,15 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
 
-    public ClientServiceImpl(ClientRepository _clientRepository) {
-        clientRepository = _clientRepository;
+    public ClientServiceImpl(ClientRepository clientRepository) {
+        this.clientRepository = clientRepository;
     }
 
     @Override
     public Client getClient(UUID clientId) throws ClientNotFoundException {
-        Optional<Client> client = clientRepository.findById(clientId);
+        Optional<Client> client = this.clientRepository.findById(clientId);
 
-        if (client == null)
+        if (client.isEmpty())
             throw new ClientNotFoundException("client not found");
 
         return client.get();
