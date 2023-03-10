@@ -7,7 +7,7 @@ on:
       - 'release/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
-name: Sonar Analyze
+name: Run Tests
 jobs:
   test:
     runs-on: ubuntu-latest
