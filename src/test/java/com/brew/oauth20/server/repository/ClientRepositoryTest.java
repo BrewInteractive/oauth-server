@@ -1,15 +1,14 @@
 package com.brew.oauth20.server.repository;
 
-import com.brew.oauth20.server.Application;
 import com.brew.oauth20.server.data.Client;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -18,20 +17,15 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/*
 @RunWith(SpringRunner.class)
 @DataJpaTest
- */
-@ExtendWith(SpringExtension.class)
-@Transactional
-@SpringBootTest(classes = Application.class)
 public class ClientRepositoryTest {
 
     private static Faker faker;
-
     @Autowired
     ClientRepository repository;
-    
+    @Autowired
+    private TestEntityManager entityManager;
 
     @BeforeAll
     public static void Init() {
@@ -39,11 +33,16 @@ public class ClientRepositoryTest {
     }
 
     @Test
-    public void testFindById() {
+    void should_find_client_by_id() {
+        // Arrange
         Client client = getClient();
-        repository.save(client);
+        entityManager.persist(client);
+        entityManager.flush();
 
+        // Act
         Optional<Client> result = repository.findById(client.getId());
+
+        // Assert
         assertTrue(result.isPresent());
         assertEquals(client.getName(), result.get().getName());
     }

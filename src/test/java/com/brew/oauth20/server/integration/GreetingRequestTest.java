@@ -1,6 +1,5 @@
 package com.brew.oauth20.server.integration;
 
-
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-public class GreetingRequestTest {
+class GreetingRequestTest {
     @Autowired
     private MockMvc mockMvc;
 
