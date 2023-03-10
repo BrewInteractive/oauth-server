@@ -7,9 +7,9 @@ on:
       - 'release/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
-name: Sonar Analyze
+name: Run Tests
 jobs:
-  analyze:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,8 +24,5 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Sonar Analyze
-        run: mvn install sonar:sonar -Pcoverage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run Tests
+        run: mvn test
