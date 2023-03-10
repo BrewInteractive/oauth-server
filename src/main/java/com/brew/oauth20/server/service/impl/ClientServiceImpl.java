@@ -22,7 +22,7 @@ public class ClientServiceImpl implements ClientService {
     public Client getClient(UUID clientId) throws ClientNotFoundException {
         Optional<Client> client = clientRepository.findById(clientId);
 
-        if (client == null)
+        if (client.isPresent())
             throw new ClientNotFoundException("client not found");
 
         return client.get();
