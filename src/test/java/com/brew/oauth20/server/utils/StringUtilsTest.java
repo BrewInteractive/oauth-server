@@ -1,16 +1,17 @@
 package com.brew.oauth20.server.utils;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@RunWith(SpringRunner.class)
 class StringUtilsTest {
     @Test
     void generateSecureRandomStringShouldReturnDifferentResults() {
-        String  randomString1 = StringUtils.generateSecureRandomString();
-        String  randomString2 = StringUtils.generateSecureRandomString();
+        String randomString1 = StringUtils.generateSecureRandomString();
+        String randomString2 = StringUtils.generateSecureRandomString();
 
         assertNotEquals("", randomString1);
         assertNotEquals("", randomString2);
