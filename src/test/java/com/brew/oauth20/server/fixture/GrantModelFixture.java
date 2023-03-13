@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.fixture;
 
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
-import com.brew.oauth20.server.model.RedirectUriModel;
+import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.testUtils.FakerUtils;
 import org.instancio.Instancio;
 import org.instancio.Model;
@@ -10,24 +10,23 @@ import java.util.List;
 
 import static org.instancio.Select.field;
 
-public class RedirectUriModelFixture extends Fixture<RedirectUriModel> {
-
+public class GrantModelFixture extends Fixture<GrantModel> {
     @Override
-    public RedirectUriModel createRandomOne() {
+    public GrantModel createRandomOne() {
         return Instancio.of(validModel())
                 .create();
     }
 
     @Override
-    public List<RedirectUriModel> createRandomList(Integer size) {
+    public List<GrantModel> createRandomList(Integer size) {
         return Instancio.ofList(validModel())
                 .size(size)
                 .create();
     }
 
-    private Model<RedirectUriModel> validModel() {
-        return Instancio.of(RedirectUriModel.class)
-                .set(field(RedirectUriModel::redirectUri), FakerUtils.createRandomRedirectUri(faker))
+    private Model<GrantModel> validModel() {
+        return Instancio.of(GrantModel.class)
+                .set(field(GrantModel::responseType), FakerUtils.createRandomResponseType(faker))
                 .toModel();
     }
 }
