@@ -4,21 +4,21 @@ import com.brew.oauth20.server.model.GreetingModel;
 import com.brew.oauth20.server.service.GreetingService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
 public class GreetingControllerTest {
     private static Faker faker;
@@ -40,13 +40,13 @@ public class GreetingControllerTest {
 
     @MethodSource
     @ParameterizedTest
-    public void greetingShouldReturnObjectFromService(GreetingModel model) {
+    void greetingShouldReturnObjectFromService(GreetingModel model) {
         Mockito.reset(greetingService);
         when(greetingService.getGreetingModel(model.content()))
                 .thenReturn(model);
         var controller = new GreetingController(greetingService);
         var result = controller.greeting(model.content());
 
-        assertThat(result == model).isTrue();
+        assertSame(result, model);
     }
 }
