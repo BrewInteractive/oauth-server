@@ -35,7 +35,7 @@ public class GrantModelFixture extends Fixture<GrantModel> {
 
     private Model<GrantModel> grantModel(ResponseType[] responseTypeOptions) {
         return Instancio.of(GrantModel.class)
-                .set(field(GrantModel::responseType), FakerUtils.createRandomResponseType(faker, responseTypeOptions))
+                .supply(field(GrantModel::responseType), () -> FakerUtils.createRandomResponseType(faker, responseTypeOptions))
                 .toModel();
     }
 }

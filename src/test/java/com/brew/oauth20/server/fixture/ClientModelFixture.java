@@ -45,8 +45,8 @@ public class ClientModelFixture extends Fixture<ClientModel> {
 
     private Model<ClientModel> clientModel(Integer grantSize, ResponseType[] responseTypeOptions) {
         return Instancio.of(ClientModel.class)
-                .set(field(ClientModel::grantList), grantModelFixture.createRandomList(grantSize, responseTypeOptions))
-                .set(field(ClientModel::redirectUriList), redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
+                .supply(field(ClientModel::grantList), () -> grantModelFixture.createRandomList(grantSize, responseTypeOptions))
+                .supply(field(ClientModel::redirectUriList), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
     }
 }
