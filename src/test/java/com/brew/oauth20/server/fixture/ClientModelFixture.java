@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.fixture;
 
+import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import com.brew.oauth20.server.model.ClientModel;
 import org.instancio.Instancio;
@@ -10,6 +11,11 @@ import java.util.List;
 import static org.instancio.Select.field;
 
 public class ClientModelFixture extends Fixture<ClientModel> {
+
+    private final Integer defaultGrantSize = 2;
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
+    private final Integer defaultRedirectUriSize = 2;
+
     private final GrantModelFixture grantModelFixture;
     private final RedirectUriModelFixture redirectUriModelFixture;
 
@@ -18,23 +24,29 @@ public class ClientModelFixture extends Fixture<ClientModel> {
         this.redirectUriModelFixture = new RedirectUriModelFixture();
     }
 
-    @Override
     public ClientModel createRandomOne() {
-        return Instancio.of(validModel())
+        return createRandomOne(this.defaultGrantSize, this.defaultResponseTypeOptions);
+    }
+
+    public ClientModel createRandomOne(Integer grantSize, ResponseType[] responseTypeOptions) {
+        return Instancio.of(clientModel(grantSize, responseTypeOptions))
                 .create();
     }
 
-    @Override
     public List<ClientModel> createRandomList(Integer size) {
-        return Instancio.ofList(validModel())
+        return createRandomList(size, this.defaultGrantSize, this.defaultResponseTypeOptions);
+    }
+
+    public List<ClientModel> createRandomList(Integer size, Integer grantSize, ResponseType[] responseTypeOptions) {
+        return Instancio.ofList(clientModel(grantSize, responseTypeOptions))
                 .size(size)
                 .create();
     }
 
-    private Model<ClientModel> validModel() {
+    private Model<ClientModel> clientModel(Integer grantSize, ResponseType[] responseTypeOptions) {
         return Instancio.of(ClientModel.class)
-                .set(field(ClientModel::grantList), grantModelFixture.createRandomList(2))
-                .set(field(ClientModel::redirectUriList), redirectUriModelFixture.createRandomList(2))
+                .set(field(ClientModel::grantList), grantModelFixture.createRandomList(grantSize, responseTypeOptions))
+                .set(field(ClientModel::redirectUriList), redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
     }
 }

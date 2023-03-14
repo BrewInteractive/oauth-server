@@ -11,14 +11,11 @@ import java.util.List;
 import static org.instancio.Select.field;
 
 public class RedirectUriModelFixture extends Fixture<RedirectUriModel> {
-
-    @Override
     public RedirectUriModel createRandomOne() {
         return Instancio.of(validModel())
                 .create();
     }
 
-    @Override
     public List<RedirectUriModel> createRandomList(Integer size) {
         return Instancio.ofList(validModel())
                 .size(size)
