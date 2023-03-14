@@ -2,6 +2,7 @@ package com.brew.oauth20.server.testUtils;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.github.javafaker.Faker;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -11,7 +12,7 @@ public class FakerUtils {
             ResponseType.code,
             ResponseType.token};
 
-    public static UUID createRandomUUID(Faker faker) {
+    public static @NotNull UUID createRandomUUID(Faker faker) {
         return UUID.fromString(faker.internet().uuid().replaceAll("_", ""));
     }
 
@@ -19,17 +20,17 @@ public class FakerUtils {
         return createRandomResponseType(faker, defaultResponseTypeOptions);
     }
 
-    public static ResponseType createRandomResponseType(Faker faker, String[] responseTypeOptions) {
+    public static ResponseType createRandomResponseType(@NotNull Faker faker, String[] responseTypeOptions) {
         var responseTypeString = faker.options().option(responseTypeOptions);
         return ResponseType.valueOf(responseTypeString);
     }
 
-    public static ResponseType createRandomResponseType(Faker faker, ResponseType[] responseTypeOptions) {
+    public static ResponseType createRandomResponseType(@NotNull Faker faker, ResponseType[] responseTypeOptions) {
         return faker.options().option(responseTypeOptions);
 
     }
 
-    public static String createRandomRedirectUri(Faker faker) {
+    public static String createRandomRedirectUri(@NotNull Faker faker) {
         return faker.internet().url();
     }
 }
