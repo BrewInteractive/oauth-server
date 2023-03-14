@@ -19,7 +19,7 @@
         <sonar.projectKey>BrewInteractive_oauth-server</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>./target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.exclusions>src/main/java/com.brew.oauth20.server/data/**</sonar.exclusions>
+        <sonar.coverage.exclusions>src/main/java/com.brew.oauth20.server/data/**</sonar.coverage.exclusions>
         <sonar.test.exclusions>src/test/java/**, src/main/java/com.brew.oauth20.server/data/**</sonar.test.exclusions>
         <sonar.tests>src/test/java</sonar.tests>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
