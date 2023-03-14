@@ -9,14 +9,14 @@ import org.springframework.context.ApplicationContext;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-public abstract class ServiceFactory<TEnum, TType> {
-    private Map<TEnum, Type> RegisteredServiceTypes;
+public abstract class ServiceFactory<ENUM, TYPE> {
+    private Map<ENUM, Type> registeredServiceTypes;
 
     @Autowired
     private ApplicationContext context;
 
 
-    public TType getService(TEnum providerType) throws MissingServiceException, UnsupportedServiceTypeException {
+    public TYPE getService(ENUM providerType) throws MissingServiceException, UnsupportedServiceTypeException {
 
         Type type = getRegisteredServiceTypes().get(providerType);
         Class<?> classType = (Class<?>) type;
@@ -25,17 +25,17 @@ public abstract class ServiceFactory<TEnum, TType> {
             throw new UnsupportedServiceTypeException(providerType.toString());
 
         try {
-            return (TType) context.getBean(classType);
+            return (TYPE) context.getBean(classType);
         } catch (BeansException e) {
             throw new MissingServiceException(e);
         }
     }
 
-    public Map<TEnum, Type> getRegisteredServiceTypes() {
-        return RegisteredServiceTypes;
+    public Map<ENUM, Type> getRegisteredServiceTypes() {
+        return registeredServiceTypes;
     }
 
-    public void setRegisteredServiceTypes(Map<TEnum, Type> registeredServiceTypes) {
-        RegisteredServiceTypes = registeredServiceTypes;
+    public void setRegisteredServiceTypes(Map<ENUM, Type> registeredServiceTypes) {
+        this.registeredServiceTypes = registeredServiceTypes;
     }
 }

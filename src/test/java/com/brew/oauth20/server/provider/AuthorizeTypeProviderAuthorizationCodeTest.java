@@ -5,7 +5,7 @@ import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.ClientFixture;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.provider.AuthorizeType.Code.AuthorizeTypeProviderAuthorizationCode;
+import com.brew.oauth20.server.provider.authorizeType.code.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.service.ClientService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
