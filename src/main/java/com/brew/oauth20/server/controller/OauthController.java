@@ -61,20 +61,14 @@ public class OauthController {
             responseHeaders.add("Location", locationHeaderValue);
             return new ResponseEntity(responseHeaders, HttpStatus.FOUND);
         } catch (ServiceNotFoundException e) {
-            var redirectUri = authorizeRequest.redirect_uri;
-            var queryString = request.getQueryString();
             var error = "unsupported_response_type";
-            return createResult(redirectUri, queryString, error, HttpStatus.FOUND);
+            return createResult(authorizeRequest.redirect_uri, request.getQueryString(), error, HttpStatus.FOUND);
         } catch (UnsupportedResponseTypeException e) {
-            var redirectUri = authorizeRequest.redirect_uri;
-            var queryString = request.getQueryString();
             var error = "unsupported_response_type";
-            return createResult(redirectUri, queryString, error, HttpStatus.FOUND);
+            return createResult(authorizeRequest.redirect_uri, request.getQueryString(), error, HttpStatus.FOUND);
         } catch (ClientNotFoundException e) {
-            var redirectUri = authorizeRequest.redirect_uri;
-            var queryString = request.getQueryString();
             var error = "unauthorized_client";
-            return createResult(redirectUri, queryString, error, HttpStatus.FOUND);
+            return createResult(authorizeRequest.redirect_uri, request.getQueryString(), error, HttpStatus.FOUND);
         }
     }
 
