@@ -2,7 +2,7 @@ package com.brew.oauth20.server.provider;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.provider.AuthorizeType.AuthorizeTypeProviderFactory;
-import com.brew.oauth20.server.provider.AuthorizeType.Code.AuthorizeTypeProviderCode;
+import com.brew.oauth20.server.provider.AuthorizeType.Code.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.provider.AuthorizeType.Token.AuthorizeTypeProviderToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class AuthorizeTypeProviderFactoryTest {
     @Test
     void factoryShouldReturnAuthorizeTypeCodeProviderObject() {
         var service = authorizeTypeProviderFactory.getService(ResponseType.code);
-        assertThat(service instanceof AuthorizeTypeProviderCode).isTrue();
+        assertThat(service instanceof AuthorizeTypeProviderAuthorizationCode).isTrue();
     }
 
     @Test
