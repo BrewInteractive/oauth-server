@@ -2,9 +2,11 @@ package com.brew.oauth20.server.utils;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
+import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -44,18 +46,26 @@ class ClientValidatorTest {
         );
     }
 
+    private static ResponseType getValidResponseType(ClientModel clientModel) {
+        return clientModel.grantList().stream().map(GrantModel::responseType).findFirst().get();
+
+    }
+
+    private static String getValidRedirectUri(ClientModel clientModel) {
+        return clientModel.redirectUriList().stream().map(RedirectUriModel::redirectUri).findFirst().get();
+    }
+
     @Test
     void validClientShouldReturnValidResult() {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
-
-        var responseType = clientModel.grantList().stream().map(GrantModel::responseType).findFirst().get();
-        var redirectUriList = clientModel.redirectUriList().stream().map(RedirectUriModel::redirectUri).toList();
+        var validResponseType = getValidResponseType(clientModel);
+        var validRedirectUri = getValidRedirectUri(clientModel);
         var expectedResult = new ValidationResultModel(true, null);
 
         // Act
-        var clientValidator = new ClientValidator(responseType.name(), redirectUriList);
+        var clientValidator = new ClientValidator(validResponseType.name(), validRedirectUri);
         var actualResult = clientValidator.validate(clientModel);
 
         // Assert
@@ -64,15 +74,32 @@ class ClientValidatorTest {
 
     @MethodSource
     @ParameterizedTest
-    void invalidClientResponseTypeShouldReturnInvalidResult(ResponseType responseType, Integer grantSize, ResponseType[] responseTypeOptions) {
+    void invalidClientResponseTypeShouldReturnInvalidResult(ResponseType invalidResponseType, Integer grantSize, ResponseType[] responseTypeOptions) {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne(grantSize, responseTypeOptions);
-        var redirectUriList = clientModel.redirectUriList().stream().map(RedirectUriModel::redirectUri).toList();
+        var validRedirectUri = getValidRedirectUri(clientModel);
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
-        var clientValidator = new ClientValidator(responseType.name(), redirectUriList);
+        var clientValidator = new ClientValidator(invalidResponseType.name(), validRedirectUri);
+        var actualResult = clientValidator.validate(clientModel);
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    void invalidClientRedirectUriShouldReturnInvalidResult() {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validResponseType = getValidResponseType(clientModel);
+        var invalidRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+
+        // Act
+        var clientValidator = new ClientValidator(validResponseType.name(), invalidRedirectUri);
         var actualResult = clientValidator.validate(clientModel);
 
         // Assert
