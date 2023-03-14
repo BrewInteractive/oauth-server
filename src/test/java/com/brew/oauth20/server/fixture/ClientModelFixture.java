@@ -50,3 +50,5 @@ public class ClientModelFixture extends Fixture<ClientModel> {
                 .toModel();
     }
 }
+
+
