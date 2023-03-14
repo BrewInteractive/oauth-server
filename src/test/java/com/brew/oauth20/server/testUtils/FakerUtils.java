@@ -32,6 +32,4 @@ public class FakerUtils {
     public static String createRandomRedirectUri(Faker faker) {
         return faker.internet().url();
     }
-
-
 }
