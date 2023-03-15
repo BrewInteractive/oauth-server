@@ -5,7 +5,7 @@ import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.ClientFixture;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.provider.authorizetype.code.AuthorizeTypeProviderAuthorizationCode;
+import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.service.ClientService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,7 +75,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var result = provider.Validate(clientId, url);
 
-        assertThat(result.result()).isEqualTo(false);
+        assertThat(result.result()).isFalse();
         assertThat(result.error()).isEqualTo("unauthorized_client");
     }
 }
