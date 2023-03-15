@@ -21,6 +21,7 @@ public class ClientFixture extends Fixture<Client> {
     private final RedirectUrisFixture redirectUriModelFixture;
 
     public ClientFixture() {
+        super();
         this.clientsGrantFixture = new ClientsGrantFixture();
         this.redirectUriModelFixture = new RedirectUrisFixture();
     }
@@ -30,7 +31,7 @@ public class ClientFixture extends Fixture<Client> {
     }
 
     public Client createRandomOne(ResponseType[] responseTypeOptions) {
-        return Instancio.of(clientModel(responseTypeOptions))
+        return Instancio.of(client(responseTypeOptions))
                 .create();
     }
 
@@ -39,15 +40,16 @@ public class ClientFixture extends Fixture<Client> {
     }
 
     public Set<Client> createRandomList(Integer size, ResponseType[] responseTypeOptions) {
-        return Instancio.ofSet(clientModel(responseTypeOptions))
+        return Instancio.ofSet(client(responseTypeOptions))
                 .size(size)
                 .create();
     }
 
-    private Model<Client> clientModel(ResponseType[] responseTypeOptions) {
+    private Model<Client> client(ResponseType[] responseTypeOptions) {
         return Instancio.of(Client.class)
+                .supply(field(Client::getName), () -> faker.name().title())
                 .supply(field(Client::getId), () -> UUID.randomUUID())
-                .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultRedirectUriSize, responseTypeOptions))
+                .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
                 .supply(field(Client::getRedirectUrises), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
     }
