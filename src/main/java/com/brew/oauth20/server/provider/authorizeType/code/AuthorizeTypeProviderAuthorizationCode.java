@@ -1,7 +1,7 @@
-package com.brew.oauth20.server.provider.authorizeType.code;
+package com.brew.oauth20.server.provider.authorizetype.code;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.provider.authorizeType.BaseAuthorizeTypeProvider;
+import com.brew.oauth20.server.provider.authorizetype.BaseAuthorizeTypeProvider;
 import com.brew.oauth20.server.service.ClientService;
 import org.springframework.stereotype.Component;
 
