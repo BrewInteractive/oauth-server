@@ -58,7 +58,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.Validate(clientId, url);
+        var result = provider.validate(clientId, url);
 
         assertThat(result).isEqualTo(validationResultModel);
     }
@@ -73,7 +73,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.Validate(clientId, url);
+        var result = provider.validate(clientId, url);
 
         assertThat(result.result()).isFalse();
         assertThat(result.error()).isEqualTo("unauthorized_client");

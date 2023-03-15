@@ -21,7 +21,7 @@ public abstract class BaseAuthorizeTypeProvider {
         this.clientService = clientService;
     }
 
-    public ValidationResultModel Validate(UUID clientId, String redirectUri) {
+    public ValidationResultModel validate(UUID clientId, String redirectUri) {
         var optionalClient = clientService.getClient(clientId);
         if (optionalClient.isEmpty())
             return new ValidationResultModel(false, "unauthorized_client");
@@ -30,8 +30,8 @@ public abstract class BaseAuthorizeTypeProvider {
         var clientValidator = new ClientValidator(responseType.getResponseType(), redirectUri);
 
         //TODO: should mapper handle mapping operation
-        var grantList = new ArrayList<>(client.getClientsGrants().stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toList()));
-        var redirectUrlList = new ArrayList<>(client.getRedirectUrises().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toList()));
+        var grantList = client.getClientsGrants().stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toCollection(ArrayList::new));
+        var redirectUrlList = client.getRedirectUrises().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toCollection(ArrayList::new));
         return clientValidator.validate(
                 new ClientModel(
                         client.getId(),
@@ -39,6 +39,5 @@ public abstract class BaseAuthorizeTypeProvider {
                         redirectUrlList
                 )
         );
-
     }
 }
