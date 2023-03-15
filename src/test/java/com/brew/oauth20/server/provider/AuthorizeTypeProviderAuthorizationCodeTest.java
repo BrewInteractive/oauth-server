@@ -2,7 +2,6 @@ package com.brew.oauth20.server.provider;
 
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.ClientFixture;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -44,14 +44,14 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var client = clientFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var url = client.getRedirectUrises().stream().findFirst().get().getRedirectUri();
         return Stream.of(
-                Arguments.of(client, client.getId(), url, new ValidationResultModel(true, null))
+                Arguments.of(Optional.of(client), client.getId(), url, new ValidationResultModel(true, null))
         );
     }
 
 
     @MethodSource
     @ParameterizedTest
-    void shouldReturnValidResult(Client client, UUID clientId, String url, ValidationResultModel validationResultModel) {
+    void shouldReturnValidResult(Optional<Client> client, UUID clientId, String url, ValidationResultModel validationResultModel) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(client);
@@ -69,7 +69,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var url = faker.internet().url();
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
-                .thenThrow(new ClientNotFoundException(""));
+                .thenReturn(Optional.ofNullable(null));
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 

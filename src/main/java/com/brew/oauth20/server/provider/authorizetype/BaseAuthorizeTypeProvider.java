@@ -1,7 +1,6 @@
 package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
@@ -23,24 +22,23 @@ public abstract class BaseAuthorizeTypeProvider {
     }
 
     public ValidationResultModel Validate(UUID clientId, String redirectUri) {
-
-        try {
-            var client = clientService.getClient(clientId);
-
-            var clientValidator = new ClientValidator(responseType.getResponseType(), redirectUri);
-
-            //TODO: should mapper handle mapping operation
-            var grantList = new ArrayList<>(client.getClientsGrants().stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toList()));
-            var redirectUrlList = new ArrayList<>(client.getRedirectUrises().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toList()));
-            return clientValidator.validate(
-                    new ClientModel(
-                            client.getId(),
-                            grantList,
-                            redirectUrlList
-                    )
-            );
-        } catch (ClientNotFoundException e) {
+        var optionalClient = clientService.getClient(clientId);
+        if (optionalClient.isEmpty())
             return new ValidationResultModel(false, "unauthorized_client");
-        }
+
+        var client = optionalClient.get();
+        var clientValidator = new ClientValidator(responseType.getResponseType(), redirectUri);
+
+        //TODO: should mapper handle mapping operation
+        var grantList = new ArrayList<>(client.getClientsGrants().stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toList()));
+        var redirectUrlList = new ArrayList<>(client.getRedirectUrises().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toList()));
+        return clientValidator.validate(
+                new ClientModel(
+                        client.getId(),
+                        grantList,
+                        redirectUrlList
+                )
+        );
+
     }
 }
