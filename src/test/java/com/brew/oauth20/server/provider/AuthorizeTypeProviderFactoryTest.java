@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-public class AuthorizeTypeProviderFactoryTest {
+class AuthorizeTypeProviderFactoryTest {
 
     @Autowired
     AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
