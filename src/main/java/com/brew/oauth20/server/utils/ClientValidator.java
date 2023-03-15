@@ -37,7 +37,7 @@ public class ClientValidator implements Validator<ClientModel> {
 
     private boolean validateResponseType(ClientModel client) {
         return client.grantList().stream()
-                .anyMatch(grantModel -> grantModel.responseType() == ResponseType.valueOf(this.responseType));
+                .anyMatch(grantModel -> grantModel.responseType() == ResponseType.fromString(this.responseType));
     }
 
     private boolean validateRedirectUri(ClientModel client) {

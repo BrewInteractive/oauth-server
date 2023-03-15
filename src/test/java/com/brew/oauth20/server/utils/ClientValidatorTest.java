@@ -29,19 +29,19 @@ class ClientValidatorTest {
     private static Stream<Arguments> invalidClientResponseTypeShouldReturnInvalidResult() {
         return Stream.of(
                 Arguments.of(
-                        ResponseType.code,
+                        ResponseType.CODE,
                         1,
-                        new ResponseType[]{ResponseType.token}
+                        new ResponseType[]{ResponseType.TOKEN}
                 ),
                 Arguments.of(
-                        ResponseType.token,
+                        ResponseType.TOKEN,
                         1,
-                        new ResponseType[]{ResponseType.code}
+                        new ResponseType[]{ResponseType.CODE}
                 ),
                 Arguments.of(
-                        ResponseType.code,
+                        ResponseType.CODE,
                         2,
-                        new ResponseType[]{ResponseType.token}
+                        new ResponseType[]{ResponseType.TOKEN}
                 )
         );
     }
@@ -65,7 +65,7 @@ class ClientValidatorTest {
         var expectedResult = new ValidationResultModel(true, null);
 
         // Act
-        var clientValidator = new ClientValidator(validResponseType.name(), validRedirectUri);
+        var clientValidator = new ClientValidator(validResponseType.getResponseType(), validRedirectUri);
         var actualResult = clientValidator.validate(clientModel);
 
         // Assert

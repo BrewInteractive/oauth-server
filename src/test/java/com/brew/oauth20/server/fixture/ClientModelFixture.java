@@ -13,7 +13,7 @@ import static org.instancio.Select.field;
 public class ClientModelFixture extends Fixture<ClientModel> {
 
     private final Integer defaultGrantSize = 2;
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.CODE, ResponseType.TOKEN};
     private final Integer defaultRedirectUriSize = 2;
 
     private final GrantModelFixture grantModelFixture;

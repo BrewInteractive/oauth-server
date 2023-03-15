@@ -12,7 +12,7 @@ import java.util.List;
 import static org.instancio.Select.field;
 
 public class GrantModelFixture extends Fixture<GrantModel> {
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.CODE, ResponseType.TOKEN};
 
     public GrantModel createRandomOne() {
         return createRandomOne(this.defaultResponseTypeOptions);

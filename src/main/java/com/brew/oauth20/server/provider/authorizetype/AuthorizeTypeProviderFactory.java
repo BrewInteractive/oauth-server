@@ -13,8 +13,8 @@ public class AuthorizeTypeProviderFactory extends ServiceFactory<ResponseType, B
     public AuthorizeTypeProviderFactory() {
 
         Map<ResponseType, Type> map = Map.of(
-                ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class,
-                ResponseType.token, AuthorizeTypeProviderToken.class
+                ResponseType.CODE, AuthorizeTypeProviderAuthorizationCode.class,
+                ResponseType.TOKEN, AuthorizeTypeProviderToken.class
         );
 
         setRegisteredServiceTypes(map);

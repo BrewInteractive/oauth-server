@@ -14,7 +14,7 @@ import static org.instancio.Select.field;
 public class ClientFixture extends Fixture<Client> {
 
     private final Integer defaultClientsGrantSize = 1;
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.CODE, ResponseType.TOKEN};
     private final Integer defaultRedirectUriSize = 1;
 
     private final ClientsGrantFixture clientsGrantFixture;
