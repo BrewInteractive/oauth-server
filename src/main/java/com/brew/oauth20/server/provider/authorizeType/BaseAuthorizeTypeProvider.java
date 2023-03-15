@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.provider.authorizeType;
+package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public abstract class BaseAuthorizeTypeProvider implements IBaseAuthorizeTypeProvider {
+public abstract class BaseAuthorizeTypeProvider {
     protected ResponseType responseType;
 
     ClientService clientService;
