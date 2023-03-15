@@ -3,9 +3,9 @@ package com.brew.oauth20.server.provider;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.MissingServiceException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
-import com.brew.oauth20.server.provider.AuthorizeType.AuthorizeTypeProviderFactory;
-import com.brew.oauth20.server.provider.AuthorizeType.Code.AuthorizeTypeProviderAuthorizationCode;
-import com.brew.oauth20.server.provider.AuthorizeType.Token.AuthorizeTypeProviderToken;
+import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
+import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
+import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +18,14 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-public class AuthorizeTypeProviderFactoryTest {
+class AuthorizeTypeProviderFactoryTest {
 
     @Autowired
     AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
 
     @Test
     void factoryShouldReturnAuthorizeTypeCodeProviderObject() {
-        var service = authorizeTypeProviderFactory.getService(ResponseType.code);
+        var service = authorizeTypeProviderFactory.getService(ResponseType.CODE);
         assertThat(service instanceof AuthorizeTypeProviderAuthorizationCode).isTrue();
     }
 
@@ -33,11 +33,11 @@ public class AuthorizeTypeProviderFactoryTest {
     void factoryShouldReturnAuthorizeTypeTokenProviderObject() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class,
-                        ResponseType.token, AuthorizeTypeProviderToken.class
+                        ResponseType.CODE, AuthorizeTypeProviderAuthorizationCode.class,
+                        ResponseType.TOKEN, AuthorizeTypeProviderToken.class
                 )
         );
-        var service = authorizeTypeProviderFactory.getService(ResponseType.token);
+        var service = authorizeTypeProviderFactory.getService(ResponseType.TOKEN);
         assertThat(service instanceof AuthorizeTypeProviderToken).isTrue();
     }
 
@@ -45,11 +45,11 @@ public class AuthorizeTypeProviderFactoryTest {
     void factoryShouldThrowsUnsupportedServiceTypeException() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class
+                        ResponseType.CODE, AuthorizeTypeProviderAuthorizationCode.class
                 )
         );
-        Exception exception = assertThrows(UnsupportedServiceTypeException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.token));
-        assertThat(exception.getMessage()).isEqualTo(ResponseType.token.getResponseType());
+        Exception exception = assertThrows(UnsupportedServiceTypeException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.TOKEN));
+        assertThat(exception.getMessage()).isEqualTo(ResponseType.TOKEN.toString());
     }
 
 
@@ -57,10 +57,10 @@ public class AuthorizeTypeProviderFactoryTest {
     void factoryShouldThrowsMissingServiceException() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.code, MockAuthorizeTypeProviderNotExistingInIoc.class
+                        ResponseType.CODE, MockAuthorizeTypeProviderNotExistingInIoc.class
                 )
         );
-        Exception exception = assertThrows(MissingServiceException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.code));
+        Exception exception = assertThrows(MissingServiceException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.CODE));
         assertInstanceOf(BeansException.class, exception.getCause());
     }
 }
