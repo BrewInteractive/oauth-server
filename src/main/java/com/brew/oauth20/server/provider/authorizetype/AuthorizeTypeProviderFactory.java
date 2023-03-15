@@ -12,11 +12,11 @@ import java.util.Map;
 public class AuthorizeTypeProviderFactory extends ServiceFactory<ResponseType, BaseAuthorizeTypeProvider> {
     public AuthorizeTypeProviderFactory() {
 
-        Map<ResponseType, Type> dict = Map.of(
+        Map<ResponseType, Type> map = Map.of(
                 ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class,
                 ResponseType.token, AuthorizeTypeProviderToken.class
         );
 
-        setRegisteredServiceTypes(dict);
+        setRegisteredServiceTypes(map);
     }
 }
