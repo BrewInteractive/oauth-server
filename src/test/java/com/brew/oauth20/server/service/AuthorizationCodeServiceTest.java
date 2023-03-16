@@ -14,7 +14,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
-public class AuthorizationCodeServiceTest {
+class AuthorizationCodeServiceTest {
     @Mock
     private AuthorizationCodeRepository authorizationCodeRepository;
 
