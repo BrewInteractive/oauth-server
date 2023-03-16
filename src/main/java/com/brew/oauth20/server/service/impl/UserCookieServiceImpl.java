@@ -6,6 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class UserCookieServiceImpl implements UserCookieService {
+
+    private static final Integer DEFAULT_COOKIE_EXPIRE_IN_MINUTES = 30;
+
     @Override
     public void deleteUserCookie(HttpServletResponse response, String key) {
         Cookie cookie = new Cookie(key, null);
@@ -17,9 +20,9 @@ public class UserCookieServiceImpl implements UserCookieService {
     }
 
     @Override
-    public void setUserCookie(HttpServletResponse response, String key, String value, int maxAgeMinuteCount, boolean isHttpOnly, boolean isSecure, String path) {
+    public void setUserCookie(HttpServletResponse response, String key, String value, int expiresInMin, boolean isHttpOnly, boolean isSecure, String path) {
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(maxAgeMinuteCount * 60);
+        cookie.setMaxAge(expiresInMin * 60);
         cookie.setSecure(isSecure);
         cookie.setHttpOnly(isHttpOnly);
         cookie.setPath(path);
@@ -27,23 +30,23 @@ public class UserCookieServiceImpl implements UserCookieService {
     }
 
     @Override
-    public void setUserCookie(HttpServletResponse response, String key, String value, int maxAgeMinuteCount, boolean isHttpOnly, boolean isSecure) {
-        this.setUserCookie(response, key, value, maxAgeMinuteCount, isHttpOnly, isSecure, "/");
+    public void setUserCookie(HttpServletResponse response, String key, String value, int expiresInMin, boolean isHttpOnly, boolean isSecure) {
+        this.setUserCookie(response, key, value, expiresInMin, isHttpOnly, isSecure, "/");
     }
 
     @Override
-    public void setUserCookie(HttpServletResponse response, String key, String value, int maxAgeMinuteCount, boolean isHttpOnly) {
-        this.setUserCookie(response, key, value, maxAgeMinuteCount, isHttpOnly, false, "/");
+    public void setUserCookie(HttpServletResponse response, String key, String value, int expiresInMin, boolean isHttpOnly) {
+        this.setUserCookie(response, key, value, expiresInMin, isHttpOnly, false, "/");
     }
 
     @Override
-    public void setUserCookie(HttpServletResponse response, String key, String value, int maxAgeMinuteCount) {
-        this.setUserCookie(response, key, value, maxAgeMinuteCount, false, false, "/");
+    public void setUserCookie(HttpServletResponse response, String key, String value, int expiresInMin) {
+        this.setUserCookie(response, key, value, expiresInMin, false, false, "/");
     }
 
     @Override
     public void setUserCookie(HttpServletResponse response, String key, String value) {
-        this.setUserCookie(response, key, value, 30, false, false, "/");
+        this.setUserCookie(response, key, value, DEFAULT_COOKIE_EXPIRE_IN_MINUTES, false, false, "/");
     }
 
     @Override
