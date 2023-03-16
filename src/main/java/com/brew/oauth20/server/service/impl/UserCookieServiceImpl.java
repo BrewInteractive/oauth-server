@@ -51,6 +51,9 @@ public class UserCookieServiceImpl implements UserCookieService {
 
     @Override
     public String getUserCookie(HttpServletRequest request, String key) {
+        var cookies = request.getCookies();
+        if (cookies == null)
+            return null;
         for (Cookie c : request.getCookies()) {
             if (c.getName().equals(key))
                 return c.getValue();
