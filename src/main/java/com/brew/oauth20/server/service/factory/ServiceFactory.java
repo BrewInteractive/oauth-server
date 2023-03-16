@@ -9,12 +9,11 @@ import org.springframework.context.ApplicationContext;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-public abstract class ServiceFactory<E, T> {
+public abstract class ServiceFactory<E extends Enum<E>, T> {
     private Map<E, Type> registeredServiceTypes;
 
     @Autowired
     private ApplicationContext context;
-
 
     public T getService(E providerType) throws MissingServiceException, UnsupportedServiceTypeException {
 

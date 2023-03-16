@@ -31,7 +31,7 @@ public abstract class BaseAuthorizeTypeProvider {
 
         //TODO: should mapper handle mapping operation
         var grantList = client.getClientsGrants().stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toCollection(ArrayList::new));
-        var redirectUrlList = client.getRedirectUrises().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toCollection(ArrayList::new));
+        var redirectUrlList = client.getRedirectUris().stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toCollection(ArrayList::new));
         return clientValidator.validate(
                 new ClientModel(
                         client.getId(),
