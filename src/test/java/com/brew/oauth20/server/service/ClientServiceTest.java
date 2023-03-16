@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
-public class ClientServiceTest {
+class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;
 

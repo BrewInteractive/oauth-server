@@ -4,10 +4,10 @@ public enum ResponseType {
     CODE("code"),
     TOKEN("token");
 
-    private final String responseType;
+    private final String responseTypeInstance;
 
     ResponseType(String responseType) {
-        this.responseType = responseType;
+        this.responseTypeInstance = responseType;
     }
 
     public static ResponseType fromString(String responseTypeString) {
@@ -20,6 +20,6 @@ public enum ResponseType {
     }
 
     public String getResponseType() {
-        return responseType;
+        return responseTypeInstance;
     }
 }
