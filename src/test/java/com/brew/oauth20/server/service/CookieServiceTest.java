@@ -6,6 +6,8 @@ import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
@@ -61,15 +63,20 @@ public class CookieServiceTest {
         assertThat(result).isEqualTo(cookie.getValue());
     }
 
-    @Test
-    void shouldNotGetUserCookieByKey() {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldNotGetUserCookieByKey(boolean requestHasCookie) {
         cookieFixture = new CookieFixture();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
 
+        if (requestHasCookie)
+            request.setCookies(new Cookie("existingkey", "test"));
+
         var service = new UserCookieServiceImpl();
 
-        var result = service.getUserCookie(request, faker.lorem().characters());
+        var result = service.getUserCookie(request, "notexistingkey");
 
         assertThat(result).isNull();
     }
