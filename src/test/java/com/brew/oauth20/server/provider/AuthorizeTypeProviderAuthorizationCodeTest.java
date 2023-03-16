@@ -42,7 +42,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var clientFixture = new ClientFixture();
         var client = clientFixture.createRandomOne(new ResponseType[]{ResponseType.CODE});
-        var url = client.getRedirectUrises().stream().findFirst().get().getRedirectUri();
+        var url = client.getRedirectUris().stream().findFirst().get().getRedirectUri();
         return Stream.of(
                 Arguments.of(Optional.of(client), client.getId(), url, new ValidationResultModel(true, null))
         );

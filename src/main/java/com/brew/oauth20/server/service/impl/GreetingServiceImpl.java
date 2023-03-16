@@ -8,10 +8,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class GreetingServiceImpl implements GreetingService {
-    private static final String template = "Hello, %s!";
+    private static final String TEMPLATE = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
+
     @Override
     public GreetingModel getGreetingModel(String name) {
-        return new GreetingModel(counter.incrementAndGet(), String.format(template, name));
+        return new GreetingModel(counter.incrementAndGet(), String.format(TEMPLATE, name));
     }
 }

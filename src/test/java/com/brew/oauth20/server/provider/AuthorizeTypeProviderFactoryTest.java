@@ -26,7 +26,7 @@ class AuthorizeTypeProviderFactoryTest {
     @Test
     void factoryShouldReturnAuthorizeTypeCodeProviderObject() {
         var service = authorizeTypeProviderFactory.getService(ResponseType.CODE);
-        assertThat(service instanceof AuthorizeTypeProviderAuthorizationCode).isTrue();
+        assertThat(service).isInstanceOf(AuthorizeTypeProviderAuthorizationCode.class);
     }
 
     @Test
@@ -38,7 +38,7 @@ class AuthorizeTypeProviderFactoryTest {
                 )
         );
         var service = authorizeTypeProviderFactory.getService(ResponseType.TOKEN);
-        assertThat(service instanceof AuthorizeTypeProviderToken).isTrue();
+        assertThat(service).isInstanceOf(AuthorizeTypeProviderToken.class);
     }
 
     @Test
