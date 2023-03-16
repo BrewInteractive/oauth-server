@@ -50,7 +50,7 @@ public class ClientFixture extends Fixture<Client> {
                 .supply(field(Client::getName), () -> faker.name().title())
                 .supply(field(Client::getId), () -> UUID.randomUUID())
                 .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
-                .supply(field(Client::getRedirectUrises), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
+                .supply(field(Client::getRedirectUris), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
     }
 }
