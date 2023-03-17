@@ -5,6 +5,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public class UserCookieServiceImpl implements UserCookieService {
 
     private static final Integer DEFAULT_COOKIE_EXPIRE_IN_MINUTES = 30;
@@ -51,13 +54,11 @@ public class UserCookieServiceImpl implements UserCookieService {
 
     @Override
     public String getUserCookie(HttpServletRequest request, String key) {
-        var cookies = request.getCookies();
-        if (cookies == null)
-            return null;
-        for (Cookie c : request.getCookies()) {
-            if (c.getName().equals(key))
-                return c.getValue();
-        }
-        return null;
+        return Optional.ofNullable(request.getCookies())
+                .flatMap(cookies -> Arrays.stream(cookies)
+                        .filter(c -> c.getName().equals(key))
+                        .findFirst()
+                        .map(Cookie::getValue))
+                .orElse(null);
     }
 }
