@@ -115,3 +115,11 @@ nb-configuration.xml
 ##############################
 .DS_Store
 
+
+##############################
+## Kubernetes secrets
+##############################
+/.kubernetes/test/kustomization.yml
+/.kubernetes/test/secret.yml
+/.kubernetes/production/kustomization.yml
+/.kubernetes/production/secret.yml
