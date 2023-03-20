@@ -15,7 +15,6 @@ public abstract class ServiceFactory<E extends Enum<E>, T> {
     @Autowired
     private ApplicationContext context;
 
-
     public T getService(E providerType) throws MissingServiceException, UnsupportedServiceTypeException {
 
         Type type = getRegisteredServiceTypes().get(providerType);

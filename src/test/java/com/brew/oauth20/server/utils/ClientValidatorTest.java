@@ -99,7 +99,7 @@ class ClientValidatorTest {
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
-        var clientValidator = new ClientValidator(validResponseType.name(), invalidRedirectUri);
+        var clientValidator = new ClientValidator(validResponseType.getResponseType(), invalidRedirectUri);
         var actualResult = clientValidator.validate(clientModel);
 
         // Assert
