@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,12 +24,12 @@ public interface ClientMapper {
     ClientModel toDTO(Client client);
 
     @Named("mapClientsGrants")
-    default Set<GrantModel> mapClientsGrants(Set<ClientsGrant> clientsGrants) {
-        return clientsGrants.stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toSet());
+    default ArrayList<GrantModel> mapClientsGrants(Set<ClientsGrant> clientsGrants) {
+        return clientsGrants.stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Named("mapRedirectUris")
-    default Set<RedirectUriModel> mapRedirectUris(Set<RedirectUris> redirectUris) {
-        return redirectUris.stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toSet());
+    default ArrayList<RedirectUriModel> mapRedirectUris(Set<RedirectUris> redirectUris) {
+        return redirectUris.stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toCollection(ArrayList::new));
     }
 }
