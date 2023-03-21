@@ -1,12 +1,15 @@
 package com.brew.oauth20.server.data;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Data
+
+@Getter
+@Setter
 @Entity
 @Table(name = "authorization_codes")
 public class AuthorizationCode {
@@ -43,7 +46,7 @@ public class AuthorizationCode {
     private OffsetDateTime updatedAt;
 
     public UUID getClientId() {
-        return client != null ? client.getId() : clientId;
+        return clientId;
     }
 
     public void setClientId(UUID clientId) {

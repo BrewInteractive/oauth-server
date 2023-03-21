@@ -17,11 +17,11 @@ public abstract class BaseAuthorizeTypeProvider {
     }
 
     public ValidationResultModel validate(UUID clientId, String redirectUri) {
-        var optionalClient = clientService.getClient(clientId);
-        if (optionalClient.isEmpty())
+        var clientModel = clientService.getClient(clientId);
+
+        if (clientModel == null)
             return new ValidationResultModel(false, "unauthorized_client");
 
-        var clientModel = optionalClient.get();
         var clientValidator = new ClientValidator(responseType.getResponseType(), redirectUri);
 
         return clientValidator.validate(clientModel);
