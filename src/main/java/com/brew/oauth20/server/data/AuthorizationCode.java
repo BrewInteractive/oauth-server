@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -50,11 +48,9 @@ public class AuthorizationCode {
     private OffsetDateTime usedAt;
 
     @Column(name = "created_at", nullable = false)
-    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
-    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt;
 
     @Override

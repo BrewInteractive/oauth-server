@@ -11,7 +11,7 @@ import lombok.Getter;
 public class AuthorizeRequest {
     @NotNull
     @NotEmpty
-    public String responseType;
+    public String response_type;
     @NotNull
     public String client_id;
     @NotNull

@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -32,10 +30,8 @@ public class ClientsUser {
     @Column(name = "id", nullable = false)
     private UUID id;
     @Column(name = "created_at", nullable = false)
-    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
-    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

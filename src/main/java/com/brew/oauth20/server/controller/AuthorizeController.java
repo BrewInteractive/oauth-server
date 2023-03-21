@@ -6,6 +6,7 @@ import com.brew.oauth20.server.model.AuthorizeRequest;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.UserCookieService;
+import com.brew.oauth20.server.utils.UriUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -36,19 +37,23 @@ public class AuthorizeController {
     public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequest authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
         try {
             HttpHeaders responseHeaders = new HttpHeaders();
+            String queryString = request.getQueryString();
+
+            if (!UriUtils.isValidUrl(authorizeRequest.redirect_uri))
+                return new ResponseEntity<>("invalid_request", HttpStatus.BAD_REQUEST);
 
             /*request parameters validation*/
             if (validationResult.hasErrors()) {
-                return generateRedirectErrorResponse("invalid_request", request.getQueryString(), authorizeRequest.redirect_uri);
+                return generateRedirectErrorResponse("invalid_request", queryString, authorizeRequest.redirect_uri);
             }
 
             /*authorize type validator*/
-            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.responseType));
+            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.response_type));
 
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.result())) {
-                return generateRedirectErrorResponse(authorizeTypeValidationResult.error(), request.getQueryString(), authorizeRequest.redirect_uri);
+                return generateRedirectErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequest.redirect_uri);
             }
 
             /*user cookie and authorization code*/
@@ -79,8 +84,8 @@ public class AuthorizeController {
     private ResponseEntity<String> generateRedirectErrorResponse(String error, String queryString, String redirectUri) {
         HttpHeaders responseHeaders = new HttpHeaders();
         String errorPrefix = (queryString == null ? "" : ("&error=" + error));
-        String locationHeader = redirectUri + "?" + (queryString == null ? "" : queryString);
+        String locationHeader = redirectUri + (queryString == null ? "" : ("?" + queryString));
         responseHeaders.set(locationHeaderKey, locationHeader + errorPrefix);
-        return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
+        return new ResponseEntity<>(error, responseHeaders, HttpStatus.FOUND);
     }
 }

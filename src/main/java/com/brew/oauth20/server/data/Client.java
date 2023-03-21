@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
@@ -42,10 +40,8 @@ public class Client {
     @Column(name = "client_secret", nullable = false, length = Integer.MAX_VALUE)
     private String clientSecret;
     @Column(name = "created_at", nullable = false)
-    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt = OffsetDateTime.now();
     @Column(name = "updated_at", nullable = false)
-    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt = OffsetDateTime.now();
     @Column(name = "token_expires_in_minutes", nullable = false)
     private Integer tokenExpiresInMinutes;

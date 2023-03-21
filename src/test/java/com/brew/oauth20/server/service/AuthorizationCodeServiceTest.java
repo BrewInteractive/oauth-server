@@ -46,7 +46,6 @@ class AuthorizationCodeServiceTest {
                 authorizationCode.getExpiresAt().toInstant().toEpochMilli(),
                 authorizationCode.getClient().getClientId()
         );
-
         assertThat(result).isNotEmpty().isNotBlank();
         verify(authorizationCodeRepository, times(1)).save(argThat(x ->
                 x.getUserId().equals(authorizationCode.getUserId())

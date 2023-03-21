@@ -23,10 +23,8 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     }
 
     @Override
-    public String createAuthorizationCode(Long userId, String redirectUri, long expiresIn, String clientId) throws Exception {
+    public String createAuthorizationCode(Long userId, String redirectUri, long expiresIn, String clientId) {
         var optionalClient = clientRepository.findByClientId(clientId);
-        if (!optionalClient.isPresent())
-            throw new Exception("client not found");
         var client = optionalClient.get();
         OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiresIn), ZoneOffset.UTC);
         String code = StringUtils.generateSecureRandomString();
@@ -36,6 +34,8 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
         authorizationCode.setCode(code);
         authorizationCode.setRedirectUri(redirectUri);
         authorizationCode.setExpiresAt(expiresAt);
+        authorizationCode.setCreatedAt(OffsetDateTime.now());
+        authorizationCode.setUpdatedAt(OffsetDateTime.now());
         authorizationCodeRepository.save(authorizationCode);
         return code;
     }
