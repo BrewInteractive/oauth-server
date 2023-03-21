@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.service.impl;
 
 import com.brew.oauth20.server.data.AuthorizationCode;
+import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
@@ -25,7 +26,9 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
         OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiresIn), ZoneOffset.UTC);
         String code = StringUtils.generateSecureRandomString();
         var authorizationCode = new AuthorizationCode();
-        authorizationCode.setClientId(clientId);
+        var client = new Client();
+        client.setId(clientId);
+        authorizationCode.setClient(client);
         authorizationCode.setUserId(userId);
         authorizationCode.setCode(code);
         authorizationCode.setRedirectUri(redirectUri);

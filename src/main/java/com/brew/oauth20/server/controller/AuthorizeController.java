@@ -54,7 +54,7 @@ public class AuthorizeController {
             /*user cookie and authorization code*/
             var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
 
-            if (userCookie.isBlank() || userCookie.isEmpty()) {
+            if (userCookie == null) {
                 String loginSignupRoute = authorizeRequest.redirect_uri + "/login";
                 responseHeaders.set(locationHeaderKey, loginSignupRoute);
                 return new ResponseEntity<>(responseHeaders, HttpStatus.TEMPORARY_REDIRECT);

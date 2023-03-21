@@ -8,8 +8,4 @@ import java.util.UUID;
 
 @Builder
 public record ClientModel(UUID id, ArrayList<GrantModel> grantList, ArrayList<RedirectUriModel> redirectUriList) {
-    public ClientModel {
-        grantList = new ArrayList<>();
-        redirectUriList = new ArrayList<>();
-    }
 }
