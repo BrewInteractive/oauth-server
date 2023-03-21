@@ -5,19 +5,26 @@ import com.brew.oauth20.server.data.enums.ResponseType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 
 @Getter
 @Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 @Table(name = "grants")
 public class Grant {
     @JsonIgnore
     @OneToMany(mappedBy = "grant")
+    @ToString.Exclude
     private final Set<ClientsGrant> clientsGrants = new LinkedHashSet<>();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +37,16 @@ public class Grant {
     @Enumerated(EnumType.STRING)
     private GrantType grantType;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Grant grant = (Grant) o;
+        return getId() != null && Objects.equals(getId(), grant.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
