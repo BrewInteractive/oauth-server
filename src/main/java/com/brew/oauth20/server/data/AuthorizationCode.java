@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.time.OffsetDateTime;
 import java.util.Objects;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Table(name = "authorization_codes")
 public class AuthorizationCode {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
@@ -47,18 +50,12 @@ public class AuthorizationCode {
     private OffsetDateTime usedAt;
 
     @Column(name = "created_at", nullable = false)
+    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
+    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt;
-
-    public UUID getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(UUID clientId) {
-        this.clientId = clientId;
-    }
 
     @Override
     public boolean equals(Object o) {

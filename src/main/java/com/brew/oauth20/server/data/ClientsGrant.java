@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -25,9 +27,11 @@ public class ClientsGrant {
     private UUID id;
 
     @Column(name = "created_at", nullable = false)
+    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
+    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -44,9 +48,6 @@ public class ClientsGrant {
     @Column(name = "audience", length = Integer.MAX_VALUE)
     private String audience;
 
-    public UUID getId() {
-        return id;
-    }
 
     @Override
     public boolean equals(Object o) {

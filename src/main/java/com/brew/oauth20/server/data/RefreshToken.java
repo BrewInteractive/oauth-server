@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -30,8 +32,10 @@ public class RefreshToken {
     @Column(name = "id", nullable = false)
     private UUID id;
     @Column(name = "created_at", nullable = false)
+    @Generated(value = GenerationTime.INSERT)
     private OffsetDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
+    @Generated(value = GenerationTime.ALWAYS)
     private OffsetDateTime updatedAt;
     @Column(name = "expires_at", nullable = false)
     private OffsetDateTime expiresAt;
