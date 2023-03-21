@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class AuthController {
+public class AuthorizeController {
     private final UserCookieService userCookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
     private final String locationHeaderKey;
 
-    public AuthController(UserCookieService userCookieService, AuthorizeTypeProviderFactory authorizeTypeProviderFactory, AuthorizationCodeService authorizationCodeService) {
+    public AuthorizeController(UserCookieService userCookieService, AuthorizeTypeProviderFactory authorizeTypeProviderFactory, AuthorizationCodeService authorizationCodeService) {
         this.userCookieService = userCookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
