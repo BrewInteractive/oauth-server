@@ -103,6 +103,21 @@ class AuthorizeControllerTest {
     }
 
     @Test
+    void should_redirect_unsupported_response_type_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
+                .queryParam("redirect_uri", notAuthorizedRedirectUri)
+                .queryParam("client_id", authorizedClientId)
+                .queryParam("response_type", "unsupported_response_type"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+        String location = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(location).contains(notAuthorizedRedirectUri)
+                .contains("error=unsupported_response_type");
+        assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
+    }
+
+    @Test
     void should_redirect_to_login() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
                 .queryParam("redirect_uri", authorizedRedirectUri)
