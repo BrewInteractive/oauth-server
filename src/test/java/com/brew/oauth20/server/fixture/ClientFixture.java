@@ -6,19 +6,21 @@ import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import java.time.ZoneOffset;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.instancio.Select.field;
 
 public class ClientFixture extends Fixture<Client> {
 
-    private final Integer defaultClientsGrantSize = 1;
     private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
-    private final Integer defaultRedirectUriSize = 1;
-
     private final ClientsGrantFixture clientsGrantFixture;
     private final RedirectUrisFixture redirectUriModelFixture;
+    private final Integer defaultClientsGrantSize = 1;
+    private final Integer defaultRedirectUriSize = 1;
 
     public ClientFixture() {
         super();
@@ -26,12 +28,12 @@ public class ClientFixture extends Fixture<Client> {
         this.redirectUriModelFixture = new RedirectUrisFixture();
     }
 
-    public Client createRandomOne() {
-        return createRandomOne(this.defaultResponseTypeOptions);
+    public Client createRandomOne(Boolean withChilds) {
+        return createRandomOne(this.defaultResponseTypeOptions, withChilds);
     }
 
-    public Client createRandomOne(ResponseType[] responseTypeOptions) {
-        return Instancio.of(client(responseTypeOptions))
+    public Client createRandomOne(ResponseType[] responseTypeOptions, Boolean withChilds) {
+        return Instancio.of(client(responseTypeOptions, withChilds))
                 .create();
     }
 
@@ -40,17 +42,30 @@ public class ClientFixture extends Fixture<Client> {
     }
 
     public Set<Client> createRandomList(Integer size, ResponseType[] responseTypeOptions) {
-        return Instancio.ofSet(client(responseTypeOptions))
+        return Instancio.ofSet(client(responseTypeOptions, true))
                 .size(size)
                 .create();
     }
 
-    private Model<Client> client(ResponseType[] responseTypeOptions) {
-        return Instancio.of(Client.class)
+    private Model<Client> client(ResponseType[] responseTypeOptions, Boolean withChilds) {
+        var model = Instancio.of(Client.class)
                 .supply(field(Client::getName), () -> faker.name().title())
                 .supply(field(Client::getId), () -> UUID.randomUUID())
-                .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
-                .supply(field(Client::getRedirectUris), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
-                .toModel();
+                .supply(field(Client::getCreatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
+                .supply(field(Client::getUpdatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
+                .supply(field(Client::getClientId), () -> faker.letterify("?????????"));
+
+        if (withChilds) {
+            model = model
+                    .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
+                    .supply(field(Client::getRedirectUris), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize));
+        } else {
+            model = model
+                    .supply(field(Client::getClientsGrants), () -> new LinkedHashSet<>())
+                    .supply(field(Client::getRedirectUris), () -> new LinkedHashSet<>())
+                    .supply(field(Client::getClientsUsers), () -> new LinkedHashSet<>());
+        }
+
+        return model.toModel();
     }
 }

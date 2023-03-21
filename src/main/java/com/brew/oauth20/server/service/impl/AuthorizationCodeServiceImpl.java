@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.service.impl;
 
 import com.brew.oauth20.server.data.AuthorizationCode;
-import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
+import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
 import org.springframework.stereotype.Service;
@@ -10,24 +10,27 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.UUID;
 
 @Service
 public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
 
     private final AuthorizationCodeRepository authorizationCodeRepository;
+    private final ClientRepository clientRepository;
 
-    public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository) {
+    public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository, ClientRepository clientRepository) {
         this.authorizationCodeRepository = authorizationCodeRepository;
+        this.clientRepository = clientRepository;
     }
 
     @Override
-    public String createAuthorizationCode(Long userId, String redirectUri, long expiresIn, UUID clientId) {
+    public String createAuthorizationCode(Long userId, String redirectUri, long expiresIn, String clientId) throws Exception {
+        var optionalClient = clientRepository.findByClientId(clientId);
+        if (!optionalClient.isPresent())
+            throw new Exception("client not found");
+        var client = optionalClient.get();
         OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiresIn), ZoneOffset.UTC);
         String code = StringUtils.generateSecureRandomString();
         var authorizationCode = new AuthorizationCode();
-        var client = new Client();
-        client.setId(clientId);
         authorizationCode.setClient(client);
         authorizationCode.setUserId(userId);
         authorizationCode.setCode(code);

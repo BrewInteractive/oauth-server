@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public interface ClientRepository extends JpaRepository<Client, UUID> {
     @EntityGraph(attributePaths = {"clientsGrants.grant", "redirectUris"})
-        // added EntityGraph annotation
-    Optional<Client> findById(UUID id);
+    Optional<Client> findByClientId(String clientId);
 }
 

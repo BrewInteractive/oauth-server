@@ -8,7 +8,6 @@ import com.brew.oauth20.server.service.ClientService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -24,8 +23,8 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientModel getClient(UUID clientId) {
-        Optional<Client> optionalClient = clientRepository.findById(clientId);
+    public ClientModel getClient(String clientId) {
+        Optional<Client> optionalClient = clientRepository.findByClientId(clientId);
         return optionalClient.map(clientMapper::toDTO).orElse(null);
     }
 }

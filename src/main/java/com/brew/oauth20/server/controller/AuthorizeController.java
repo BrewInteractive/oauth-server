@@ -43,7 +43,7 @@ public class AuthorizeController {
             }
 
             /*authorize type validator*/
-            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.response_type));
+            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.responseType));
 
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
 

@@ -5,8 +5,6 @@ import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.utils.ClientValidator;
 
-import java.util.UUID;
-
 public abstract class BaseAuthorizeTypeProvider {
     protected ResponseType responseType;
 
@@ -16,7 +14,7 @@ public abstract class BaseAuthorizeTypeProvider {
         this.clientService = clientService;
     }
 
-    public ValidationResultModel validate(UUID clientId, String redirectUri) {
+    public ValidationResultModel validate(String clientId, String redirectUri) {
         var clientModel = clientService.getClient(clientId);
 
         if (clientModel == null)
