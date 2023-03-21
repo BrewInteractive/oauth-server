@@ -4,10 +4,12 @@ import com.brew.oauth20.server.service.UserCookieService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+@Service
 public class UserCookieServiceImpl implements UserCookieService {
 
     private static final Integer DEFAULT_COOKIE_EXPIRE_IN_MINUTES = 30;

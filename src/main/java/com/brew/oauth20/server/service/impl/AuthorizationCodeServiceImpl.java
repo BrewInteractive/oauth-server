@@ -4,12 +4,14 @@ import com.brew.oauth20.server.data.AuthorizationCode;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+@Service
 public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
 
     private final AuthorizationCodeRepository authorizationCodeRepository;

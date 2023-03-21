@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class AuthorizeTypeProviderAuthorizationCode extends BaseAuthorizeTypeProvider {
     public AuthorizeTypeProviderAuthorizationCode(ClientService clientService) {
         super(clientService);
-        responseType = ResponseType.CODE;
+        responseType = ResponseType.code;
     }
 }

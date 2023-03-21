@@ -25,7 +25,7 @@ class AuthorizeTypeProviderFactoryTest {
 
     @Test
     void factoryShouldReturnAuthorizeTypeCodeProviderObject() {
-        var service = authorizeTypeProviderFactory.getService(ResponseType.CODE);
+        var service = authorizeTypeProviderFactory.getService(ResponseType.code);
         assertThat(service).isInstanceOf(AuthorizeTypeProviderAuthorizationCode.class);
     }
 
@@ -33,11 +33,11 @@ class AuthorizeTypeProviderFactoryTest {
     void factoryShouldReturnAuthorizeTypeTokenProviderObject() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.CODE, AuthorizeTypeProviderAuthorizationCode.class,
-                        ResponseType.TOKEN, AuthorizeTypeProviderToken.class
+                        ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class,
+                        ResponseType.token, AuthorizeTypeProviderToken.class
                 )
         );
-        var service = authorizeTypeProviderFactory.getService(ResponseType.TOKEN);
+        var service = authorizeTypeProviderFactory.getService(ResponseType.token);
         assertThat(service).isInstanceOf(AuthorizeTypeProviderToken.class);
     }
 
@@ -45,11 +45,11 @@ class AuthorizeTypeProviderFactoryTest {
     void factoryShouldThrowsUnsupportedServiceTypeException() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.CODE, AuthorizeTypeProviderAuthorizationCode.class
+                        ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class
                 )
         );
-        Exception exception = assertThrows(UnsupportedServiceTypeException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.TOKEN));
-        assertThat(exception.getMessage()).isEqualTo(ResponseType.TOKEN.toString());
+        Exception exception = assertThrows(UnsupportedServiceTypeException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.token));
+        assertThat(exception.getMessage()).isEqualTo(ResponseType.token.toString());
     }
 
 
@@ -57,10 +57,10 @@ class AuthorizeTypeProviderFactoryTest {
     void factoryShouldThrowsMissingServiceException() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
-                        ResponseType.CODE, MockAuthorizeTypeProviderNotExistingInIoc.class
+                        ResponseType.code, MockAuthorizeTypeProviderNotExistingInIoc.class
                 )
         );
-        Exception exception = assertThrows(MissingServiceException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.CODE));
+        Exception exception = assertThrows(MissingServiceException.class, () -> authorizeTypeProviderFactory.getService(ResponseType.code));
         assertInstanceOf(BeansException.class, exception.getCause());
     }
 }

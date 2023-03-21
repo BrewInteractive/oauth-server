@@ -29,19 +29,19 @@ class ClientValidatorTest {
     private static Stream<Arguments> invalidClientResponseTypeShouldReturnInvalidResult() {
         return Stream.of(
                 Arguments.of(
-                        ResponseType.CODE,
+                        ResponseType.code,
                         1,
-                        new ResponseType[]{ResponseType.TOKEN}
+                        new ResponseType[]{ResponseType.token}
                 ),
                 Arguments.of(
-                        ResponseType.TOKEN,
+                        ResponseType.token,
                         1,
-                        new ResponseType[]{ResponseType.CODE}
+                        new ResponseType[]{ResponseType.code}
                 ),
                 Arguments.of(
-                        ResponseType.CODE,
+                        ResponseType.code,
                         2,
-                        new ResponseType[]{ResponseType.TOKEN}
+                        new ResponseType[]{ResponseType.token}
                 )
         );
     }

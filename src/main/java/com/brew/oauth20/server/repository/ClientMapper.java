@@ -1,0 +1,34 @@
+package com.brew.oauth20.server.repository;
+
+import com.brew.oauth20.server.data.Client;
+import com.brew.oauth20.server.data.ClientsGrant;
+import com.brew.oauth20.server.data.RedirectUris;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.GrantModel;
+import com.brew.oauth20.server.model.RedirectUriModel;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Mapper(componentModel = "spring")
+public interface ClientMapper {
+    ClientMapper INSTANCE = Mappers.getMapper(ClientMapper.class);
+
+    @Mapping(source = "clientsGrants", target = "grantList", qualifiedByName = "mapClientsGrants")
+    @Mapping(source = "redirectUris", target = "redirectUriList", qualifiedByName = "mapRedirectUris")
+    ClientModel toDTO(Client client);
+
+    @Named("mapClientsGrants")
+    default Set<GrantModel> mapClientsGrants(Set<ClientsGrant> clientsGrants) {
+        return clientsGrants.stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toSet());
+    }
+
+    @Named("mapRedirectUris")
+    default Set<RedirectUriModel> mapRedirectUris(Set<RedirectUris> redirectUris) {
+        return redirectUris.stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toSet());
+    }
+}

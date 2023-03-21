@@ -5,17 +5,19 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.UUID;
+
+
 @Getter
 @Builder
 public class AuthorizeRequest {
-    @NotEmpty
     @NotNull
+    @NotEmpty
     public String response_type;
-    @NotEmpty
     @NotNull
-    public String client_id;
-    @NotEmpty
+    public UUID client_id;
     @NotNull
+    @NotEmpty
     public String redirect_uri;
     public String state;
 }

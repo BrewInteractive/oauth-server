@@ -12,7 +12,7 @@ import static org.instancio.Select.field;
 
 public class ClientsGrantFixture extends Fixture<ClientsGrant> {
 
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.CODE, ResponseType.TOKEN};
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
 
     private final GrantFixture grantFixture;
 
