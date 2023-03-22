@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class AuthorizeRequest {
+public class AuthorizeRequestModel {
     @NotNull
     @NotEmpty
     public String response_type;
