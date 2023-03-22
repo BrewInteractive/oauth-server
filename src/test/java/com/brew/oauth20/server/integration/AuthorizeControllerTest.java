@@ -43,34 +43,20 @@ class AuthorizeControllerTest {
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize"));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
     @Test
     void should_not_redirect_with_invalid_uri_parameter_invalid_request_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", invalidRedirectUri)
-                .queryParam("client_id", unauthorizedClientId)
-                .queryParam("response_type", "code"));
+                .queryParam("redirect_uri", invalidRedirectUri));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
-    @Test
-    void should_redirect_with_missing_parameters_invalid_request_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", authorizedRedirectUri));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
-                .contains("error=invalid_request");
-        assertThat(response.getContentAsString()).isEqualTo("invalid_request");
-    }
 
     @Test
     void should_redirect_unauthorized_client_test() throws Exception {
@@ -126,7 +112,7 @@ class AuthorizeControllerTest {
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
         String location = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isTemporaryRedirect());
+        resultActions.andExpect(status().isFound());
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("login");
     }

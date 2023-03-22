@@ -2,11 +2,10 @@ package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
-import com.brew.oauth20.server.model.AuthorizeRequestModel;
+import com.brew.oauth20.server.model.AuthorizeRequest;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.UserCookieService;
-import com.brew.oauth20.server.utils.UriUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -34,40 +33,39 @@ public class AuthorizeController {
     }
 
     @GetMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequestModel") AuthorizeRequestModel authorizeRequestModel, BindingResult validationResult, HttpServletRequest request) {
+    public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequest authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
         try {
             HttpHeaders responseHeaders = new HttpHeaders();
             String queryString = request.getQueryString();
 
-            if (!UriUtils.isValidUrl(authorizeRequestModel.redirect_uri))
-                return new ResponseEntity<>("invalid_request", HttpStatus.BAD_REQUEST);
-
             /*request parameters validation*/
             if (validationResult.hasErrors()) {
-                return generateRedirectErrorResponse("invalid_request", queryString, authorizeRequestModel.redirect_uri);
+                return generateRedirectErrorResponse("invalid_request", queryString, authorizeRequest.redirect_uri);
             }
 
             /*authorize type validator*/
-            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequestModel.response_type));
+            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.response_type));
 
-            var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequestModel.client_id, authorizeRequestModel.redirect_uri);
+            var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.result())) {
-                return generateRedirectErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequestModel.redirect_uri);
+                return generateRedirectErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequest.redirect_uri);
             }
 
             /*user cookie and authorization code*/
             var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
 
+            /*not logged-in user redirect login signup*/
             if (userCookie == null) {
-                String loginSignupRoute = authorizeRequestModel.redirect_uri + "/login";
+                String loginSignupRoute = authorizeRequest.redirect_uri + "/login";
                 responseHeaders.set(locationHeaderKey, loginSignupRoute);
-                return new ResponseEntity<>(responseHeaders, HttpStatus.TEMPORARY_REDIRECT);
+                return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
             }
 
-            var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie), authorizeRequestModel.redirect_uri, 100, authorizeRequestModel.client_id);
+            var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie), authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
 
-            String successRoute = authorizeRequestModel.redirect_uri + "?code=" + code
+            /*logged-in user redirect with authorization code*/
+            String successRoute = authorizeRequest.redirect_uri + "?code=" + code
                     + "?locale=" + "fr"
                     + "?state=" + "abc123"
                     + "?userState=" + "Authenticated";
@@ -75,17 +73,17 @@ public class AuthorizeController {
             responseHeaders.set(locationHeaderKey, successRoute);
             return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
         } catch (UnsupportedServiceTypeException e) {
-            return generateRedirectErrorResponse("unsupported_response_type", request.getQueryString(), authorizeRequestModel.redirect_uri);
+            return generateRedirectErrorResponse("unsupported_response_type", request.getQueryString(), authorizeRequest.redirect_uri);
         } catch (Exception e) {
-            return generateRedirectErrorResponse("server_error", request.getQueryString(), authorizeRequestModel.redirect_uri);
+            return generateRedirectErrorResponse("server_error", request.getQueryString(), authorizeRequest.redirect_uri);
         }
     }
 
     private ResponseEntity<String> generateRedirectErrorResponse(String error, String queryString, String redirectUri) {
         HttpHeaders responseHeaders = new HttpHeaders();
-        String errorPrefix = (queryString == null ? "" : ("&error=" + error));
-        String locationHeader = redirectUri + (queryString == null ? "" : ("?" + queryString));
-        responseHeaders.set(locationHeaderKey, locationHeader + errorPrefix);
+        String locationHeader = redirectUri + (queryString == null ? "" : ("?" + queryString)) + ("&error=" + error);
+        if (redirectUri != null)
+            responseHeaders.set(locationHeaderKey, locationHeader);
         return new ResponseEntity<>(error, responseHeaders, HttpStatus.FOUND);
     }
 }
