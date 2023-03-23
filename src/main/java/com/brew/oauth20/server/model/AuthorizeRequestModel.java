@@ -13,6 +13,7 @@ public class AuthorizeRequestModel {
     @NotEmpty
     public String response_type;
     @NotNull
+    @NotEmpty
     public String client_id;
     @NotNull
     @NotEmpty
