@@ -19,7 +19,7 @@ public class CookieServiceTest {
     CookieFixture cookieFixture;
 
     @BeforeAll
-    public static void Init() {
+    public static void init() {
         faker = new Faker();
     }
 

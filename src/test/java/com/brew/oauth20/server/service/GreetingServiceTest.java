@@ -38,8 +38,8 @@ public class GreetingServiceTest {
         );
     }
 
-    @MethodSource
     @ParameterizedTest
+    @MethodSource
     void getGreetingModelShouldReturnGreetingModel(GreetingModel input, GreetingModel expected) {
 
         var service = new GreetingServiceImpl();
