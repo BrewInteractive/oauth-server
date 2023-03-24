@@ -3,17 +3,12 @@ package com.brew.oauth20.server.utils;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.utils.interfaces.Validator;
+import com.brew.oauth20.server.utils.abstracts.BaseValidator;
 
 
-public class ClientValidator implements Validator<ClientModel> {
-
-    private final String responseType;
-    private final String redirectUri;
-
-    public ClientValidator(String responseType, String redirectUri) {
-        this.responseType = responseType;
-        this.redirectUri = redirectUri;
+public class ClientValidator extends BaseValidator<ClientModel> {
+    public ClientValidator(ClientModel clientModel) {
+        super(clientModel);
     }
 
     private static ValidationResultModel getErrorResponse() {
@@ -24,24 +19,23 @@ public class ClientValidator implements Validator<ClientModel> {
         return new ValidationResultModel(true, null);
     }
 
-    @Override
-    public ValidationResultModel validate(ClientModel client) {
-        if (!validateResponseType(client))
+    public ValidationResultModel validate(String responseType, String redirectUri) {
+        if (!validateResponseType(responseType))
             return getErrorResponse();
 
-        if (!validateRedirectUri(client))
+        if (!validateRedirectUri(redirectUri))
             return getErrorResponse();
 
         return getSuccessResponse();
     }
 
-    private boolean validateResponseType(ClientModel client) {
-        return client.grantList().stream()
-                .anyMatch(grantModel -> grantModel.responseType() == ResponseType.fromValue(this.responseType));
+    private boolean validateResponseType(String responseType) {
+        return this.model.grantList().stream()
+                .anyMatch(grantModel -> grantModel.responseType() == ResponseType.fromValue(responseType));
     }
 
-    private boolean validateRedirectUri(ClientModel client) {
-        return client.redirectUriList().stream()
-                .anyMatch(redirectUriModel -> redirectUriModel.redirectUri().equals(this.redirectUri));
+    private boolean validateRedirectUri(String redirectUri) {
+        return this.model.redirectUriList().stream()
+                .anyMatch(redirectUriModel -> redirectUriModel.redirectUri().equals(redirectUri));
     }
 }
