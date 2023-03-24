@@ -25,6 +25,9 @@ public class Client {
     @Column(name = "client_secret", nullable = false, length = Integer.MAX_VALUE)
     private String clientSecret;
 
+    @Column(name = "issue_refresh_tokens", nullable = false)
+    private Boolean issueRefreshTokens;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 
