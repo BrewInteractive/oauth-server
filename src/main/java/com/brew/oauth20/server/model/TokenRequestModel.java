@@ -2,9 +2,11 @@ package com.brew.oauth20.server.model;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
+@Setter
 public class TokenRequestModel {
     @NotNull
     @NotEmpty
