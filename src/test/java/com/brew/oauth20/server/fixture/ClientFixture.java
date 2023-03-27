@@ -28,12 +28,12 @@ public class ClientFixture extends Fixture<Client> {
         this.redirectUriModelFixture = new RedirectUrisFixture();
     }
 
-    public Client createRandomOne(Boolean withChilds) {
-        return createRandomOne(this.defaultResponseTypeOptions, withChilds);
+    public Client createRandomOne(Boolean withChildren) {
+        return createRandomOne(this.defaultResponseTypeOptions, withChildren);
     }
 
-    public Client createRandomOne(ResponseType[] responseTypeOptions, Boolean withChilds) {
-        return Instancio.of(client(responseTypeOptions, withChilds))
+    public Client createRandomOne(ResponseType[] responseTypeOptions, Boolean withChildren) {
+        return Instancio.of(client(responseTypeOptions, withChildren))
                 .create();
     }
 
@@ -47,7 +47,7 @@ public class ClientFixture extends Fixture<Client> {
                 .create();
     }
 
-    private Model<Client> client(ResponseType[] responseTypeOptions, Boolean withChilds) {
+    private Model<Client> client(ResponseType[] responseTypeOptions, Boolean withChildren) {
         var model = Instancio.of(Client.class)
                 .supply(field(Client::getName), () -> faker.name().title())
                 .supply(field(Client::getId), () -> UUID.randomUUID())
@@ -55,7 +55,7 @@ public class ClientFixture extends Fixture<Client> {
                 .supply(field(Client::getUpdatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
                 .supply(field(Client::getClientId), () -> faker.letterify("?????????"));
 
-        if (withChilds) {
+        if (withChildren) {
             model = model
                     .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
                     .supply(field(Client::getRedirectUris), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize));

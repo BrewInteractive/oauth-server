@@ -2,7 +2,7 @@ package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
-import com.brew.oauth20.server.model.AuthorizeRequest;
+import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.UserCookieService;
@@ -33,14 +33,13 @@ public class AuthorizeController {
     }
 
     @GetMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequest authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+    public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
         try {
-            HttpHeaders responseHeaders = new HttpHeaders();
             String queryString = request.getQueryString();
 
             /*request parameters validation*/
             if (validationResult.hasErrors()) {
-                return generateRedirectErrorResponse("invalid_request", queryString, authorizeRequest.redirect_uri);
+                return generateErrorResponse("invalid_request", queryString, authorizeRequest.redirect_uri);
             }
 
             /*authorize type validator*/
@@ -49,7 +48,7 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.result())) {
-                return generateRedirectErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequest.redirect_uri);
+                return generateErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequest.redirect_uri);
             }
 
             /*user cookie and authorization code*/
@@ -57,33 +56,43 @@ public class AuthorizeController {
 
             /*not logged-in user redirect login signup*/
             if (userCookie == null) {
-                String loginSignupRoute = authorizeRequest.redirect_uri + "/login";
-                responseHeaders.set(locationHeaderKey, loginSignupRoute);
-                return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
+                return generateLoginResponse(authorizeRequest.redirect_uri);
             }
 
             var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie), authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
 
             /*logged-in user redirect with authorization code*/
-            String successRoute = authorizeRequest.redirect_uri + "?code=" + code
-                    + "?locale=" + "fr"
-                    + "?state=" + "abc123"
-                    + "?userState=" + "Authenticated";
-
-            responseHeaders.set(locationHeaderKey, successRoute);
-            return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
+            return generateSuccessResponse(code, authorizeRequest.redirect_uri);
         } catch (UnsupportedServiceTypeException e) {
-            return generateRedirectErrorResponse("unsupported_response_type", request.getQueryString(), authorizeRequest.redirect_uri);
+            return generateErrorResponse("unsupported_response_type", request.getQueryString(), authorizeRequest.redirect_uri);
         } catch (Exception e) {
-            return generateRedirectErrorResponse("server_error", request.getQueryString(), authorizeRequest.redirect_uri);
+            return generateErrorResponse("server_error", request.getQueryString(), authorizeRequest.redirect_uri);
         }
     }
 
-    private ResponseEntity<String> generateRedirectErrorResponse(String error, String queryString, String redirectUri) {
+    private ResponseEntity<String> generateErrorResponse(String error, String queryString, String redirectUri) {
         HttpHeaders responseHeaders = new HttpHeaders();
         String locationHeader = redirectUri + (queryString == null ? "" : ("?" + queryString)) + ("&error=" + error);
         if (redirectUri != null)
             responseHeaders.set(locationHeaderKey, locationHeader);
         return new ResponseEntity<>(error, responseHeaders, HttpStatus.FOUND);
+    }
+
+    private ResponseEntity<String> generateLoginResponse(String redirectUri) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        String loginSignupRoute = redirectUri + "/login";
+        responseHeaders.set(locationHeaderKey, loginSignupRoute);
+        return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
+    }
+
+    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        String successRoute = redirectUri + "?code=" + code
+                + "?locale=" + "fr"
+                + "?state=" + "abc123"
+                + "?userState=" + "Authenticated";
+
+        responseHeaders.set(locationHeaderKey, successRoute);
+        return new ResponseEntity<>(responseHeaders, HttpStatus.FOUND);
     }
 }
