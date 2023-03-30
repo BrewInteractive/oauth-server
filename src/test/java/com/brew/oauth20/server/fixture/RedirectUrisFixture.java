@@ -12,7 +12,8 @@ import static org.instancio.Select.field;
 
 public class RedirectUrisFixture extends Fixture<RedirectUris> {
     public RedirectUris createRandomOne() {
-        return createRandomOne();
+        return Instancio.of(redirectUris())
+                .create();
     }
 
     public Set<RedirectUris> createRandomList(Integer size) {

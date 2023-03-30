@@ -1,15 +1,17 @@
 package com.brew.oauth20.server.integration;
 
-import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
+import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.fixture.ClientFixture;
+import com.brew.oauth20.server.fixture.ClientsGrantFixture;
+import com.brew.oauth20.server.fixture.GrantFixture;
+import com.brew.oauth20.server.fixture.RedirectUrisFixture;
+import com.brew.oauth20.server.repository.*;
 import jakarta.servlet.http.Cookie;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -22,21 +24,60 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@Sql(scripts = {"classpath:oauth-authorize/init-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthorizeControllerTest {
 
-    private final String authorizedRedirectUri = "http://www.redirect_uri.com";
-    private final String invalidRedirectUri = "redirect_uri";
     private final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
-
-
-    private final String authorizedClientId = "i7GDRmtPPishVmCc5sHY42hppBUYIh3S";
-    private final String unauthorizedClientId = "unauthorized_client_id";
+    private String authorizedRedirectUri;
+    private String authorizedClientId;
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
+    @Autowired
+    private ClientRepository clientRepository;
+    @Autowired
+    private ClientsGrantRepository clientsGrantRepository;
+    @Autowired
+    private GrantRepository grantRepository;
+    @Autowired
+    private RedirectUrisRepository redirectUrisRepository;
+
+    @BeforeAll
+    void setup() {
+        var clientFixture = new ClientFixture();
+        var clientsGrantFixture = new ClientsGrantFixture();
+        var grantFixture = new GrantFixture();
+        var redirectUrisFixture = new RedirectUrisFixture();
+
+        var client = clientFixture.createRandomOne(false);
+        var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var clientsGrant = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var redirectUris = redirectUrisFixture.createRandomOne();
+
+        var savedClient = clientRepository.save(client);
+        var savedGrant = grantRepository.save(grant);
+
+        redirectUris.setClient(savedClient);
+        redirectUrisRepository.save(redirectUris);
+
+        clientsGrant.setClient(savedClient);
+        clientsGrant.setGrant(savedGrant);
+        clientsGrantRepository.save(clientsGrant);
+
+        authorizedClientId = client.getClientId();
+        authorizedRedirectUri = redirectUris.getRedirectUri();
+    }
+
+    @AfterAll
+    void emptyData() {
+        authorizationCodeRepository.deleteAll();
+        clientsGrantRepository.deleteAllInBatch();
+        redirectUrisRepository.deleteAllInBatch();
+        clientRepository.deleteAll();
+        grantRepository.deleteAllInBatch();
+    }
 
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_test() throws Exception {
@@ -49,6 +90,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_not_redirect_with_invalid_uri_parameter_invalid_request_test() throws Exception {
+        String invalidRedirectUri = "redirect_uri";
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
                 .queryParam("redirect_uri", invalidRedirectUri));
         MvcResult mvcResult = resultActions.andReturn();
@@ -60,6 +102,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_unauthorized_client_test() throws Exception {
+        String unauthorizedClientId = "unauthorized_client_id";
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
                 .queryParam("redirect_uri", authorizedRedirectUri)
                 .queryParam("client_id", unauthorizedClientId)
@@ -119,9 +162,9 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code() throws Exception {
-        Long userId = 12345L;
+        long userId = 12345L;
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .cookie(new Cookie("SESSION_ID", userId.toString()))
+                .cookie(new Cookie("SESSION_ID", userId + ""))
                 .queryParam("redirect_uri", authorizedRedirectUri)
                 .queryParam("client_id", authorizedClientId)
                 .queryParam("response_type", "code"));

@@ -7,7 +7,7 @@ import com.brew.oauth20.server.testUtils.FakerUtils;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 import static org.instancio.Select.field;
 
@@ -23,18 +23,9 @@ public class GrantFixture extends Fixture<Grant> {
                 .create();
     }
 
-    public Set<Grant> createRandomList(Integer size) {
-        return createRandomList(size, this.defaultResponseTypeOptions);
-    }
-
-    public Set<Grant> createRandomList(Integer size, ResponseType[] responseTypeOptions) {
-        return Instancio.ofSet(grant(responseTypeOptions))
-                .size(size)
-                .create();
-    }
-
     private Model<Grant> grant(ResponseType[] responseTypeOptions) {
         return Instancio.of(Grant.class)
+                .supply(field(Grant::getClientsGrants), () -> new LinkedHashSet<>())
                 .supply(field(Grant::getResponseType), () -> FakerUtils.createRandomResponseType(faker, responseTypeOptions))
                 .toModel();
     }
