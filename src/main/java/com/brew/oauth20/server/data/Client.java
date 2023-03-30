@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-
 @Getter
 @Setter
 @ToString
@@ -39,6 +38,8 @@ public class Client {
     private String clientId;
     @Column(name = "client_secret", nullable = false, length = Integer.MAX_VALUE)
     private String clientSecret;
+    @Column(name = "issue_refresh_tokens", nullable = false)
+    private Boolean issueRefreshTokens;
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
     @Column(name = "updated_at", nullable = false)
@@ -50,8 +51,10 @@ public class Client {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         Client client = (Client) o;
         return getId() != null && Objects.equals(getId(), client.getId());
     }
