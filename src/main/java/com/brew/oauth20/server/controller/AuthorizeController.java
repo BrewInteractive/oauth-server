@@ -12,9 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthorizeController {
@@ -34,6 +32,16 @@ public class AuthorizeController {
 
     @GetMapping(value = "/oauth/authorize")
     public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+        return authorize(authorizeRequest, validationResult, request);
+    }
+
+
+    @PostMapping(value = "/oauth/authorize")
+    public ResponseEntity<String> post(@Valid @RequestBody AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+        return authorize(authorizeRequest, validationResult, request);
+    }
+
+    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
         try {
             String queryString = request.getQueryString();
 
@@ -69,6 +77,7 @@ public class AuthorizeController {
             return generateErrorResponse("server_error", request.getQueryString(), authorizeRequest.redirect_uri);
         }
     }
+
 
     private ResponseEntity<String> generateErrorResponse(String error, String queryString, String redirectUri) {
         HttpHeaders responseHeaders = new HttpHeaders();
