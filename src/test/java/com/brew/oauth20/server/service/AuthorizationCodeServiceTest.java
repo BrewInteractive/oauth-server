@@ -26,7 +26,7 @@ class AuthorizationCodeServiceTest {
     private AuthorizationCodeFixture authorizationCodeFixture;
 
     @Test
-    void shouldCreateAuthorizationCodeAndReturnCode() {
+    void should_create_authorization_code_and_return_code() {
 
         authorizationCodeFixture = new AuthorizationCodeFixture();
 
@@ -56,7 +56,7 @@ class AuthorizationCodeServiceTest {
     }
 
     @Test
-    void shouldFindAuthorizationCodeByCodeAndRedirectUri() {
+    void should_find_authorization_code_by_code_and_redirect_uri() {
 
         authorizationCodeFixture = new AuthorizationCodeFixture();
 
@@ -74,7 +74,7 @@ class AuthorizationCodeServiceTest {
     }
 
     @Test
-    void shouldFindAuthorizationCodeByCodeAndRedirectUriAndSetUsedAt() {
+    void should_find_authorization_code_by_code_and_redirect_uri_and_set_used_at() {
 
         authorizationCodeFixture = new AuthorizationCodeFixture();
 

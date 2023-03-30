@@ -26,7 +26,7 @@ class ClientValidatorTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> invalidClientResponseTypeShouldReturnInvalidResult() {
+    private static Stream<Arguments> invalid_client_response_type_should_return_invalid_result() {
         return Stream.of(
                 Arguments.of(
                         ResponseType.code,
@@ -56,7 +56,7 @@ class ClientValidatorTest {
     }
 
     @Test
-    void validClientShouldReturnValidResult() {
+    void valid_client_should_return_valid_result() {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
@@ -74,7 +74,7 @@ class ClientValidatorTest {
 
     @MethodSource
     @ParameterizedTest
-    void invalidClientResponseTypeShouldReturnInvalidResult(ResponseType invalidResponseType, Integer grantSize, ResponseType[] responseTypeOptions) {
+    void invalid_client_response_type_should_return_invalid_result(ResponseType invalidResponseType, Integer grantSize, ResponseType[] responseTypeOptions) {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne(grantSize, responseTypeOptions);
@@ -90,7 +90,7 @@ class ClientValidatorTest {
     }
 
     @Test
-    void invalidClientRedirectUriShouldReturnInvalidResult() {
+    void invalid_client_redirect_uri_should_return_invalid_result() {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();

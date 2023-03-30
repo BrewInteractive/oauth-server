@@ -28,7 +28,7 @@ class ClientServiceTest {
     private ClientFixture clientFixture;
 
     @Test
-    void shouldGetClientByClientId() {
+    void should_get_client_by_client_id() {
 
         clientFixture = new ClientFixture();
 

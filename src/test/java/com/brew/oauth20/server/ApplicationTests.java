@@ -16,7 +16,7 @@ class ApplicationTests {
     private GreetingService greetingService;
 
     @Test
-    void contextLoads() {
+    void should_load_context() {
         assertThat(greetingController).isNotNull();
         assertThat(greetingService).isNotNull();
     }

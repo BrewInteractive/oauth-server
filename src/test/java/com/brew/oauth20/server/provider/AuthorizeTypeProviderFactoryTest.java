@@ -24,13 +24,13 @@ class AuthorizeTypeProviderFactoryTest {
     AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
 
     @Test
-    void factoryShouldReturnAuthorizeTypeCodeProviderObject() {
+    void should_return_authorize_type_code_provider_object() {
         var service = authorizeTypeProviderFactory.getService(ResponseType.code);
         assertThat(service).isInstanceOf(AuthorizeTypeProviderAuthorizationCode.class);
     }
 
     @Test
-    void factoryShouldReturnAuthorizeTypeTokenProviderObject() {
+    void should_return_authorize_type_token_provider_object() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
                         ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class,
@@ -42,7 +42,7 @@ class AuthorizeTypeProviderFactoryTest {
     }
 
     @Test
-    void factoryShouldThrowsUnsupportedServiceTypeException() {
+    void should_throws_unsupported_service_type_exception() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
                         ResponseType.code, AuthorizeTypeProviderAuthorizationCode.class
@@ -54,7 +54,7 @@ class AuthorizeTypeProviderFactoryTest {
 
 
     @Test
-    void factoryShouldThrowsMissingServiceException() {
+    void should_throws_missing_service_exception() {
         authorizeTypeProviderFactory.setRegisteredServiceTypes(
                 Map.of(
                         ResponseType.code, MockAuthorizeTypeProviderNotExistingInIoc.class

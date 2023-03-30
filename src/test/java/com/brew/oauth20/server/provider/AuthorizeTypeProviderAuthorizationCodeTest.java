@@ -37,7 +37,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> shouldReturnValidResult() {
+    private static Stream<Arguments> should_return_valid_result() {
 
         var clientModelFixture = new ClientModelFixture();
         var client = clientModelFixture.createRandomOne(1, new ResponseType[]{ResponseType.code});
@@ -50,7 +50,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
     @MethodSource
     @ParameterizedTest
-    void shouldReturnValidResult(ClientModel clientModel, String clientId, String url, ValidationResultModel validationResultModel) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel validationResultModel) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(clientModel);
@@ -63,7 +63,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
     }
 
     @Test
-    void shouldReturnInvalidResult() {
+    void should_return_invalid_result() {
         var clientId = UUID.randomUUID().toString();
         var url = faker.internet().url();
         Mockito.reset(clientService);
