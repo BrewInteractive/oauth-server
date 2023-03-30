@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.service;
 
+import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.AuthorizationCodeFixture;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.ClientRepository;
@@ -13,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -89,5 +91,28 @@ class AuthorizationCodeServiceTest {
 
         assertThat(result).isEqualTo(authorizationCode.getCode());
         verify(authorizationCodeRepository).save(authorizationCode);
+    }
+
+    @Test
+    void should_create_authorization_code_throw_client_not_found_exception() {
+        authorizationCodeFixture = new AuthorizationCodeFixture();
+
+        var authorizationCode = authorizationCodeFixture.createRandomOne();
+
+        when(clientRepository.findByClientId(authorizationCode.getClient().getClientId()))
+                .thenReturn(Optional.ofNullable(null));
+
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, clientRepository);
+
+
+        Throwable thrown = catchThrowable(() -> authorizationCodeService.createAuthorizationCode(
+                authorizationCode.getUserId(),
+                authorizationCode.getRedirectUri(),
+                authorizationCode.getExpiresAt().toInstant().toEpochMilli(),
+                authorizationCode.getClient().getClientId()
+        ));
+
+        assertThat(thrown)
+                .isInstanceOf(ClientNotFoundException.class);
     }
 }
