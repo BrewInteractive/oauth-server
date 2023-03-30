@@ -1,18 +1,19 @@
 package com.brew.oauth20.server.utils;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class UriUtils {
     private UriUtils() {
     }
 
-    public static boolean isValidUrl(String url) throws MalformedURLException {
+    public static boolean isValidUrl(String url) throws PatternSyntaxException, NullPointerException {
         try {
-            // it will check only for scheme and not null input
-            new URL(url);
-            return true;
-        } catch (MalformedURLException e) {
+            Pattern regex = Pattern.compile("\\b(?:(https?|ftp|file)://|www\\.)?[-A-Z0-9+&#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]\\.[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|$]", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            Matcher regexMatcher = regex.matcher(url);
+            return regexMatcher.matches();
+        } catch (PatternSyntaxException | NullPointerException ex) {
             return false;
         }
     }
