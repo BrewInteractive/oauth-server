@@ -1,24 +1,23 @@
 package com.brew.oauth20.server.model;
 
-import com.brew.oauth20.server.utils.validators.constraints.UriConstraint;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings({"java:S116", "java:S1104"})
 @Getter
 @Setter
-public class AuthorizeRequestModel {
+public class TokenRequestModel {
     @NotNull
     @NotEmpty
-    public String response_type;
+    public String grant_type;
     @NotNull
     @NotEmpty
-    public String client_id;
-    @NotNull
-    @NotEmpty
-    @UriConstraint
     public String redirect_uri;
+    public String client_id;
+    public String client_secret;
+    public String code;
+    public String refresh_token;
     public String state;
 }
