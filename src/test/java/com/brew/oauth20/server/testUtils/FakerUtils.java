@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.testUtils;
 
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,10 @@ public class FakerUtils {
 
     public static ResponseType createRandomResponseType(@NotNull Faker faker, ResponseType[] responseTypeOptions) {
         return faker.options().option(responseTypeOptions);
+    }
 
+    public static GrantType createRandomGrantType(@NotNull Faker faker, GrantType[] grantTypeOptions) {
+        return faker.options().option(grantTypeOptions);
     }
 
     public static String createRandomRedirectUri(@NotNull Faker faker) {

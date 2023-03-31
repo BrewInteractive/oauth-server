@@ -48,6 +48,26 @@ class ClientValidatorTest {
         );
     }
 
+    private static Stream<Arguments> invalid_client_grant_type_should_return_invalid_result() {
+        return Stream.of(
+                Arguments.of(
+                        GrantType.authorization_code,
+                        1,
+                        new GrantType[]{GrantType.refresh_token, GrantType.client_credentials}
+                ),
+                Arguments.of(
+                        GrantType.refresh_token,
+                        1,
+                        new GrantType[]{GrantType.authorization_code, GrantType.client_credentials}
+                ),
+                Arguments.of(
+                        GrantType.authorization_code,
+                        2,
+                        new GrantType[]{GrantType.refresh_token, GrantType.client_credentials}
+                )
+        );
+    }
+
     private static ResponseType getValidResponseType(ClientModel clientModel) {
         return clientModel.grantList().stream().map(GrantModel::responseType).findFirst().get();
 
@@ -114,10 +134,10 @@ class ClientValidatorTest {
 
     @MethodSource
     @ParameterizedTest
-    void invalid_client_grant_type_should_return_invalid_result(GrantType invalidGrantType, Integer grantSize, ResponseType[] responseTypeOptions) {
+    void invalid_client_grant_type_should_return_invalid_result(GrantType invalidGrantType, Integer grantSize, GrantType[] grantTypeOptions) {
 
         // Arrange
-        var clientModel = new ClientModelFixture().createRandomOne(grantSize, responseTypeOptions);
+        var clientModel = new ClientModelFixture().createRandomOne(grantSize, grantTypeOptions);
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
