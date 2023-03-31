@@ -1,7 +1,9 @@
 package com.brew.oauth20.server.data.enums;
 
 public enum GrantType {
-    authorization_code("authorization_code");
+    authorization_code("authorization_code"),
+    refresh_token("refresh_token"),
+    client_credentials("client_credentials");
 
     private final String value;
 
