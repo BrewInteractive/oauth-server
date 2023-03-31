@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-
+@SuppressWarnings("java:S116")
 @Getter
 @Setter
 public class AuthorizeRequestModel {
