@@ -41,9 +41,13 @@ class JwtServiceTest {
 
     @ParameterizedTest
     @MethodSource
-    void shouldSignToken(String subject, String audience, String issuerUri, String state, Integer tokenExpiresInMinutes, String signingKey, HashMap<String, Object> additionalClaims) {
-
-
+    void shouldSignToken(String subject,
+                         String audience,
+                         String issuerUri,
+                         String state,
+                         Integer tokenExpiresInMinutes,
+                         String signingKey,
+                         HashMap<String, Object> additionalClaims) {
         // Act
         var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
 
