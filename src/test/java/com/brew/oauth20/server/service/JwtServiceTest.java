@@ -46,10 +46,17 @@ class JwtServiceTest {
                            Integer tokenExpiresInMinutes,
                            String signingKey,
                            HashMap<String, Object> additionalClaims) {
+
+        // Arrange
+
+
         // Act
         var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
 
         // Assert
-        assertThat(result.accessToken()).isNotBlank();
+        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getState()).isEqualTo(state);
+        assertThat(result.getAccessToken()).isNotBlank();
+        assertThat(result.getAccessToken().length()).isBetween(100, 1000);
     }
 }
