@@ -1,16 +1,25 @@
 package com.brew.oauth20.server.data;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.OffsetDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
-@Data
+
+@Getter
+@Setter
+@ToString
 @Entity
+@Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
 @Table(name = "authorization_codes")
 public class AuthorizationCode {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
@@ -19,6 +28,7 @@ public class AuthorizationCode {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "client_id", nullable = false)
+    @ToString.Exclude
     private Client client;
 
     @Column(name = "client_id", insertable = false, updatable = false)
@@ -42,12 +52,16 @@ public class AuthorizationCode {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    public UUID getClientId() {
-        return client != null ? client.getId() : clientId;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        AuthorizationCode that = (AuthorizationCode) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
     }
 
-    public void setClientId(UUID clientId) {
-        this.clientId = clientId;
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
-
 }
