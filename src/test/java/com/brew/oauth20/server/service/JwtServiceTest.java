@@ -20,9 +20,7 @@ class JwtServiceTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> shouldSignToken() {
-
-
+    private static Stream<Arguments> should_sign_token() {
         return Stream.of(
                 Arguments.of(
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
@@ -41,13 +39,13 @@ class JwtServiceTest {
 
     @ParameterizedTest
     @MethodSource
-    void shouldSignToken(String subject,
-                         String audience,
-                         String issuerUri,
-                         String state,
-                         Integer tokenExpiresInMinutes,
-                         String signingKey,
-                         HashMap<String, Object> additionalClaims) {
+    void should_sign_token(String subject,
+                           String audience,
+                           String issuerUri,
+                           String state,
+                           Integer tokenExpiresInMinutes,
+                           String signingKey,
+                           HashMap<String, Object> additionalClaims) {
         // Act
         var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
 
