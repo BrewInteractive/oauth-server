@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.model;
 
+import com.brew.oauth20.server.utils.validators.constraints.UriConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class AuthorizeRequestModel {
     public String client_id;
     @NotNull
     @NotEmpty
+    @UriConstraint
     public String redirect_uri;
     public String state;
 }
