@@ -47,9 +47,6 @@ class JwtServiceTest {
                            String signingKey,
                            HashMap<String, Object> additionalClaims) {
 
-        // Arrange
-
-
         // Act
         var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
 
