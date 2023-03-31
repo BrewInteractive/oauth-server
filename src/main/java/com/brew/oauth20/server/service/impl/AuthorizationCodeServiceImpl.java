@@ -31,14 +31,16 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
         var client = optionalClient.get();
         OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiresIn), ZoneOffset.UTC);
         String code = StringUtils.generateSecureRandomString();
-        var authorizationCode = new AuthorizationCode();
-        authorizationCode.setClient(client);
-        authorizationCode.setUserId(userId);
-        authorizationCode.setCode(code);
-        authorizationCode.setRedirectUri(redirectUri);
-        authorizationCode.setExpiresAt(expiresAt);
-        authorizationCode.setCreatedAt(OffsetDateTime.now());
-        authorizationCode.setUpdatedAt(OffsetDateTime.now());
+        var authorizationCode = AuthorizationCode.builder()
+                .client(client)
+                .userId(userId)
+                .code(code)
+                .redirectUri(redirectUri)
+                .expiresAt(expiresAt)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+
         authorizationCodeRepository.save(authorizationCode);
         return code;
     }

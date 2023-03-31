@@ -63,6 +63,7 @@ public class AuthorizeController {
             var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
 
             /*not logged-in user redirect login signup*/
+
             if (userCookie == null) {
                 return generateLoginResponse(authorizeRequest.redirect_uri);
             }
