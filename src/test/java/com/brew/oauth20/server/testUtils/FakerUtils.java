@@ -9,8 +9,8 @@ import java.util.UUID;
 public class FakerUtils {
 
     private static final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{
-            ResponseType.CODE,
-            ResponseType.TOKEN};
+            ResponseType.code,
+            ResponseType.token};
 
     public static @NotNull UUID createRandomUUID(Faker faker) {
         return UUID.fromString(faker.internet().uuid().replaceAll("_", ""));

@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class AuthorizeTypeProviderToken extends BaseAuthorizeTypeProvider {
     public AuthorizeTypeProviderToken(ClientService clientService) {
         super(clientService);
-        responseType = ResponseType.TOKEN;
+        responseType = ResponseType.token;
     }
 }

@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.provider;
 
-import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.fixture.ClientFixture;
+import com.brew.oauth20.server.fixture.ClientModelFixture;
+import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.service.ClientService;
@@ -18,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -38,23 +37,23 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> shouldReturnValidResult() {
+    private static Stream<Arguments> should_return_valid_result() {
 
-        var clientFixture = new ClientFixture();
-        var client = clientFixture.createRandomOne(new ResponseType[]{ResponseType.CODE});
-        var url = client.getRedirectUris().stream().findFirst().get().getRedirectUri();
+        var clientModelFixture = new ClientModelFixture();
+        var client = clientModelFixture.createRandomOne(1, new ResponseType[]{ResponseType.code});
+        var url = client.redirectUriList().get(0).redirectUri();
         return Stream.of(
-                Arguments.of(Optional.of(client), client.getId(), url, new ValidationResultModel(true, null))
+                Arguments.of(client, faker.letterify("????????????????"), url, new ValidationResultModel(true, null))
         );
     }
 
 
     @MethodSource
     @ParameterizedTest
-    void shouldReturnValidResult(Optional<Client> client, UUID clientId, String url, ValidationResultModel validationResultModel) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel validationResultModel) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
-                .thenReturn(client);
+                .thenReturn(clientModel);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
@@ -64,12 +63,12 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
     }
 
     @Test
-    void shouldReturnInvalidResult() {
-        var clientId = UUID.randomUUID();
+    void should_return_invalid_result() {
+        var clientId = UUID.randomUUID().toString();
         var url = faker.internet().url();
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
-                .thenReturn(Optional.ofNullable(null));
+                .thenReturn(null);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
