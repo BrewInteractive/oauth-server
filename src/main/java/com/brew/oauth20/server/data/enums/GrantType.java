@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.data.enums;
 
 public enum GrantType {
-    AUTHORIZATION_CODE("authorization_code");
+    authorization_code("authorization_code");
 
     private final String value;
 
@@ -11,14 +11,14 @@ public enum GrantType {
 
     public static GrantType fromValue(String value) {
         for (GrantType grantType : GrantType.values()) {
-            if (grantType.getResponseType().equals(value)) {
+            if (grantType.getGrantType().equalsIgnoreCase(value)) {
                 return grantType;
             }
         }
         return null;
     }
 
-    public String getResponseType() {
+    public String getGrantType() {
         return value;
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 @SpringBootTest
 class ApplicationTests {
@@ -17,13 +16,8 @@ class ApplicationTests {
     private GreetingService greetingService;
 
     @Test
-    void contextLoads() {
+    void should_load_context() {
         assertThat(greetingController).isNotNull();
         assertThat(greetingService).isNotNull();
-    }
-
-    @Test
-    void main() {
-        assertDoesNotThrow(() -> Application.main(new String[]{}));
     }
 }

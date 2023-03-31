@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StringUtilsTest {
     @Test
-    void generateSecureRandomStringShouldReturnDifferentResults() {
+    void generate_secure_random_string_should_return_different_results() {
         String randomString1 = StringUtils.generateSecureRandomString();
         String randomString2 = StringUtils.generateSecureRandomString();
 

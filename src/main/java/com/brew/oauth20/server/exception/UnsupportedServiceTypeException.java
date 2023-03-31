@@ -5,5 +5,9 @@ public class UnsupportedServiceTypeException
     public UnsupportedServiceTypeException(String serviceProviderType) {
         super(serviceProviderType);
     }
+
+    public UnsupportedServiceTypeException() {
+        super();
+    }
 }
 
