@@ -1,10 +1,7 @@
 package com.brew.oauth20.server.service;
 
-import com.brew.oauth20.server.data.Client;
-
-import java.util.Optional;
-import java.util.UUID;
+import com.brew.oauth20.server.model.ClientModel;
 
 public interface ClientService {
-    Optional<Client> getClient(UUID clientId);
+    ClientModel getClient(String clientId);
 }

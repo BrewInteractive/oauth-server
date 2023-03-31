@@ -30,7 +30,7 @@ public class GreetingControllerTest {
         faker = new Faker();
     }
 
-    private static List<GreetingModel> greetingShouldReturnObjectFromService() {
+    private static List<GreetingModel> greeting_should_return_object_from_service() {
         return List.of(
                 new GreetingModel(faker.number().numberBetween(0, 1000), faker.name().firstName()),
                 new GreetingModel(0, faker.name().firstName()),
@@ -40,7 +40,7 @@ public class GreetingControllerTest {
 
     @MethodSource
     @ParameterizedTest
-    void greetingShouldReturnObjectFromService(GreetingModel model) {
+    void greeting_should_return_object_from_service(GreetingModel model) {
         Mockito.reset(greetingService);
         when(greetingService.getGreetingModel(model.content()))
                 .thenReturn(model);

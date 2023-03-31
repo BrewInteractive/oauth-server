@@ -20,7 +20,7 @@ class GreetingRequestTest {
     private MockMvc mockMvc;
 
     @Test
-    void performGreetingRequestWhenNameThenOk() throws Exception {
+    void perform_greeting_request_when_name_then_ok() throws Exception {
         this.mockMvc.perform(get("/greeting")
                         .param("name", "test")
                 )
