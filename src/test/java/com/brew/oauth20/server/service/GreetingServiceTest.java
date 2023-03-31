@@ -21,7 +21,7 @@ public class GreetingServiceTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> getGreetingModelShouldReturnGreetingModel() {
+    private static Stream<Arguments> get_greeting_model_should_return_greeting_model() {
 
         var name1 = faker.name().firstName();
         var name2 = faker.name().firstName();
@@ -40,7 +40,7 @@ public class GreetingServiceTest {
 
     @MethodSource
     @ParameterizedTest
-    void getGreetingModelShouldReturnGreetingModel(GreetingModel input, GreetingModel expected) {
+    void get_greeting_model_should_return_greeting_model(GreetingModel input, GreetingModel expected) {
 
         var service = new GreetingServiceImpl();
         var result = service.getGreetingModel(input.content());

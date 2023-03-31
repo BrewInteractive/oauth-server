@@ -41,7 +41,7 @@ public class AuthorizationCodeFixture extends Fixture<AuthorizationCode> {
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
                 .supply(field(AuthorizationCode::getRedirectUri), () -> faker.internet().url())
                 .supply(field(AuthorizationCode::getUserId), () -> faker.random().nextLong())
-                .supply(field(AuthorizationCode::getClient), () -> clientFixture.createRandomOne())
+                .supply(field(AuthorizationCode::getClient), () -> clientFixture.createRandomOne(false))
                 .toModel();
     }
 }

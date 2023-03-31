@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.data.enums;
 
 public enum ResponseType {
-    CODE("code"),
-    TOKEN("token");
+    code("code"),
+    token("token");
 
     private final String value;
 
@@ -12,7 +12,7 @@ public enum ResponseType {
 
     public static ResponseType fromValue(String value) {
         for (ResponseType responseType : ResponseType.values()) {
-            if (responseType.getResponseType().equals(value)) {
+            if (responseType.getResponseType().equalsIgnoreCase(value)) {
                 return responseType;
             }
         }

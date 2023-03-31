@@ -24,7 +24,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldRemoveUserCookieByKey() {
+    void should_remove_user_cookie_by_key() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -47,7 +47,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldGetUserCookieByKey() {
+    void should_get_user_cookie_by_key() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -66,7 +66,7 @@ public class CookieServiceTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
-    void shouldNotGetUserCookieByKey(boolean requestHasCookie) {
+    void should_not_get_user_cookie_by_key(boolean requestHasCookie) {
         cookieFixture = new CookieFixture();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -82,7 +82,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldSetCookieWithKeyValueFields() {
+    void should_set_cookie_with_key_value_fields() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -99,7 +99,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldSetCookieWithKeyValueMaxAgeFields() {
+    void should_set_cookie_with_key_value_max_age_fields() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -118,7 +118,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldSetCookieWithKeyValueMaxAgeHttpOnlyFields() {
+    void should_set_cookie_with_key_value_max_age_http_only_fields() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -139,7 +139,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldSetCookieWithKeyValueMaxAgeHttpOnlySecureFields() {
+    void should_set_cookie_with_key_value_max_age_http_only_secure_fields() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -162,7 +162,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    void shouldSetCookieWithKeyValueMaxAgeHttpOnlySecurePathFields() {
+    void should_set_cookie_with_key_value_max_age_http_only_secure_path_fields() {
         cookieFixture = new CookieFixture();
 
         MockHttpServletResponse response = new MockHttpServletResponse();

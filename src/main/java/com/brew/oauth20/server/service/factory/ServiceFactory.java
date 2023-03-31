@@ -17,7 +17,10 @@ public abstract class ServiceFactory<E extends Enum<E>, T> {
 
     public T getService(E providerType) throws MissingServiceException, UnsupportedServiceTypeException {
 
-        Type type = getRegisteredServiceTypes().get(providerType);
+        if (providerType == null)
+            throw new UnsupportedServiceTypeException();
+
+        Type type = getRegisteredServiceTypes().getOrDefault(providerType, null);
         Class<?> classType = (Class<?>) type;
 
         if (classType == null)
