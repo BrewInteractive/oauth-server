@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.data.enums;
 
+@SuppressWarnings("java:S115")
 public enum GrantType {
     authorization_code("authorization_code"),
     refresh_token("refresh_token"),
