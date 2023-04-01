@@ -14,7 +14,7 @@ public class UriUtils {
             String scheme = uri.getScheme();
             if (scheme == null) {
                 // If no scheme is specified, assume it is either "http" or "https"
-                return isValidUrl("http://" + url) || isValidUrl("https://" + url);
+                return isValidUrl("http://" + url);
             }
 
             String host = uri.getHost();
