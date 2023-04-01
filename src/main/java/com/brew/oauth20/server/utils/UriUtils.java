@@ -22,27 +22,12 @@ public class UriUtils {
                 return false;
             }
 
-            if (host.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")) {
-                return false;
-            }
-
             if (!scheme.equals("http") && !scheme.equals("https")) {
                 return false;
             }
 
-
             String[] parts = host.split("\\.");
-            if (parts.length == 1) {
-                return false;
-            }
-
-            for (String part : parts) {
-                if (!part.matches("^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$")) {
-                    return false;
-                }
-            }
-
-            return true;
+            return parts.length != 1;
         } catch (URISyntaxException e) {
             return false;
         }
