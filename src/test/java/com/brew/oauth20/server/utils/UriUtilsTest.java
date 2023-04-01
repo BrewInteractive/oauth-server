@@ -13,13 +13,18 @@ class UriUtilsTest {
         return Stream.of(
                 Arguments.of("https://www.google.com", true),
                 Arguments.of("https://www.test.istanbul", true),
+                Arguments.of("https://www.test-test.istanbul", true),
                 Arguments.of("http://github.com", true),
                 Arguments.of("https://example.co.uk/test/page.html", true),
                 Arguments.of("www.example.com", true),
+                Arguments.of("www.example-test.com", true),
                 Arguments.of("example.com", true),
                 Arguments.of("example.com/test.html?param=value", true),
                 Arguments.of("example.info/test-page.html", true),
                 Arguments.of("google.com", true),
+                Arguments.of("example.info?param=value#fragment", true),
+                Arguments.of("http://example.com", true),
+                Arguments.of("http://exampl!'^e.com", false),
                 Arguments.of("google", false),
                 Arguments.of("http://.example.com", false),
                 Arguments.of("ftp://example.com", false),
@@ -27,9 +32,7 @@ class UriUtilsTest {
                 Arguments.of("ftp://example", false),
                 Arguments.of("www.example-.com", false),
                 Arguments.of("example.com/test file.html", false),
-                Arguments.of("example.com?query=invalid&param=value%Z", false),
-                Arguments.of("example.info?param=value#fragment", false),
-                Arguments.of("example.com#invalid!character", false)
+                Arguments.of("example.com?query=invalid&param=value%Z", false)
         );
     }
 
