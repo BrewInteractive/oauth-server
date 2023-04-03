@@ -14,7 +14,12 @@ import java.util.Map;
 
 public class JwtServiceImpl implements JwtService {
     @Override
-    public TokenModel signToken(String subject, String audience, String issuerUri, String state, Integer tokenExpiresInMinutes, String signingKey, Map<String, Object> additionalClaims) {
+    public TokenModel signToken(String subject,
+                                String audience,
+                                String issuerUri,
+                                String state,
+                                Integer tokenExpiresInMinutes,
+                                String signingKey, Map<String, Object> additionalClaims) {
         var expiresInSeconds = tokenExpiresInMinutes * 60L;
 
         // create claims for JWT token
@@ -44,7 +49,12 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public TokenModel signToken(String subject, String audience, String issuerUri, String state, Integer tokenExpiresInMinutes, String signingKey, Map<String, Object> additionalClaims, String refreshToken) {
+    public TokenModel signToken(String subject,
+                                String audience,
+                                String issuerUri, String state,
+                                Integer tokenExpiresInMinutes,
+                                String signingKey, Map<String, Object> additionalClaims,
+                                String refreshToken) {
         var token = signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
         token.setRefreshToken(refreshToken);
         return token;
