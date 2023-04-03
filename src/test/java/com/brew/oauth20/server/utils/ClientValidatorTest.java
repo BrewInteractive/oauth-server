@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.utils;
 
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.model.ClientModel;
@@ -7,6 +8,7 @@ import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.testUtils.FakerUtils;
+import com.brew.oauth20.server.utils.validators.ClientValidator;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,26 @@ class ClientValidatorTest {
         );
     }
 
+    private static Stream<Arguments> invalid_client_grant_type_should_return_invalid_result() {
+        return Stream.of(
+                Arguments.of(
+                        GrantType.authorization_code,
+                        1,
+                        new GrantType[]{GrantType.refresh_token, GrantType.client_credentials}
+                ),
+                Arguments.of(
+                        GrantType.refresh_token,
+                        1,
+                        new GrantType[]{GrantType.authorization_code, GrantType.client_credentials}
+                ),
+                Arguments.of(
+                        GrantType.authorization_code,
+                        2,
+                        new GrantType[]{GrantType.refresh_token, GrantType.client_credentials}
+                )
+        );
+    }
+
     private static ResponseType getValidResponseType(ClientModel clientModel) {
         return clientModel.grantList().stream().map(GrantModel::responseType).findFirst().get();
 
@@ -55,8 +77,13 @@ class ClientValidatorTest {
         return clientModel.redirectUriList().stream().map(RedirectUriModel::redirectUri).findFirst().get();
     }
 
+    private static GrantType getValidGrantType(ClientModel clientModel) {
+        return clientModel.grantList().stream().map(GrantModel::grantType).findFirst().get();
+
+    }
+
     @Test
-    void valid_client_should_return_valid_result() {
+    void validate_client_by_response_type_and_redirect_uri_should_return_valid_result() {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
@@ -65,8 +92,24 @@ class ClientValidatorTest {
         var expectedResult = new ValidationResultModel(true, null);
 
         // Act
-        var clientValidator = new ClientValidator(validResponseType.getResponseType(), validRedirectUri);
-        var actualResult = clientValidator.validate(clientModel);
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri);
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    void validate_client_by_grant_type_should_return_valid_result() {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validGrantType = getValidGrantType(clientModel);
+        var expectedResult = new ValidationResultModel(true, null);
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validGrantType.getGrantType());
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -82,8 +125,24 @@ class ClientValidatorTest {
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
-        var clientValidator = new ClientValidator(invalidResponseType.name(), validRedirectUri);
-        var actualResult = clientValidator.validate(clientModel);
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri);
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void invalid_client_grant_type_should_return_invalid_result(GrantType invalidGrantType, Integer grantSize, GrantType[] grantTypeOptions) {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne(grantSize, grantTypeOptions);
+        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(invalidGrantType.name());
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -99,8 +158,8 @@ class ClientValidatorTest {
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
-        var clientValidator = new ClientValidator(validResponseType.getResponseType(), invalidRedirectUri);
-        var actualResult = clientValidator.validate(clientModel);
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri);
 
         // Assert
         assertEquals(expectedResult, actualResult);
