@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,5 +47,34 @@ class ClientServiceTest {
         var result = clientService.getClient(client.getClientId());
 
         assertThat(expected).isEqualTo(result);
+    }
+
+    @Test
+    void should_decode_client_credentials(){
+        clientFixture = new ClientFixture();
+
+        var client = clientFixture.createRandomOne(false);
+
+        var decodeHeader =client.getClientId()+":"+client.getClientSecret();
+        String encodedHeader =Base64.getEncoder().withoutPadding().encodeToString(decodeHeader.getBytes());
+
+        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
+
+        var pairResult = clientService.decodeClientCredentials(encodedHeader);
+
+        assertThat(pairResult).isNotEmpty();
+        assertThat(pairResult.get().getFirst()).isEqualTo(client.getClientId());
+        assertThat(pairResult.get().getSecond()).isEqualTo(client.getClientSecret());
+    }
+
+    @Test
+    void should_throw_exception_on_decode_client_credentials(){
+        String encodedHeader =Base64.getEncoder().withoutPadding().encodeToString("malformed-header".getBytes());
+
+        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
+
+        var pairResult = clientService.decodeClientCredentials(encodedHeader);
+
+        assertThat(pairResult).isEmpty();
     }
 }
