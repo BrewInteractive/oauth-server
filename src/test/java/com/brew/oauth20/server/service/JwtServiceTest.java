@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.service;
 
+import com.brew.oauth20.server.model.SignTokenOptions;
 import com.brew.oauth20.server.service.impl.JwtServiceImpl;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -85,7 +86,7 @@ class JwtServiceTest {
                                                  HashMap<String, Object> additionalClaims) {
 
         // Act
-        var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
+        var result = new JwtServiceImpl().signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims));
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
@@ -108,7 +109,7 @@ class JwtServiceTest {
                                               String refreshToken) {
 
         // Act
-        var result = new JwtServiceImpl().signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims, refreshToken);
+        var result = new JwtServiceImpl().signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims), refreshToken);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
