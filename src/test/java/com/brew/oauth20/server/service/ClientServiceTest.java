@@ -2,7 +2,7 @@ package com.brew.oauth20.server.service;
 
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.fixture.ClientFixture;
-import com.brew.oauth20.server.repository.ClientMapper;
+import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.impl.ClientServiceImpl;
 import org.junit.jupiter.api.Test;

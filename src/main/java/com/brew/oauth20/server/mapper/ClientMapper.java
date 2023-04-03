@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.repository;
+package com.brew.oauth20.server.mapper;
 
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.ClientsGrant;
@@ -9,7 +9,6 @@ import com.brew.oauth20.server.model.RedirectUriModel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ClientMapper {
-    ClientMapper INSTANCE = Mappers.getMapper(ClientMapper.class);
 
     @Mapping(source = "clientsGrants", target = "grantList", qualifiedByName = "mapClientsGrants")
     @Mapping(source = "redirectUris", target = "redirectUriList", qualifiedByName = "mapRedirectUris")
@@ -25,11 +23,17 @@ public interface ClientMapper {
 
     @Named("mapClientsGrants")
     default ArrayList<GrantModel> mapClientsGrants(Set<ClientsGrant> clientsGrants) {
-        return clientsGrants.stream().map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType())).collect(Collectors.toCollection(ArrayList::new));
+        return clientsGrants
+                .stream()
+                .map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType(), x.getGrant().getGrantType()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Named("mapRedirectUris")
     default ArrayList<RedirectUriModel> mapRedirectUris(Set<RedirectUris> redirectUris) {
-        return redirectUris.stream().map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri())).collect(Collectors.toCollection(ArrayList::new));
+        return redirectUris
+                .stream()
+                .map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri()))
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }
