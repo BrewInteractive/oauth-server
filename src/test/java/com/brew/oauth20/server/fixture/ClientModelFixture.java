@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.fixture;
 
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import com.brew.oauth20.server.model.ClientModel;
@@ -13,7 +14,8 @@ import static org.instancio.Select.field;
 public class ClientModelFixture extends Fixture<ClientModel> {
 
     private final Integer defaultGrantSize = 2;
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
+    private final ResponseType[] defaultResponseTypeOptions = ResponseType.values();
+    private final GrantType[] defaultGrantTypeOptions = GrantType.values();
     private final Integer defaultRedirectUriSize = 2;
 
     private final GrantModelFixture grantModelFixture;
@@ -29,23 +31,28 @@ public class ClientModelFixture extends Fixture<ClientModel> {
     }
 
     public ClientModel createRandomOne(Integer grantSize, ResponseType[] responseTypeOptions) {
-        return Instancio.of(clientModel(grantSize, responseTypeOptions))
+        return Instancio.of(clientModel(grantSize, responseTypeOptions, this.defaultGrantTypeOptions))
+                .create();
+    }
+
+    public ClientModel createRandomOne(Integer grantSize, GrantType[] grantTypeOptions) {
+        return Instancio.of(clientModel(grantSize, this.defaultResponseTypeOptions, grantTypeOptions))
                 .create();
     }
 
     public List<ClientModel> createRandomList(Integer size) {
-        return createRandomList(size, this.defaultGrantSize, this.defaultResponseTypeOptions);
+        return createRandomList(size, this.defaultGrantSize, this.defaultResponseTypeOptions, this.defaultGrantTypeOptions);
     }
 
-    public List<ClientModel> createRandomList(Integer size, Integer grantSize, ResponseType[] responseTypeOptions) {
-        return Instancio.ofList(clientModel(grantSize, responseTypeOptions))
+    public List<ClientModel> createRandomList(Integer size, Integer grantSize, ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions) {
+        return Instancio.ofList(clientModel(grantSize, responseTypeOptions, grantTypeOptions))
                 .size(size)
                 .create();
     }
 
-    private Model<ClientModel> clientModel(Integer grantSize, ResponseType[] responseTypeOptions) {
+    private Model<ClientModel> clientModel(Integer grantSize, ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions) {
         return Instancio.of(ClientModel.class)
-                .supply(field(ClientModel::grantList), () -> grantModelFixture.createRandomList(grantSize, responseTypeOptions))
+                .supply(field(ClientModel::grantList), () -> grantModelFixture.createRandomList(grantSize, responseTypeOptions, grantTypeOptions))
                 .supply(field(ClientModel::redirectUriList), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
     }
