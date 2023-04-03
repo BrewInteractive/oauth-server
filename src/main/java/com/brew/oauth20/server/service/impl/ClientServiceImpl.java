@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.service.impl;
 
 import com.brew.oauth20.server.data.Client;
+import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.repository.ClientMapper;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.ClientService;
 import org.springframework.data.util.Pair;

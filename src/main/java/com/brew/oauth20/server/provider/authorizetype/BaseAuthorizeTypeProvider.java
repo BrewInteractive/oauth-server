@@ -3,7 +3,7 @@ package com.brew.oauth20.server.provider.authorizetype;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.utils.ClientValidator;
+import com.brew.oauth20.server.utils.validators.ClientValidator;
 
 public abstract class BaseAuthorizeTypeProvider {
     protected ResponseType responseType;
@@ -20,8 +20,6 @@ public abstract class BaseAuthorizeTypeProvider {
         if (clientModel == null)
             return new ValidationResultModel(false, "unauthorized_client");
 
-        var clientValidator = new ClientValidator(responseType.getResponseType(), redirectUri);
-
-        return clientValidator.validate(clientModel);
+        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri);
     }
 }
