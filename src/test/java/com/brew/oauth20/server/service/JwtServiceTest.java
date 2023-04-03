@@ -33,6 +33,15 @@ class JwtServiceTest {
                             put("client_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                             put("user_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                         }}
+                ),
+                Arguments.of(
+                        String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
+                        faker.internet().url(),
+                        faker.internet().url(),
+                        faker.lordOfTheRings().character(),
+                        faker.random().nextInt(Integer.MAX_VALUE),
+                        faker.letterify("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"),
+                        null
                 )
         );
     }
