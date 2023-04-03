@@ -5,6 +5,8 @@ import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.ClientService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +19,8 @@ import java.util.Optional;
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
-
     private final ClientMapper clientMapper;
+    Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
 
 
     public ClientServiceImpl(ClientRepository clientRepository, ClientMapper clientMapper) {
@@ -42,8 +44,7 @@ public class ClientServiceImpl implements ClientService {
             String secondValue = Arrays.stream(values).skip(1).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
             return Optional.of(Pair.of(firstValue, secondValue));
         } catch (IllegalArgumentException | NoSuchElementException e) {
-            // Handle the exception here
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
             return Optional.empty();
         }
     }
