@@ -43,6 +43,13 @@ public class JwtServiceImpl implements JwtService {
                 .build();
     }
 
+    @Override
+    public TokenModel signToken(String subject, String audience, String issuerUri, String state, Integer tokenExpiresInMinutes, String signingKey, Map<String, Object> additionalClaims, String refreshToken) {
+        var token = signToken(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims);
+        token.setRefreshToken(refreshToken);
+        return token;
+    }
+
     private Key getSigningKey(String signingKey) {
         byte[] keyBytes = signingKey.getBytes();
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
