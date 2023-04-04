@@ -18,14 +18,14 @@ public class ClientFixture extends Fixture<Client> {
 
     private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
     private final ClientsGrantFixture clientsGrantFixture;
-    private final RedirectUrisFixture redirectUriModelFixture;
+    private final RedirectUriFixture redirectUriModelFixture;
     private final Integer defaultClientsGrantSize = 1;
     private final Integer defaultRedirectUriSize = 1;
 
     public ClientFixture() {
         super();
         this.clientsGrantFixture = new ClientsGrantFixture();
-        this.redirectUriModelFixture = new RedirectUrisFixture();
+        this.redirectUriModelFixture = new RedirectUriFixture();
     }
 
     public Client createRandomOne(Boolean withChildren) {

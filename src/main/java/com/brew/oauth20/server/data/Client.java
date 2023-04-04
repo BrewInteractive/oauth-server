@@ -24,7 +24,7 @@ public class Client {
     private final Set<ClientsGrant> clientsGrants = new LinkedHashSet<>();
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     @ToString.Exclude // added "fetch = FetchType.LAZY"
-    private final Set<RedirectUris> redirectUris = new LinkedHashSet<>();
+    private final Set<RedirectUri> redirectUris = new LinkedHashSet<>();
     @OneToMany(mappedBy = "client")
     @ToString.Exclude
     private final Set<ClientsUser> clientsUsers = new LinkedHashSet<>();

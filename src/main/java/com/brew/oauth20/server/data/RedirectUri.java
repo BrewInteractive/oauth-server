@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "redirect_uris")
-public class RedirectUris {
+public class RedirectUri {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -43,7 +43,7 @@ public class RedirectUris {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        RedirectUris that = (RedirectUris) o;
+        RedirectUri that = (RedirectUri) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 

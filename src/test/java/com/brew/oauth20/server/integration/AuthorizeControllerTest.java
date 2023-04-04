@@ -4,7 +4,7 @@ import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientFixture;
 import com.brew.oauth20.server.fixture.ClientsGrantFixture;
 import com.brew.oauth20.server.fixture.GrantFixture;
-import com.brew.oauth20.server.fixture.RedirectUrisFixture;
+import com.brew.oauth20.server.fixture.RedirectUriFixture;
 import com.brew.oauth20.server.repository.*;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
@@ -44,14 +44,14 @@ class AuthorizeControllerTest {
     @Autowired
     private GrantRepository grantRepository;
     @Autowired
-    private RedirectUrisRepository redirectUrisRepository;
+    private RedirectUriRepository redirectUriRepository;
 
     @BeforeAll
     void setup() {
         var clientFixture = new ClientFixture();
         var clientsGrantFixture = new ClientsGrantFixture();
         var grantFixture = new GrantFixture();
-        var redirectUrisFixture = new RedirectUrisFixture();
+        var redirectUrisFixture = new RedirectUriFixture();
 
         var client = clientFixture.createRandomOne(false);
         var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
@@ -62,7 +62,7 @@ class AuthorizeControllerTest {
         var savedGrant = grantRepository.save(grant);
 
         redirectUris.setClient(savedClient);
-        redirectUrisRepository.save(redirectUris);
+        redirectUriRepository.save(redirectUris);
 
         clientsGrant.setClient(savedClient);
         clientsGrant.setGrant(savedGrant);
@@ -76,7 +76,7 @@ class AuthorizeControllerTest {
     void emptyData() {
         authorizationCodeRepository.deleteAll();
         clientsGrantRepository.deleteAllInBatch();
-        redirectUrisRepository.deleteAllInBatch();
+        redirectUriRepository.deleteAllInBatch();
         clientRepository.deleteAll();
         grantRepository.deleteAllInBatch();
     }

@@ -2,7 +2,7 @@ package com.brew.oauth20.server.mapper;
 
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.ClientsGrant;
-import com.brew.oauth20.server.data.RedirectUris;
+import com.brew.oauth20.server.data.RedirectUri;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
@@ -30,7 +30,7 @@ public interface ClientMapper {
     }
 
     @Named("mapRedirectUris")
-    default ArrayList<RedirectUriModel> mapRedirectUris(Set<RedirectUris> redirectUris) {
+    default ArrayList<RedirectUriModel> mapRedirectUris(Set<RedirectUri> redirectUris) {
         return redirectUris
                 .stream()
                 .map(x -> new RedirectUriModel(x.getId(), x.getRedirectUri()))
