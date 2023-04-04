@@ -1,10 +1,9 @@
-package com.brew.oauth20.server.provider;
+package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.service.ClientService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
