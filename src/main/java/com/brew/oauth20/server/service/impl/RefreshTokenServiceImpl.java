@@ -1,6 +1,6 @@
 package com.brew.oauth20.server.service.impl;
 
-import com.brew.oauth20.server.data.ClientsUser;
+import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.repository.ClientsUserRepository;
@@ -28,7 +28,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     public void createRefreshToken(String clientId, Long userId, String token, int expirationTimeInDays) throws ClientsUserNotFoundException {
 
-        Optional<ClientsUser> clientsUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
+        Optional<ClientUser> clientsUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (clientsUser.isEmpty())
             throw new ClientsUserNotFoundException(clientId, userId);

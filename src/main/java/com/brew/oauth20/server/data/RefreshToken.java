@@ -48,7 +48,7 @@ public class RefreshToken {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "client_user_id", nullable = false)
     @ToString.Exclude
-    private ClientsUser clientUser;
+    private ClientUser clientUser;
 
     @Override
     public boolean equals(Object o) {

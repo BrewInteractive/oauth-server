@@ -21,7 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "clients_users")
-public class ClientsUser {
+public class ClientUser {
     @OneToMany(mappedBy = "clientUser")
     @ToString.Exclude
     private final Set<RefreshToken> refreshTokens = new LinkedHashSet<>();
@@ -44,7 +44,7 @@ public class ClientsUser {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ClientsUser that = (ClientsUser) o;
+        ClientUser that = (ClientUser) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 

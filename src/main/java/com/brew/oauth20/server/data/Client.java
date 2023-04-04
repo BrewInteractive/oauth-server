@@ -27,7 +27,7 @@ public class Client {
     private final Set<RedirectUri> redirectUris = new LinkedHashSet<>();
     @OneToMany(mappedBy = "client")
     @ToString.Exclude
-    private final Set<ClientsUser> clientsUsers = new LinkedHashSet<>();
+    private final Set<ClientUser> clientUsers = new LinkedHashSet<>();
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;

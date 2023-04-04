@@ -69,7 +69,7 @@ public class ClientFixture extends Fixture<Client> {
             model = model
                     .supply(field(Client::getClientGrants), () -> new LinkedHashSet<>())
                     .supply(field(Client::getRedirectUris), () -> new LinkedHashSet<>())
-                    .supply(field(Client::getClientsUsers), () -> new LinkedHashSet<>());
+                    .supply(field(Client::getClientUsers), () -> new LinkedHashSet<>());
         }
 
         return model.toModel();
