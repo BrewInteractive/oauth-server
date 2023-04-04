@@ -1,6 +1,5 @@
-package com.brew.oauth20.server.provider;
+package com.brew.oauth20.server.provider.authorizetype;
 
-import com.brew.oauth20.server.provider.authorizetype.BaseAuthorizeTypeProvider;
 import com.brew.oauth20.server.service.ClientService;
 
 public class MockAuthorizeTypeProviderNotExistingInIoc extends BaseAuthorizeTypeProvider {
