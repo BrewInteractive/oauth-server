@@ -24,7 +24,7 @@ public class Grant {
     @JsonIgnore
     @OneToMany(mappedBy = "grant")
     @ToString.Exclude
-    private final Set<ClientsGrant> clientsGrants = new LinkedHashSet<>();
+    private final Set<ClientGrant> clientGrants = new LinkedHashSet<>();
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

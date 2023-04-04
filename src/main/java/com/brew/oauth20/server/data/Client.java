@@ -21,7 +21,7 @@ import java.util.UUID;
 public class Client {
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     @ToString.Exclude // added "fetch = FetchType.LAZY"
-    private final Set<ClientsGrant> clientsGrants = new LinkedHashSet<>();
+    private final Set<ClientGrant> clientGrants = new LinkedHashSet<>();
     @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     @ToString.Exclude // added "fetch = FetchType.LAZY"
     private final Set<RedirectUri> redirectUris = new LinkedHashSet<>();

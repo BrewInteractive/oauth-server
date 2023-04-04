@@ -2,7 +2,7 @@ package com.brew.oauth20.server.integration;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientFixture;
-import com.brew.oauth20.server.fixture.ClientsGrantFixture;
+import com.brew.oauth20.server.fixture.ClientGrantFixture;
 import com.brew.oauth20.server.fixture.GrantFixture;
 import com.brew.oauth20.server.fixture.RedirectUriFixture;
 import com.brew.oauth20.server.repository.*;
@@ -40,7 +40,7 @@ class AuthorizeControllerTest {
     @Autowired
     private ClientRepository clientRepository;
     @Autowired
-    private ClientsGrantRepository clientsGrantRepository;
+    private ClientGrantRepository clientGrantRepository;
     @Autowired
     private GrantRepository grantRepository;
     @Autowired
@@ -49,7 +49,7 @@ class AuthorizeControllerTest {
     @BeforeAll
     void setup() {
         var clientFixture = new ClientFixture();
-        var clientsGrantFixture = new ClientsGrantFixture();
+        var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
 
@@ -66,7 +66,7 @@ class AuthorizeControllerTest {
 
         clientsGrant.setClient(savedClient);
         clientsGrant.setGrant(savedGrant);
-        clientsGrantRepository.save(clientsGrant);
+        clientGrantRepository.save(clientsGrant);
 
         authorizedClientId = client.getClientId();
         authorizedRedirectUri = redirectUris.getRedirectUri();
@@ -75,7 +75,7 @@ class AuthorizeControllerTest {
     @AfterAll
     void emptyData() {
         authorizationCodeRepository.deleteAll();
-        clientsGrantRepository.deleteAllInBatch();
+        clientGrantRepository.deleteAllInBatch();
         redirectUriRepository.deleteAllInBatch();
         clientRepository.deleteAll();
         grantRepository.deleteAllInBatch();

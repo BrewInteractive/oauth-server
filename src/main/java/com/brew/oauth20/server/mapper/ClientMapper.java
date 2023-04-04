@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.mapper;
 
 import com.brew.oauth20.server.data.Client;
-import com.brew.oauth20.server.data.ClientsGrant;
+import com.brew.oauth20.server.data.ClientGrant;
 import com.brew.oauth20.server.data.RedirectUri;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.GrantModel;
@@ -17,15 +17,16 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface ClientMapper {
 
-    @Mapping(source = "clientsGrants", target = "grantList", qualifiedByName = "mapClientsGrants")
+    @Mapping(source = "clientGrants", target = "grantList", qualifiedByName = "mapClientGrants")
     @Mapping(source = "redirectUris", target = "redirectUriList", qualifiedByName = "mapRedirectUris")
     ClientModel toDTO(Client client);
 
-    @Named("mapClientsGrants")
-    default ArrayList<GrantModel> mapClientsGrants(Set<ClientsGrant> clientsGrants) {
-        return clientsGrants
+    @Named("mapClientGrants")
+    default ArrayList<GrantModel> mapClientsGrants(Set<ClientGrant> clientGrants) {
+        return clientGrants
                 .stream()
-                .map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType(), x.getGrant().getGrantType()))
+                .map(x -> new GrantModel(x.getGrant().getId(), x.getGrant().getResponseType(),
+                        x.getGrant().getGrantType()))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 

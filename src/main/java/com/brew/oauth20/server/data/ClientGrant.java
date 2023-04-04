@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "clients_grants")
-public class ClientsGrant {
+public class ClientGrant {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -48,7 +48,7 @@ public class ClientsGrant {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        ClientsGrant that = (ClientsGrant) o;
+        ClientGrant that = (ClientGrant) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 

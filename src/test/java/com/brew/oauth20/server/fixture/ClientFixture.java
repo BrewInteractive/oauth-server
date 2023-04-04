@@ -16,15 +16,16 @@ import static org.instancio.Select.field;
 
 public class ClientFixture extends Fixture<Client> {
 
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
-    private final ClientsGrantFixture clientsGrantFixture;
+    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code,
+            ResponseType.token};
+    private final ClientGrantFixture clientGrantFixture;
     private final RedirectUriFixture redirectUriModelFixture;
-    private final Integer defaultClientsGrantSize = 1;
+    private final Integer defaultClientGrantSize = 1;
     private final Integer defaultRedirectUriSize = 1;
 
     public ClientFixture() {
         super();
-        this.clientsGrantFixture = new ClientsGrantFixture();
+        this.clientGrantFixture = new ClientGrantFixture();
         this.redirectUriModelFixture = new RedirectUriFixture();
     }
 
@@ -51,17 +52,22 @@ public class ClientFixture extends Fixture<Client> {
         var model = Instancio.of(Client.class)
                 .supply(field(Client::getName), () -> faker.name().title())
                 .supply(field(Client::getId), () -> UUID.randomUUID())
-                .supply(field(Client::getCreatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
-                .supply(field(Client::getUpdatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
+                .supply(field(Client::getCreatedAt),
+                        () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
+                .supply(field(Client::getUpdatedAt),
+                        () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
                 .supply(field(Client::getClientId), () -> faker.letterify("?????????"));
 
         if (withChildren) {
             model = model
-                    .supply(field(Client::getClientsGrants), () -> clientsGrantFixture.createRandomList(this.defaultClientsGrantSize, responseTypeOptions))
-                    .supply(field(Client::getRedirectUris), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize));
+                    .supply(field(Client::getClientGrants),
+                            () -> clientGrantFixture.createRandomList(this.defaultClientGrantSize,
+                                    responseTypeOptions))
+                    .supply(field(Client::getRedirectUris),
+                            () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize));
         } else {
             model = model
-                    .supply(field(Client::getClientsGrants), () -> new LinkedHashSet<>())
+                    .supply(field(Client::getClientGrants), () -> new LinkedHashSet<>())
                     .supply(field(Client::getRedirectUris), () -> new LinkedHashSet<>())
                     .supply(field(Client::getClientsUsers), () -> new LinkedHashSet<>());
         }
