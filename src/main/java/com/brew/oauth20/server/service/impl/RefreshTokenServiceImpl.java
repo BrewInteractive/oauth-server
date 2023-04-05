@@ -43,15 +43,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(expirationTimeInDays);
 
-        RefreshToken newRefreshToken = RefreshToken.builder()
+        RefreshToken refreshToken = RefreshToken.builder()
                 .clientUser(clientsUser.get())
                 .token(token)
                 .expiresAt(expirationDate)
                 .build();
 
-        refreshTokenRepository.save(newRefreshToken);
+        refreshTokenRepository.save(refreshToken);
 
-        return newRefreshToken;
+        return refreshToken;
     }
 
     @Override
@@ -61,14 +61,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         if (activeRefreshToken.isEmpty())
             throw new RefreshTokenNotFoundException(token);
 
-        var refreshTokenEntity = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken.get());
+        var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken.get());
 
         var newRefreshToken = createRefreshToken(clientId, userId, newToken, expirationTimeInDays);
 
-        refreshTokenEntity.setReplacedByToken(newRefreshToken);
-        refreshTokenEntity.setRevokedAt(OffsetDateTime.now());
+        existingRefreshToken.setReplacedByToken(newRefreshToken);
+        existingRefreshToken.setRevokedAt(OffsetDateTime.now());
 
-        refreshTokenRepository.save(refreshTokenEntity);
+        refreshTokenRepository.save(existingRefreshToken);
 
         return newRefreshToken;
     }
