@@ -35,6 +35,12 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public ClientModel getClient(String clientId, String clientSecret) {
+        Optional<Client> optionalClient = clientRepository.findByClientIdAndClientSecret(clientId, clientSecret);
+        return optionalClient.map(clientMapper::toDTO).orElse(null);
+    }
+
+    @Override
     public Optional<Pair<String, String>> decodeClientCredentials(String basicAuthHeader) {
         try {
             byte[] decodedBytes = Base64.getDecoder().decode(basicAuthHeader);
