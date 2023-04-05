@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface ClientService {
     ClientModel getClient(String clientId);
 
+    ClientModel getClient(String clientId, String clientSecret);
+
     /**
      * @param basicAuthHeader base64 encoded string of clientId:clientSecret values
      * @return pair of first ClientId, second ClientSecret

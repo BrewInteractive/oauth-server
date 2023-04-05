@@ -14,12 +14,20 @@ public abstract class BaseTokenGrantProvider {
     }
 
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
+        String clientId;
+        String clientSecret;
+        if (authorizationHeader.isEmpty()) {
+            clientId = tokenRequest.client_id;
+            clientSecret = tokenRequest.client_secret;
+        } else {
+            var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
+            if (clientCredentials.isEmpty())
+                return new ValidationResultModel(false, "invalid_request");
+            clientId = clientCredentials.get().getFirst();
+            clientSecret = clientCredentials.get().getSecond();
+        }
 
-        if (clientCredentials.isEmpty())
-            return new ValidationResultModel(false, "invalid_request");
-
-        var client = clientService.getClient(clientCredentials.get().getFirst());
+        var client = clientService.getClient(clientId, clientSecret);
 
         if (client == null)
             return new ValidationResultModel(false, "unauthorized_client");
