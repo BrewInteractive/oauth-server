@@ -50,13 +50,34 @@ class ClientServiceTest {
     }
 
     @Test
-    void should_decode_client_credentials(){
+    void should_get_client_by_client_id_client_secret() {
+
+        clientFixture = new ClientFixture();
+
+        var client = clientFixture.createRandomOne(true);
+
+        Optional<Client> optionalClient = Optional.of(client);
+
+        when(clientRepository.findByClientIdAndClientSecret(client.getClientId(), client.getClientSecret()))
+                .thenReturn(optionalClient);
+
+        var expected = optionalClient.map(clientMapper::toDTO).orElse(null);
+
+        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
+
+        var result = clientService.getClient(client.getClientId());
+
+        assertThat(expected).isEqualTo(result);
+    }
+
+    @Test
+    void should_decode_client_credentials() {
         clientFixture = new ClientFixture();
 
         var client = clientFixture.createRandomOne(false);
 
-        var decodeHeader =client.getClientId()+":"+client.getClientSecret();
-        String encodedHeader =Base64.getEncoder().withoutPadding().encodeToString(decodeHeader.getBytes());
+        var decodeHeader = client.getClientId() + ":" + client.getClientSecret();
+        String encodedHeader = Base64.getEncoder().withoutPadding().encodeToString(decodeHeader.getBytes());
 
         var clientService = new ClientServiceImpl(clientRepository, clientMapper);
 
@@ -68,8 +89,8 @@ class ClientServiceTest {
     }
 
     @Test
-    void should_throw_exception_on_decode_client_credentials(){
-        String encodedHeader =Base64.getEncoder().withoutPadding().encodeToString("malformed-header".getBytes());
+    void should_throw_exception_on_decode_client_credentials() {
+        String encodedHeader = Base64.getEncoder().withoutPadding().encodeToString("malformed-header".getBytes());
 
         var clientService = new ClientServiceImpl(clientRepository, clientMapper);
 
