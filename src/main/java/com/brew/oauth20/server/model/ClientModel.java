@@ -7,5 +7,10 @@ import java.util.UUID;
 
 
 @Builder
-public record ClientModel(UUID id, ArrayList<GrantModel> grantList, ArrayList<RedirectUriModel> redirectUriList) {
+public record ClientModel(
+        UUID id,
+        Boolean issueRefreshTokens,
+        ArrayList<GrantModel> grantList,
+        ArrayList<RedirectUriModel> redirectUriList
+) {
 }
