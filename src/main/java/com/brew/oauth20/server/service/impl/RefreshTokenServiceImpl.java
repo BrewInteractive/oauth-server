@@ -37,32 +37,36 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(expirationTimeInDays);
 
-        RefreshToken newRefreshToken = RefreshToken.builder()
+        RefreshToken refreshToken = RefreshToken.builder()
                 .clientUser(clientsUser.get())
                 .token(token)
                 .expiresAt(expirationDate)
                 .build();
 
-        refreshTokenRepository.save(newRefreshToken);
+        refreshTokenRepository.save(refreshToken);
 
-        return newRefreshToken;
+        return refreshToken;
     }
 
     @Override
-    public RefreshToken revokeRefreshToken(String clientId, Long userId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException {
+    public RefreshToken revokeRefreshToken(String clientId,
+                                           Long userId,
+                                           String token,
+                                           int expirationTimeInDays,
+                                           String newToken) throws RefreshTokenNotFoundException {
         var refreshTokenEntity = refreshTokenRepository.findByToken(token);
 
         if (refreshTokenEntity.isEmpty())
             throw new RefreshTokenNotFoundException(token);
 
+        var existingRefreshToken = refreshTokenEntity.get();
+
         var newRefreshToken = createRefreshToken(clientId, userId, newToken, expirationTimeInDays);
 
-        var refreshToken = refreshTokenEntity.get();
+        existingRefreshToken.setReplacedByToken(newRefreshToken);
+        existingRefreshToken.setRevokedAt(OffsetDateTime.now());
 
-        refreshToken.setReplacedByToken(newRefreshToken);
-        refreshToken.setRevokedAt(OffsetDateTime.now());
-
-        refreshTokenRepository.save(refreshToken);
+        refreshTokenRepository.save(existingRefreshToken);
 
         return newRefreshToken;
     }
