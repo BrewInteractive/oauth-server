@@ -4,8 +4,8 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
+import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
@@ -56,9 +56,9 @@ public class AuthorizeController {
     }
 
     @PostMapping(value = "/oauth/token")
-    public ResponseEntity<TokenResultModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
-                                                      BindingResult validationResult,
-                                                      HttpServletRequest request) {
+    public ResponseEntity<TokenModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
         if (validationResult.hasErrors()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

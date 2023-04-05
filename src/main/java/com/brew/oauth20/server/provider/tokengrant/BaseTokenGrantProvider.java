@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
@@ -31,5 +31,5 @@ public abstract class BaseTokenGrantProvider {
         return clientValidator.validate(tokenRequest.grant_type);
     }
 
-    public abstract TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest);
+    public abstract TokenModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest);
 }
