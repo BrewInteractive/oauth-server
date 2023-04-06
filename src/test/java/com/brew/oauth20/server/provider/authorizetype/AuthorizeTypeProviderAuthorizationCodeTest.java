@@ -1,10 +1,9 @@
-package com.brew.oauth20.server.provider;
+package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
 import com.brew.oauth20.server.service.ClientService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,16 +49,16 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
     @MethodSource
     @ParameterizedTest
-    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel validationResultModel) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel expectedValidationResult) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(clientModel);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.validate(clientId, url);
+        var actualValidationResult = provider.validate(clientId, url);
 
-        assertThat(result).isEqualTo(validationResultModel);
+        assertThat(actualValidationResult).isEqualTo(expectedValidationResult);
     }
 
     @Test
@@ -72,9 +71,9 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.validate(clientId, url);
+        var validationResult = provider.validate(clientId, url);
 
-        assertThat(result.result()).isFalse();
-        assertThat(result.error()).isEqualTo("unauthorized_client");
+        assertThat(validationResult.getResult()).isFalse();
+        assertThat(validationResult.getError()).isEqualTo("unauthorized_client");
     }
 }
