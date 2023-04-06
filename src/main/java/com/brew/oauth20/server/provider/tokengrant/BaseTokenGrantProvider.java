@@ -22,7 +22,7 @@ public abstract class BaseTokenGrantProvider {
         } else {
             var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
             if (clientCredentials.isEmpty())
-                return new ValidationResultModel(false, "invalid_request");
+                return new ValidationResultModel(false, "unauthorized_client");
             clientId = clientCredentials.get().getFirst();
             clientSecret = clientCredentials.get().getSecond();
         }
