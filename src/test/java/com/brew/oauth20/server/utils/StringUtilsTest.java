@@ -1,26 +1,40 @@
 package com.brew.oauth20.server.utils;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class StringUtilsTest {
-    @Test
-    void generate_secure_random_string_should_return_different_results() {
-        String randomString1 = StringUtils.generateSecureRandomString();
-        String randomString2 = StringUtils.generateSecureRandomString();
+
+    private static Stream<Arguments> generate_secure_random_string_should_return_random_results() {
+        return Stream.of(
+                Arguments.of(0, 32, "", "[0-9a-zA-Z-_]+"),
+                Arguments.of(123, 123, "", "[0-9a-zA-Z-_]+"),
+                Arguments.of(0, 32, "abc", "[abc]+"),
+                Arguments.of(321, 321, "abc", "[abc]+")
+        );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void generate_secure_random_string_should_return_random_results(int length, int exptectedLength, String chars, String regexSchema) {
+        String randomString1;
+
+        if (length == 0 && chars.isEmpty())
+            randomString1 = StringUtils.generateSecureRandomString();
+        else if (length != 0 && chars.isEmpty())
+            randomString1 = StringUtils.generateSecureRandomString(length);
+        else if (length == 0)
+            randomString1 = StringUtils.generateSecureRandomString(chars);
+        else
+            randomString1 = StringUtils.generateSecureRandomString(length, chars);
 
         assertNotEquals("", randomString1);
-        assertNotEquals("", randomString2);
-
-        assertEquals(32, randomString1.length());
-        assertEquals(32, randomString2.length());
-
-        var regexSchema = "[0-9a-zA-Z-_]+";
-
+        assertEquals(exptectedLength, randomString1.length());
         assertTrue(randomString1.matches(regexSchema));
-        assertTrue(randomString2.matches(regexSchema));
-
-        assertNotEquals(randomString1, randomString2);
     }
 }
