@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-
+@SuppressWarnings("java:S1700")
 @Getter
 @Setter
 @ToString
