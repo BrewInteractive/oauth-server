@@ -30,18 +30,20 @@ import static org.mockito.Mockito.*;
 @DataJpaTest
 class RefreshTokenServiceTest {
     private static Faker faker;
+    private static ClientsUserFixture clientsUserFixture;
+    private static ActiveRefreshTokenFixture activeRefreshTokenFixture;
     @Mock
     private ClientsUserRepository clientsUserRepository;
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
     @Mock
     private ActiveRefreshTokenRepository activeRefreshTokenRepository;
-    private ClientsUserFixture clientsUserFixture;
-    private ActiveRefreshTokenFixture activeRefreshTokenFixture;
 
     @BeforeAll
     public static void init() {
         faker = new Faker();
+        clientsUserFixture = new ClientsUserFixture();
+        activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
     }
 
     @Test
@@ -49,7 +51,6 @@ class RefreshTokenServiceTest {
         // Arrange
         Mockito.reset(clientsUserRepository);
         Mockito.reset(refreshTokenRepository);
-        clientsUserFixture = new ClientsUserFixture();
         var clientUser = clientsUserFixture.createRandomOne();
         when(clientsUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.of(clientUser));
@@ -91,8 +92,6 @@ class RefreshTokenServiceTest {
         Mockito.reset(clientsUserRepository);
         Mockito.reset(refreshTokenRepository);
         Mockito.reset(activeRefreshTokenRepository);
-        clientsUserFixture = new ClientsUserFixture();
-        activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
         var activeRefreshToken = activeRefreshTokenFixture.createRandomOne();
         var clientUser = clientsUserFixture.createRandomOne();
         activeRefreshToken.setClientUser(clientUser);
