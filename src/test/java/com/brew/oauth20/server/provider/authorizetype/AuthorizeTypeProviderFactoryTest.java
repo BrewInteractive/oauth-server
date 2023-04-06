@@ -1,11 +1,8 @@
-package com.brew.oauth20.server.provider;
+package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.MissingServiceException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderAuthorizationCode;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
