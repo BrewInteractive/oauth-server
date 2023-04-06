@@ -57,8 +57,10 @@ class RefreshTokenServiceTest {
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(clientUser.getClient().getRefreshTokenExpiresInDays());
         var token = faker.random().nextLong() + "";
+
         // Act
         var refreshToken = service.createRefreshToken(clientUser.getClient().getClientId(), clientUser.getUserId(), token, clientUser.getClient().getRefreshTokenExpiresInDays());
+
         // Assert
         assertThat(refreshToken.getToken()).isEqualTo(token);
         assertThat(refreshToken.getClientUser()).isEqualTo(clientUser);
@@ -77,7 +79,9 @@ class RefreshTokenServiceTest {
         Mockito.reset(activeRefreshTokenRepository);
         when(clientsUserRepository.findByClientIdAndUserId(any(), any()))
                 .thenReturn(Optional.empty());
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);        // Act && Assert
+
+        // Act && Assert
+        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
         assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", 0L, "", 0));
     }
 
@@ -97,17 +101,20 @@ class RefreshTokenServiceTest {
                 .thenReturn(Optional.of(clientUser));
         when(activeRefreshTokenRepository.findByToken(activeRefreshToken.getToken()))
                 .thenReturn(Optional.of(activeRefreshToken));
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(clientUser.getClient().getRefreshTokenExpiresInDays());
+
         // Act
-        var refreshToken = service.revokeRefreshToken(
+        var refreshToken = new RefreshTokenServiceImpl(refreshTokenRepository,
+                activeRefreshTokenRepository,
+                clientsUserRepository).revokeRefreshToken(
                 clientUser.getClient().getClientId(),
                 clientUser.getUserId(),
                 activeRefreshToken.getToken(),
                 clientUser.getClient().getRefreshTokenExpiresInDays(),
                 newToken
         );
+
         // Assert
         assertThat(refreshToken.getToken()).isEqualTo(newToken);
         verify(refreshTokenRepository, times(1)).save(argThat(x ->
