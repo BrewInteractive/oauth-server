@@ -4,8 +4,8 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
@@ -42,9 +42,10 @@ public class AuthorizeController {
     }
 
     @GetMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> authorizeGet(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
-                                               BindingResult validationResult,
-                                               HttpServletRequest request) {
+    public ResponseEntity<String> authorizeGet(
+            @Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
+            BindingResult validationResult,
+            HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
 
@@ -56,11 +57,11 @@ public class AuthorizeController {
     }
 
     @PostMapping(value = "/oauth/token")
-    public ResponseEntity<TokenModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
-                                                BindingResult validationResult,
-                                                HttpServletRequest request) {
+    public ResponseEntity<TokenResultModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
+                                                      BindingResult validationResult,
+                                                      HttpServletRequest request) {
         if (validationResult.hasErrors()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
         }
 
         var authorizationHeaderValue = request.getHeader(authorizationHeaderKey);
@@ -70,7 +71,7 @@ public class AuthorizeController {
 
         var tokenGrantValidationResult = tokenGrantProvider.validate(authorizationHeaderValue, tokenRequestModel);
 
-        if (Boolean.FALSE.equals(tokenGrantValidationResult.result())) {
+        if (Boolean.FALSE.equals(tokenGrantValidationResult.getResult())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -97,9 +98,9 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id,
                     authorizeRequest.redirect_uri);
 
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.result())) {
-                return generateErrorResponse(authorizeTypeValidationResult.error(), queryString,
-                        authorizeRequest.redirect_uri);
+
+            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
+                return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString, authorizeRequest.redirect_uri);
             }
 
             /* user cookie and authorization code */

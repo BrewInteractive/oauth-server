@@ -49,16 +49,16 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
     @MethodSource
     @ParameterizedTest
-    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel validationResultModel) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel expectedValidationResult) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(clientModel);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.validate(clientId, url);
+        var actualValidationResult = provider.validate(clientId, url);
 
-        assertThat(result).isEqualTo(validationResultModel);
+        assertThat(actualValidationResult).isEqualTo(expectedValidationResult);
     }
 
     @Test
@@ -71,9 +71,9 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var result = provider.validate(clientId, url);
+        var validationResult = provider.validate(clientId, url);
 
-        assertThat(result.result()).isFalse();
-        assertThat(result.error()).isEqualTo("unauthorized_client");
+        assertThat(validationResult.getResult()).isFalse();
+        assertThat(validationResult.getError()).isEqualTo("unauthorized_client");
     }
 }

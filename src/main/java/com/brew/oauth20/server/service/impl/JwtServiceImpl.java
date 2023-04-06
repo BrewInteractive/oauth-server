@@ -6,12 +6,14 @@ import com.brew.oauth20.server.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 
+@Service
 public class JwtServiceImpl implements JwtService {
     @Override
     public TokenModel signToken(SignTokenOptions signTokenOptions) {
