@@ -18,7 +18,7 @@ public abstract class BaseTokenGrantProvider {
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
         String clientId;
         String clientSecret;
-        if (authorizationHeader.isEmpty()) {
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
             clientId = tokenRequest.client_id;
             clientSecret = tokenRequest.client_secret;
         } else {

@@ -23,4 +23,8 @@ public record ClientModel(
         byte[] decodedBytes = Base64.getUrlDecoder().decode(clientSecret);
         return new String(decodedBytes);
     }
+
+    public String clientIdClientSecretEncoded() {
+        return Base64.getEncoder().withoutPadding().encodeToString((clientId + ":" + clientSecret).getBytes());
+    }
 }
