@@ -7,11 +7,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.OffsetDateTime;
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-
 
 @Getter
 @Setter
@@ -20,11 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "refresh_tokens")
-public class RefreshToken {
-    @OneToMany(mappedBy = "replacedByToken")
-    @ToString.Exclude
-    private final Set<RefreshToken> refreshTokens = new LinkedHashSet<>();
+@Table(name = "refresh_tokens__active")
+public class ActiveRefreshToken {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -32,16 +26,8 @@ public class RefreshToken {
     private OffsetDateTime createdAt;
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
-    @Column(name = "expires_at", nullable = false)
-    private OffsetDateTime expiresAt;
     @Column(name = "token", nullable = false, length = Integer.MAX_VALUE)
     private String token;
-    @Column(name = "revoked_at", nullable = true)
-    private OffsetDateTime revokedAt;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "replaced_by_token_id", nullable = true)
-    @ToString.Exclude
-    private RefreshToken replacedByToken;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "client_user_id", nullable = false)
@@ -52,7 +38,7 @@ public class RefreshToken {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        RefreshToken that = (RefreshToken) o;
+        ActiveRefreshToken that = (ActiveRefreshToken) o;
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 
