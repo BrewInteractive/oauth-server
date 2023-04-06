@@ -7,6 +7,8 @@ import com.brew.oauth20.server.model.ClientModel;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
 import static org.instancio.Select.field;
@@ -56,12 +58,19 @@ public class ClientModelFixture extends Fixture<ClientModel> {
                 .create();
     }
 
+
     private Model<ClientModel> clientModel(Integer grantSize, Boolean issueRefreshTokens, ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions) {
         return Instancio.of(ClientModel.class)
+                .supply(field(ClientModel::clientSecret), () -> encodeClientSecret(faker.lordOfTheRings().character()))
                 .supply(field(ClientModel::issueRefreshTokens), () -> issueRefreshTokens)
                 .supply(field(ClientModel::grantList), () -> grantModelFixture.createRandomList(grantSize, responseTypeOptions, grantTypeOptions))
                 .supply(field(ClientModel::redirectUriList), () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize))
                 .toModel();
+    }
+
+    private String encodeClientSecret(String clientSecret) {
+        byte[] encodedBytes = Base64.getEncoder().encode(clientSecret.getBytes(StandardCharsets.UTF_8));
+        return new String(encodedBytes, StandardCharsets.UTF_8);
     }
 }
 

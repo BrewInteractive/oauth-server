@@ -24,16 +24,15 @@ public class TokenServiceImpl implements TokenService {
     public TokenModel generateToken(ClientModel client, Long userId, String state) {
         if (client.issueRefreshTokens()) {
             var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(), client.refreshTokenExpiresInDays());
-            return generateToken(client, userId, state, refreshToken);
+            return generateToken(client, userId, state, refreshToken.getToken());
         }
-        
+
         var signTokenOptions = createSignTokenOptions(client, userId, state);
         return jwtService.signToken(signTokenOptions);
     }
 
     @Override
     public TokenModel generateToken(ClientModel client, Long userId, String state, String refreshToken) {
-
         var signTokenOptions = createSignTokenOptions(client, userId, state);
         return jwtService.signToken(signTokenOptions, refreshToken);
     }
