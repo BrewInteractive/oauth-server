@@ -55,8 +55,8 @@ public class AuthorizeController {
 
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
 
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.result())) {
-                return generateErrorResponse(authorizeTypeValidationResult.error(), queryString, authorizeRequest.redirect_uri);
+            if (Boolean.FALSE.equals(authorizeTypeValidationResult.result)) {
+                return generateErrorResponse(authorizeTypeValidationResult.error, queryString, authorizeRequest.redirect_uri);
             }
 
             /*user cookie and authorization code*/

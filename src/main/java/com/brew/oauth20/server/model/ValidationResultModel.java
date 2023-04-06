@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.model;
 
-import lombok.Builder;
-
-@Builder
-public record ValidationResultModel(Boolean result, String error) {
+public class ValidationResultModel extends BaseResultModel<Boolean> {
+    public ValidationResultModel(Boolean result, String error) {
+        super(result, error);
+    }
 }
 
