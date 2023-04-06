@@ -93,7 +93,7 @@ class JwtServiceTest {
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isGreaterThan(0);
+        assertThat(result.getExpiresIn()).isPositive();
         assertThat(result.getRefreshToken()).isBlank();
     }
 
@@ -116,7 +116,7 @@ class JwtServiceTest {
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isGreaterThan(0);
+        assertThat(result.getExpiresIn()).isPositive();
         assertThat(result.getRefreshToken()).isEqualTo(refreshToken);
     }
 }
