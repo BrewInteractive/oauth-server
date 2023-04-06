@@ -73,7 +73,7 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
 
         var validationResult = provider.validate(clientId, url);
 
-        assertThat(validationResult.result).isFalse();
-        assertThat(validationResult.error).isEqualTo("unauthorized_client");
+        assertThat(validationResult.getResult()).isFalse();
+        assertThat(validationResult.getError()).isEqualTo("unauthorized_client");
     }
 }

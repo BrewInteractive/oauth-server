@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 public abstract class BaseResultModel<T> {
 
-    public T result;
-    public String error;
+    protected final T result;
+    protected final String error;
 
     protected BaseResultModel(T result, String error) {
         this.result = result;
