@@ -55,13 +55,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public RefreshToken revokeRefreshToken(String clientId, Long userId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException {
+    public RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException {
         var activeRefreshToken = activeRefreshTokenRepository.findByToken(token);
 
         if (activeRefreshToken.isEmpty())
             throw new RefreshTokenNotFoundException(token);
 
         var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken.get());
+
+        var userId = activeRefreshToken.get().getClientUser().getUserId();
 
         var newRefreshToken = createRefreshToken(clientId, userId, newToken, expirationTimeInDays);
 
