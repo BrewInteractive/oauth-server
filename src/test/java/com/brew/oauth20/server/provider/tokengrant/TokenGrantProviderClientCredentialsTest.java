@@ -47,9 +47,11 @@ class TokenGrantProviderClientCredentialsTest {
         validTokenRequest.setClient_id(client.clientId());
         validTokenRequest.setClient_secret(client.clientSecret());
 
-        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        tokenRequestWithoutClient.setClient_id("");
-        tokenRequestWithoutClient.setClient_secret("");
+        var tokenRequestWithoutClientSecret = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
+        tokenRequestWithoutClientSecret.setClient_secret("");
+
+        var tokenRequestWithoutClientId = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
+        tokenRequestWithoutClientId.setClient_id("");
 
         String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
 
@@ -71,7 +73,13 @@ class TokenGrantProviderClientCredentialsTest {
                 //request without client
                 Arguments.of(null,
                         authorizationHeader,
-                        tokenRequestWithoutClient,
+                        tokenRequestWithoutClientId,
+                        new ValidationResultModel(false, "invalid_request"),
+                        pair),
+                //request without client
+                Arguments.of(null,
+                        authorizationHeader,
+                        tokenRequestWithoutClientSecret,
                         new ValidationResultModel(false, "invalid_request"),
                         pair),
                 //client not found case
