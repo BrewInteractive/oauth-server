@@ -108,7 +108,6 @@ class RefreshTokenServiceTest {
                 activeRefreshTokenRepository,
                 clientsUserRepository).revokeRefreshToken(
                 clientUser.getClient().getClientId(),
-                clientUser.getUserId(),
                 activeRefreshToken.getToken(),
                 clientUser.getClient().getRefreshTokenExpiresInDays(),
                 newToken
@@ -137,6 +136,6 @@ class RefreshTokenServiceTest {
         when(refreshTokenRepository.findByToken(any()))
                 .thenReturn(Optional.empty());
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);        // Act && Assert
-        assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", 0L, "", 0, ""));
+        assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", "", 0, ""));
     }
 }
