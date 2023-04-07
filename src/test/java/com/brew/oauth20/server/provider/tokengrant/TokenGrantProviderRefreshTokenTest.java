@@ -14,9 +14,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -32,12 +33,15 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 class TokenGrantProviderRefreshTokenTest {
-    @MockBean
+    @Mock
     RefreshTokenService refreshTokenService;
-    @MockBean
+    @Mock
     TokenService tokenService;
-    @MockBean
-    private ClientService clientService;
+    @Mock
+    ClientService clientService;
+
+    @InjectMocks
+    private TokenGrantProviderRefreshToken tokenGrantProviderRefreshToken;
 
     private static Stream<Arguments> should_validate_refresh_token_provider() {
 
@@ -63,7 +67,7 @@ class TokenGrantProviderRefreshTokenTest {
         var pair = Pair.of(client.clientId(), client.clientSecret());
 
         return Stream.of(
-                //valid case client credentials from authorizationcode
+                //valid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationCode,
                         validTokenRequest,
@@ -75,7 +79,7 @@ class TokenGrantProviderRefreshTokenTest {
                         validTokenRequest,
                         new ValidationResultModel(true, null),
                         pair),
-                //invalid case client credentials from authorizationcode
+                //invalid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationCode,
                         validTokenRequest,
@@ -164,14 +168,9 @@ class TokenGrantProviderRefreshTokenTest {
         if (!authorizationCode.isEmpty())
             when(clientService.decodeClientCredentials(authorizationCode))
                     .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
-        var provider = new TokenGrantProviderRefreshToken(
-                clientService,
-                refreshTokenService,
-                tokenService
-        );
 
         // Act
-        var result = provider.validate(authorizationCode, tokenRequest);
+        var result = tokenGrantProviderRefreshToken.validate(authorizationCode, tokenRequest);
 
         // Assert
         assertThat(result).isEqualTo(expectedResult);
@@ -196,14 +195,8 @@ class TokenGrantProviderRefreshTokenTest {
         when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken()))
                 .thenReturn(tokenResultModel.getResult());
 
-        var provider = new TokenGrantProviderRefreshToken(
-                clientService,
-                refreshTokenService,
-                tokenService
-        );
-
         // Act
-        var result = provider.generateToken(authorizationCode, tokenRequest);
+        var result = tokenGrantProviderRefreshToken.generateToken(authorizationCode, tokenRequest);
 
         // Assert
         assertThat(result).isEqualTo(tokenResultModel);

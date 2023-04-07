@@ -7,9 +7,9 @@ import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.impl.ClientServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Base64;
@@ -23,10 +23,13 @@ import static org.mockito.Mockito.when;
 class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;
-    @MockBean
+    @Mock
     private ClientMapper clientMapper;
 
     private ClientFixture clientFixture;
+
+    @InjectMocks
+    private ClientServiceImpl clientService;
 
     @Test
     void should_get_client_by_client_id() {
@@ -41,8 +44,6 @@ class ClientServiceTest {
                 .thenReturn(optionalClient);
 
         var expected = optionalClient.map(clientMapper::toDTO).orElse(null);
-
-        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
 
         var result = clientService.getClient(client.getClientId());
 
@@ -63,8 +64,6 @@ class ClientServiceTest {
 
         var expected = optionalClient.map(clientMapper::toDTO).orElse(null);
 
-        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
-
         var result = clientService.getClient(client.getClientId(), client.getClientSecret());
 
         assertThat(expected).isEqualTo(result);
@@ -79,8 +78,6 @@ class ClientServiceTest {
         var decodeHeader = client.getClientId() + ":" + client.getClientSecret();
         String encodedHeader = Base64.getEncoder().withoutPadding().encodeToString(decodeHeader.getBytes());
 
-        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
-
         var pairResult = clientService.decodeClientCredentials(encodedHeader);
 
         assertThat(pairResult).isNotEmpty();
@@ -91,8 +88,6 @@ class ClientServiceTest {
     @Test
     void should_throw_exception_on_decode_client_credentials() {
         String encodedHeader = Base64.getEncoder().withoutPadding().encodeToString("malformed-header".getBytes());
-
-        var clientService = new ClientServiceImpl(clientRepository, clientMapper);
 
         var pairResult = clientService.decodeClientCredentials(encodedHeader);
 

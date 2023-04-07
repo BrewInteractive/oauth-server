@@ -4,25 +4,24 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
 import com.brew.oauth20.server.utils.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
+    @Autowired
     RefreshTokenService refreshTokenService;
+    @Autowired
     TokenService tokenService;
 
+
     protected TokenGrantProviderRefreshToken(
-            ClientService clientService,
-            RefreshTokenService refreshTokenService,
-            TokenService tokenService) {
-        super(clientService);
+            ) {
+        super();
         this.grantType = GrantType.refresh_token;
-        this.refreshTokenService = refreshTokenService;
-        this.tokenService = tokenService;
     }
 
     @Override
