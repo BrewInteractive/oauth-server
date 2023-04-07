@@ -71,7 +71,7 @@ class AuthorizationCodeServiceTest {
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
 
-        assertThat(result).isEqualTo(authorizationCode.getCode());
+        assertThat(result).isEqualTo(authorizationCode);
         verify(authorizationCodeRepository, never()).save(authorizationCode);
     }
 
@@ -89,7 +89,7 @@ class AuthorizationCodeServiceTest {
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), true);
 
-        assertThat(result).isEqualTo(authorizationCode.getCode());
+        assertThat(result).isEqualTo(authorizationCode);
         verify(authorizationCodeRepository).save(authorizationCode);
     }
 
@@ -100,7 +100,7 @@ class AuthorizationCodeServiceTest {
         var authorizationCode = authorizationCodeFixture.createRandomOne();
 
         when(clientRepository.findByClientId(authorizationCode.getClient().getClientId()))
-                .thenReturn(Optional.ofNullable(null));
+                .thenReturn(Optional.empty());
 
         var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, clientRepository);
 
