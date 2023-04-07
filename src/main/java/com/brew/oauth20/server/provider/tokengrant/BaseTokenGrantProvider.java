@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
@@ -9,6 +10,7 @@ import com.brew.oauth20.server.utils.validators.ClientValidator;
 
 public abstract class BaseTokenGrantProvider {
     protected GrantType grantType;
+    protected ClientModel client;
     ClientService clientService;
 
     protected BaseTokenGrantProvider(ClientService clientService) {
@@ -29,7 +31,7 @@ public abstract class BaseTokenGrantProvider {
             clientSecret = clientCredentials.get().getSecond();
         }
 
-        var client = clientService.getClient(clientId, clientSecret);
+        client = clientService.getClient(clientId, clientSecret);
 
         if (client == null)
             return new ValidationResultModel(false, "unauthorized_client");

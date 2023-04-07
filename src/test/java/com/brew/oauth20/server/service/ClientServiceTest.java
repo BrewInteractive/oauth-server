@@ -65,7 +65,7 @@ class ClientServiceTest {
 
         var clientService = new ClientServiceImpl(clientRepository, clientMapper);
 
-        var result = clientService.getClient(client.getClientId());
+        var result = clientService.getClient(client.getClientId(), client.getClientSecret());
 
         assertThat(expected).isEqualTo(result);
     }

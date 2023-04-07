@@ -27,14 +27,11 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
     @Override
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var validationResult = super.validate(authorizationHeader, tokenRequest);
-
-        if (Boolean.FALSE.equals(validationResult.getResult()))
-            return validationResult;
-
         if (tokenRequest.refresh_token.isBlank())
             return new ValidationResultModel(false, "invalid_request");
-
+        var validationResult = super.validate(authorizationHeader, tokenRequest);
+        if (Boolean.FALSE.equals(validationResult.getResult()))
+            return validationResult;
         return new ValidationResultModel(true, null);
     }
 
@@ -47,21 +44,7 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
         var newRefreshTokenCode = StringUtils.generateSecureRandomString(54);
 
-        var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-
-        if (clientCredentials.isEmpty())
-            return new TokenResultModel(null, "unauthorized_client");
-
-        var clientId = clientCredentials.get().getFirst();
-
-        var clientSecret = clientCredentials.get().getSecond();
-
-        var client = clientService.getClient(clientId, clientSecret);
-
-        if (client == null)
-            return new TokenResultModel(null, "unauthorized_client");
-
-        var refreshToken = refreshTokenService.revokeRefreshToken(clientId, tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
+        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
 
         var userId = refreshToken.getClientUser().getUserId();
 
