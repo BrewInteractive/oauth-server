@@ -28,10 +28,7 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.refresh_token))
             return new ValidationResultModel(false, "invalid_request");
-        var validationResult = super.validate(authorizationHeader, tokenRequest);
-        if (Boolean.FALSE.equals(validationResult.getResult()))
-            return validationResult;
-        return new ValidationResultModel(true, null);
+        return super.validate(authorizationHeader, tokenRequest);
     }
 
     @Override
