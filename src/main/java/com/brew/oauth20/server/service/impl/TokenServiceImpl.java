@@ -37,11 +37,17 @@ public class TokenServiceImpl implements TokenService {
         return jwtService.signToken(signTokenOptions, refreshToken);
     }
 
+    @Override
+    public TokenModel generateToken(ClientModel client, String state) {
+        var signTokenOptions = createSignTokenOptions(client, null, state);
+        return jwtService.signToken(signTokenOptions);
+    }
+
     private Map<String, Object> createAdditionalClaims(ClientModel client) {
         return Map.of("clientId", client.clientId());
     }
 
     private SignTokenOptions createSignTokenOptions(ClientModel client, Long userId, String state) {
-        return new SignTokenOptions(userId.toString(), client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
+        return new SignTokenOptions(userId == null ? null : userId.toString(), client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
     }
 }
