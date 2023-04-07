@@ -76,6 +76,24 @@ class AuthorizationCodeServiceTest {
     }
 
     @Test
+    void should_not_find_authorization_code_by_code_and_redirect_uri() {
+
+        authorizationCodeFixture = new AuthorizationCodeFixture();
+
+        var authorizationCode = authorizationCodeFixture.createRandomOne();
+
+        when(authorizationCodeRepository.findByCodeAndRedirectUri(authorizationCode.getCode(), authorizationCode.getRedirectUri()))
+                .thenReturn(null);
+
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, clientRepository);
+
+        var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
+
+        assertThat(result).isNull();
+        verify(authorizationCodeRepository, never()).save(authorizationCode);
+    }
+
+    @Test
     void should_find_authorization_code_by_code_and_redirect_uri_and_set_used_at() {
 
         authorizationCodeFixture = new AuthorizationCodeFixture();

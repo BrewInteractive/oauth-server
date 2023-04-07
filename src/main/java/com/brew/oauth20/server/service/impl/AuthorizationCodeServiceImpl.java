@@ -48,7 +48,10 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     @Override
     public AuthorizationCode getAuthorizationCode(String code, String redirectUri, boolean markAsUsed) {
         var authorizationCode = authorizationCodeRepository.findByCodeAndRedirectUri(code, redirectUri);
-        if (markAsUsed && authorizationCode != null) {
+        if(authorizationCode == null){
+            return null;
+        }
+        if (markAsUsed) {
             authorizationCode.setUsedAt(OffsetDateTime.now());
             authorizationCodeRepository.save(authorizationCode);
         }

@@ -207,7 +207,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true))
                 .thenReturn(authorizationCode);
-        if(authorizationCode!=null){
+        if(authorizationCode != null){
             when(tokenService.generateToken(clientModel, authorizationCode.getUserId(), tokenRequest.state))
                     .thenReturn(tokenResultModel.getResult());
         }
