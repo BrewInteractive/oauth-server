@@ -20,6 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -76,6 +77,12 @@ class TokenGrantProviderRefreshTokenTest {
                 //valid case client credentials from request model
                 Arguments.of(client,
                         "",
+                        validTokenRequest,
+                        new ValidationResultModel(true, null),
+                        pair),
+                //valid case client credentials from request model
+                Arguments.of(client,
+                        null,
                         validTokenRequest,
                         new ValidationResultModel(true, null),
                         pair),
@@ -165,7 +172,7 @@ class TokenGrantProviderRefreshTokenTest {
         if (!tokenRequest.client_id.isEmpty() && !tokenRequest.client_secret.isEmpty())
             when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
                     .thenReturn(clientModel);
-        if (!authorizationCode.isEmpty())
+        if (!StringUtils.isEmpty(authorizationCode))
             when(clientService.decodeClientCredentials(authorizationCode))
                     .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 

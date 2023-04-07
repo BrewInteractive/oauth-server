@@ -7,6 +7,7 @@ import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseTokenGrantProvider {
@@ -18,7 +19,7 @@ public abstract class BaseTokenGrantProvider {
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
         String clientId;
         String clientSecret;
-        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+        if (StringUtils.isEmpty(authorizationHeader)) {
             clientId = tokenRequest.client_id;
             clientSecret = tokenRequest.client_secret;
         } else {
