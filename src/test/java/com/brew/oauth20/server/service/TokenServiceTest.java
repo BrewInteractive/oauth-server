@@ -52,6 +52,20 @@ class TokenServiceTest {
 
     }
 
+    private static Stream<Arguments> should_generate_token_without_user_id() {
+
+        return Stream.of(
+                Arguments.of(
+                        clientModelFixture.createRandomOne(false),
+                        faker.lordOfTheRings().location(),
+                        faker.regexify("[A-Za-z0-9]{150}"),
+                        faker.random().nextLong(Long.MAX_VALUE),
+                        "Bearer"
+
+                )
+        );
+    }
+
     private static Stream<Arguments> should_generate_token_without_refresh_token() {
 
         return Stream.of(
@@ -86,6 +100,45 @@ class TokenServiceTest {
     public void setUp() {
         Mockito.reset(jwtService);
         Mockito.reset(refreshTokenService);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void should_generate_token_without_user_id(ClientModel client,
+                                               String state,
+                                               String accessToken,
+                                               long expiresIn,
+                                               String tokenType) {
+        // Arrange
+        var token = TokenModel.builder()
+                .accessToken(accessToken)
+                .expiresIn(expiresIn)
+                .state(state)
+                .tokenType(tokenType)
+                .build();
+
+        var signTokenOptions = new SignTokenOptions(null,
+                client.audience(),
+                client.issuerUri(),
+                state,
+                client.tokenExpiresInMinutes(),
+                client.clientSecretDecoded(),
+                Map.of("clientId", client.clientId()));
+
+        when(jwtService.signToken(signTokenOptions)).
+                thenReturn(token);
+
+        // Act
+        var result = tokenService.generateToken(client, state);
+
+        // Assert
+        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getState()).isEqualTo(state);
+        assertThat(result.getAccessToken()).isNotBlank();
+        assertThat(result.getAccessToken().length()).isBetween(100, 1000);
+        assertThat(result.getExpiresIn()).isPositive();
+        assertThat(result.getRefreshToken()).isBlank();
+
     }
 
     @ParameterizedTest
