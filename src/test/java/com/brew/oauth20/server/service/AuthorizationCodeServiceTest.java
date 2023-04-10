@@ -71,7 +71,25 @@ class AuthorizationCodeServiceTest {
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
 
-        assertThat(result).isEqualTo(authorizationCode.getCode());
+        assertThat(result).isEqualTo(authorizationCode);
+        verify(authorizationCodeRepository, never()).save(authorizationCode);
+    }
+
+    @Test
+    void should_not_find_authorization_code_by_code_and_redirect_uri() {
+
+        authorizationCodeFixture = new AuthorizationCodeFixture();
+
+        var authorizationCode = authorizationCodeFixture.createRandomOne();
+
+        when(authorizationCodeRepository.findByCodeAndRedirectUri(authorizationCode.getCode(), authorizationCode.getRedirectUri()))
+                .thenReturn(null);
+
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, clientRepository);
+
+        var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
+
+        assertThat(result).isNull();
         verify(authorizationCodeRepository, never()).save(authorizationCode);
     }
 
@@ -89,7 +107,7 @@ class AuthorizationCodeServiceTest {
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), true);
 
-        assertThat(result).isEqualTo(authorizationCode.getCode());
+        assertThat(result).isEqualTo(authorizationCode);
         verify(authorizationCodeRepository).save(authorizationCode);
     }
 
@@ -100,7 +118,7 @@ class AuthorizationCodeServiceTest {
         var authorizationCode = authorizationCodeFixture.createRandomOne();
 
         when(clientRepository.findByClientId(authorizationCode.getClient().getClientId()))
-                .thenReturn(Optional.ofNullable(null));
+                .thenReturn(Optional.empty());
 
         var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, clientRepository);
 
