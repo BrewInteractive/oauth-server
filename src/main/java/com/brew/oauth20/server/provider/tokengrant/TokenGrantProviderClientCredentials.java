@@ -14,8 +14,7 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
     @Autowired
     TokenService tokenService;
 
-    protected TokenGrantProviderClientCredentials(
-    ) {
+    protected TokenGrantProviderClientCredentials() {
         super();
         this.grantType = GrantType.client_credentials;
     }
