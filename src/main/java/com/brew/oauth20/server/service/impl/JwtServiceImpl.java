@@ -21,13 +21,17 @@ public class JwtServiceImpl implements JwtService {
 
         // create claims for JWT token
         Claims claims = Jwts.claims().
-                setSubject(signTokenOptions.subject()).
                 setAudience(signTokenOptions.audience()).
                 setIssuer(signTokenOptions.issuerUri()).
                 setIssuedAt(Date.from(Instant.now())).
                 setExpiration(Date.from(Instant.now().plusSeconds(expiresInSeconds)));
+
+        if (signTokenOptions.subject() != null) {
+            claims.setSubject(signTokenOptions.subject());
+        }
+
         if (signTokenOptions.additionalClaims() != null) {
-            signTokenOptions.additionalClaims().forEach(claims::put);
+            claims.putAll(signTokenOptions.additionalClaims());
         }
 
         // sign JWT token
