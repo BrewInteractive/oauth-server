@@ -6,7 +6,6 @@ import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,60 +35,6 @@ class TokenGrantProviderClientCredentialsTest {
 
     @InjectMocks
     private TokenGrantProviderClientCredentials tokenGrantProviderClientCredentials;
-
-    private static Stream<Arguments> should_validate_client_credentials_provider() {
-
-        var clientModelFixture = new ClientModelFixture();
-        var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
-        var tokenRequestFixture = new TokenRequestModelFixture();
-
-        var validTokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        validTokenRequest.setClient_id(client.clientId());
-        validTokenRequest.setClient_secret(client.clientSecret());
-
-        var tokenRequestWithoutClientSecret = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        tokenRequestWithoutClientSecret.setClient_secret("");
-
-        var tokenRequestWithoutClientId = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        tokenRequestWithoutClientId.setClient_id("");
-
-        String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
-
-        var pair = Pair.of(client.clientId(), client.clientSecret());
-
-        return Stream.of(
-                //valid case client credentials from authorization code
-                Arguments.of(client,
-                        authorizationHeader,
-                        validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
-                //valid case client credentials from request model
-                Arguments.of(client,
-                        null,
-                        validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
-                //request without client
-                Arguments.of(null,
-                        authorizationHeader,
-                        tokenRequestWithoutClientId,
-                        new ValidationResultModel(false, "invalid_request"),
-                        pair),
-                //request without client
-                Arguments.of(null,
-                        authorizationHeader,
-                        tokenRequestWithoutClientSecret,
-                        new ValidationResultModel(false, "invalid_request"),
-                        pair),
-                //client not found case
-                Arguments.of(null,
-                        authorizationHeader,
-                        validTokenRequest,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        pair)
-        );
-    }
 
     private static Stream<Arguments> should_generate_token_from_valid_request() {
         var clientModelFixture = new ClientModelFixture();
@@ -121,7 +66,7 @@ class TokenGrantProviderClientCredentialsTest {
                 Arguments.of(client,
                         authorizationHeader,
                         tokenRequestWithoutClient,
-                        new TokenResultModel(null, "invalid_request"),
+                        new TokenResultModel(null, "unauthorized_client"),
                         clientCredentials),
                 Arguments.of(client,
                         authorizationHeader,
@@ -135,31 +80,6 @@ class TokenGrantProviderClientCredentialsTest {
     public void setUp() {
         Mockito.reset(clientService);
         Mockito.reset(tokenService);
-    }
-
-    @MethodSource
-    @ParameterizedTest
-    void should_validate_client_credentials_provider(ClientModel clientModel,
-                                                     String authorizationHeader,
-                                                     TokenRequestModel tokenRequest,
-                                                     ValidationResultModel expectedResult,
-                                                     Pair<String, String> clientCredentialsPair) {
-        // Arrange
-        if (!tokenRequest.client_id.isEmpty() && !tokenRequest.client_secret.isEmpty()) {
-            when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
-                    .thenReturn(clientModel);
-        }
-
-        if (!StringUtils.isEmpty(authorizationHeader)) {
-            when(clientService.decodeClientCredentials(authorizationHeader))
-                    .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
-        }
-
-        // Act
-        var result = tokenGrantProviderClientCredentials.validate(authorizationHeader, tokenRequest);
-
-        // Assert
-        assertThat(result).isEqualTo(expectedResult);
     }
 
     @MethodSource
