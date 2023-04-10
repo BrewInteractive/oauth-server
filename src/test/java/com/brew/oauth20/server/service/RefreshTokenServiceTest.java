@@ -133,7 +133,7 @@ class RefreshTokenServiceTest {
         // Arrange
         Mockito.reset(clientsUserRepository);
         Mockito.reset(refreshTokenRepository);
-        when(refreshTokenRepository.findByToken(any()))
+        when(activeRefreshTokenRepository.findByToken(any()))
                 .thenReturn(Optional.empty());
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);        // Act && Assert
         assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", "", 0, ""));
