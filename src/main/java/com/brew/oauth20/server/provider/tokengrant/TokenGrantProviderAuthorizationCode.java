@@ -4,29 +4,26 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.service.RefreshTokenService;
+import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.TokenService;
-import com.brew.oauth20.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
+public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider {
     @Autowired
-    RefreshTokenService refreshTokenService;
+    AuthorizationCodeService authorizationCodeService;
     @Autowired
     TokenService tokenService;
 
-
-    protected TokenGrantProviderRefreshToken(
-            ) {
+    protected TokenGrantProviderAuthorizationCode() {
         super();
-        this.grantType = GrantType.refresh_token;
+        this.grantType = GrantType.authorization_code;
     }
 
     @Override
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.refresh_token))
+        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.code))
             return new ValidationResultModel(false, "invalid_request");
         return super.validate(authorizationHeader, tokenRequest);
     }
@@ -38,13 +35,12 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
         if (Boolean.FALSE.equals(validationResult.getResult()))
             return new TokenResultModel(null, validationResult.getError());
 
-        var newRefreshTokenCode = StringUtils.generateSecureRandomString(54);
+        var authorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
 
-        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
+        if (authorizationCode == null)
+            return new TokenResultModel(null, "invalid_request");
 
-        var userId = refreshToken.getClientUser().getUserId();
-
-        var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, refreshToken.getToken());
+        var tokenModel = tokenService.generateToken(client, authorizationCode.getUserId(), tokenRequest.state);
 
         return new TokenResultModel(tokenModel, null);
     }
