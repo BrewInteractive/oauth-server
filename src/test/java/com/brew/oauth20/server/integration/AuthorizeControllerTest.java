@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("ALL")
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -32,6 +33,7 @@ class AuthorizeControllerTest {
     private String authorizedAuthCode;
     private String authorizedClientId;
     private String authorizedClientSecret;
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,32 +50,27 @@ class AuthorizeControllerTest {
     private RedirectUriRepository redirectUriRepository;
     @Autowired
     private ClientsUserRepository clientsUserRepository;
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
 
     @BeforeAll
     void setup() {
-        var clientFixture = new ClientFixture();
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
         var authorizationCodeFixture = new AuthorizationCodeFixture();
-        var cliensUserFixture = new ClientsUserFixture();
-        var refreshTokenFixture = new RefreshTokenFixture();
+        var clientsUserFixture = new ClientsUserFixture();
 
-        var client = clientFixture.createRandomOne(false);
         var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
         var clientsGrant = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var redirectUris = redirectUrisFixture.createRandomOne();
         var authorizationCode = authorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
 
+        var clientsUser = clientsUserFixture.createRandomOne();
+
+        var client = clientsUser.getClient();
+
 
         var savedClient = clientRepository.save(client);
 
-
-        var clientsUser = cliensUserFixture.createRandomOne(savedClient);
-        var refreshToken = refreshTokenFixture.createRandomOne(clientsUser);
-        refreshTokenRepository.save(refreshToken);
         var savedClientUser = clientsUserRepository.save(clientsUser);
 
         authorizationCode.setClient(savedClient);
@@ -105,10 +102,9 @@ class AuthorizeControllerTest {
     }
 
     @AfterEach
-    void deleteCodes() {
-        //authorizationCodeRepository.deleteAll();
+    void delete() {
+        //refreshTokenRepository.deleteAll();
     }
-
 
     //region /oauth/authorize tests
 
@@ -343,7 +339,7 @@ class AuthorizeControllerTest {
     //endregion tests
 
     //region /oauth/token tests
-    /*@Test
+    @Test
     void should_return_token_with_200_post_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -356,9 +352,10 @@ class AuthorizeControllerTest {
                         "}"));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
-        var body = response.getContentAsString();
+
+        assertThat(response.getContentAsString()).contains("Bearer");
         resultActions.andExpect(status().isOk());
-    }*/
+    }
     //endregion
 
 }

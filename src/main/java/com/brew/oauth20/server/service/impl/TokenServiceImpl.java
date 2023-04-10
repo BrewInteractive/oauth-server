@@ -23,7 +23,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public TokenModel generateToken(ClientModel client, Long userId, String state) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
-            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(), client.refreshTokenExpiresInDays());
+            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(64), client.refreshTokenExpiresInDays());
             return generateToken(client, userId, state, refreshToken.getToken());
         }
 
