@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.fixture;
 
+import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
@@ -20,9 +21,21 @@ public class ClientsUserFixture extends Fixture<ClientUser> {
                 .create();
     }
 
+    public ClientUser createRandomOne(Client client) {
+        return Instancio.of(clientsUser(client))
+                .create();
+    }
+
     private Model<ClientUser> clientsUser() {
         return Instancio.of(ClientUser.class)
                 .supply(field(ClientUser::getClient), () -> clientFixture.createRandomOne(false))
+                .supply(field(ClientUser::getUserId), () -> faker.random().nextLong())
+                .toModel();
+    }
+
+    private Model<ClientUser> clientsUser(Client client) {
+        return Instancio.of(ClientUser.class)
+                .supply(field(ClientUser::getClient), () -> client)
                 .supply(field(ClientUser::getUserId), () -> faker.random().nextLong())
                 .toModel();
     }

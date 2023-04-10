@@ -1,10 +1,8 @@
 package com.brew.oauth20.server.integration;
 
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.fixture.ClientFixture;
-import com.brew.oauth20.server.fixture.ClientGrantFixture;
-import com.brew.oauth20.server.fixture.GrantFixture;
-import com.brew.oauth20.server.fixture.RedirectUriFixture;
+import com.brew.oauth20.server.fixture.*;
 import com.brew.oauth20.server.repository.*;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
@@ -31,7 +29,10 @@ class AuthorizeControllerTest {
 
     private final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
     private String authorizedRedirectUri;
+    private String authorizedAuthCode;
     private String authorizedClientId;
+    private String authorizedClientSecret;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,6 +46,10 @@ class AuthorizeControllerTest {
     private GrantRepository grantRepository;
     @Autowired
     private RedirectUriRepository redirectUriRepository;
+    @Autowired
+    private ClientsUserRepository clientsUserRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @BeforeAll
     void setup() {
@@ -52,13 +57,29 @@ class AuthorizeControllerTest {
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
+        var authorizationCodeFixture = new AuthorizationCodeFixture();
+        var cliensUserFixture = new ClientsUserFixture();
+        var refreshTokenFixture = new RefreshTokenFixture();
 
         var client = clientFixture.createRandomOne(false);
-        var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
         var clientsGrant = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var redirectUris = redirectUrisFixture.createRandomOne();
+        var authorizationCode = authorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
+
 
         var savedClient = clientRepository.save(client);
+
+
+        var clientsUser = cliensUserFixture.createRandomOne(savedClient);
+        var refreshToken = refreshTokenFixture.createRandomOne(clientsUser);
+        refreshTokenRepository.save(refreshToken);
+        var savedClientUser = clientsUserRepository.save(clientsUser);
+
+        authorizationCode.setClient(savedClient);
+        authorizationCode.setUserId(savedClientUser.getUserId());
+        authorizationCodeRepository.save(authorizationCode);
+
         var savedGrant = grantRepository.save(grant);
 
         redirectUris.setClient(savedClient);
@@ -69,7 +90,9 @@ class AuthorizeControllerTest {
         clientGrantRepository.save(clientsGrant);
 
         authorizedClientId = client.getClientId();
+        authorizedClientSecret = client.getClientSecret();
         authorizedRedirectUri = redirectUris.getRedirectUri();
+        authorizedAuthCode = authorizationCode.getCode();
     }
 
     @AfterAll
@@ -83,8 +106,11 @@ class AuthorizeControllerTest {
 
     @AfterEach
     void deleteCodes() {
-        authorizationCodeRepository.deleteAll();
+        //authorizationCodeRepository.deleteAll();
     }
+
+
+    //region /oauth/authorize tests
 
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
@@ -267,7 +293,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
-        long userId = 12345L;
+        long userId = 1234L;
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("SESSION_ID", userId + ""))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -283,7 +309,9 @@ class AuthorizeControllerTest {
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var codeEntity = authorizationCodeRepository.findAll().get(0);
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
         assertThat(location).contains("code=" + codeEntity.getCode());
@@ -304,10 +332,33 @@ class AuthorizeControllerTest {
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var codeEntity = authorizationCodeRepository.findAll().get(0);
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
         assertThat(location).contains("code=" + codeEntity.getCode());
     }
+
+    //endregion tests
+
+    //region /oauth/token tests
+    /*@Test
+    void should_return_token_with_200_post_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                        ",\"client_id\":\"" + authorizedClientId + "\"" +
+                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
+                        ",\"grant_type\":" + "\"authorization_code\"" +
+                        ",\"code\":\"" + authorizedAuthCode + "\"" +
+                        "}"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+        var body = response.getContentAsString();
+        resultActions.andExpect(status().isOk());
+    }*/
+    //endregion
 
 }

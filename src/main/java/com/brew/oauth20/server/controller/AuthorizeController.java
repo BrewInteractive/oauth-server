@@ -69,15 +69,11 @@ public class AuthorizeController {
         var tokenGrantProvider = tokenGrantProviderFactory
                 .getService(GrantType.fromValue(tokenRequestModel.grant_type));
 
-        var tokenGrantValidationResult = tokenGrantProvider.validate(authorizationHeaderValue, tokenRequestModel);
-
-        if (Boolean.FALSE.equals(tokenGrantValidationResult.getResult())) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
         var tokenResponse = tokenGrantProvider.generateToken(authorizationHeaderValue, tokenRequestModel);
 
-        return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
+        HttpStatus httpStatus = tokenResponse.getError() == null ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+
+        return new ResponseEntity<>(tokenResponse, httpStatus);
     }
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,

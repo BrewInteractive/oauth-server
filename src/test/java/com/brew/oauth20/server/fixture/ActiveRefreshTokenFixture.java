@@ -22,7 +22,7 @@ public class ActiveRefreshTokenFixture extends Fixture<ActiveRefreshToken> {
 
     private Model<ActiveRefreshToken> refreshToken() {
         return Instancio.of(ActiveRefreshToken.class)
-                .supply(field(ActiveRefreshToken::getClientUser), clientsUserFixture::createRandomOne)
+                .supply(field(ActiveRefreshToken::getClientUser), () -> clientsUserFixture.createRandomOne())
                 .supply(field(ActiveRefreshToken::getToken), () -> faker.random().nextLong() + "")
                 .toModel();
     }

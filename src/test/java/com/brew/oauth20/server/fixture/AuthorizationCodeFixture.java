@@ -7,7 +7,6 @@ import org.instancio.Model;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -23,23 +22,21 @@ public class AuthorizationCodeFixture extends Fixture<AuthorizationCode> {
 
 
     public AuthorizationCode createRandomOne() {
-        return Instancio.of(authorizationCodeModel())
+        return Instancio.of(authorizationCodeModel(null))
                 .create();
     }
 
-
-    public Set<AuthorizationCode> createRandomList(Integer size) {
-        return Instancio.ofSet(authorizationCodeModel())
-                .size(size)
+    public AuthorizationCode createRandomOne(String url) {
+        return Instancio.of(authorizationCodeModel(url))
                 .create();
     }
 
-    private Model<AuthorizationCode> authorizationCodeModel() {
+    private Model<AuthorizationCode> authorizationCodeModel(String url) {
         return Instancio.of(AuthorizationCode.class)
-                .supply(field(AuthorizationCode::getId), () -> UUID.randomUUID())
+                .supply(field(AuthorizationCode::getId), UUID::randomUUID)
                 .supply(field(AuthorizationCode::getExpiresAt), () ->
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
-                .supply(field(AuthorizationCode::getRedirectUri), () -> faker.internet().url())
+                .supply(field(AuthorizationCode::getRedirectUri), () -> url == null ? faker.internet().url() : url)
                 .supply(field(AuthorizationCode::getUserId), () -> faker.random().nextLong())
                 .supply(field(AuthorizationCode::getClient), () -> clientFixture.createRandomOne(false))
                 .toModel();
