@@ -16,8 +16,7 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
     @Autowired
     TokenService tokenService;
 
-    protected TokenGrantProviderAuthorizationCode(
-            ) {
+    protected TokenGrantProviderAuthorizationCode() {
         super();
         this.grantType = GrantType.authorization_code;
     }
@@ -36,7 +35,7 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
         if (Boolean.FALSE.equals(validationResult.getResult()))
             return new TokenResultModel(null, validationResult.getError());
 
-        var authorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code,tokenRequest.redirect_uri, true);
+        var authorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
 
         if (authorizationCode == null)
             return new TokenResultModel(null, "invalid_request");

@@ -14,22 +14,14 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
     @Autowired
     TokenService tokenService;
 
-    protected TokenGrantProviderClientCredentials(
-    ) {
+    protected TokenGrantProviderClientCredentials() {
         super();
         this.grantType = GrantType.client_credentials;
     }
 
     @Override
-    public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        if (StringUtils.isEmpty(tokenRequest.client_id) || StringUtils.isEmpty(tokenRequest.client_secret))
-            return new ValidationResultModel(false, "invalid_request");
-        return super.validate(authorizationHeader, tokenRequest);
-    }
-
-    @Override
     public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var validationResult = validate(authorizationHeader, tokenRequest);
+        var validationResult = super.validate(authorizationHeader, tokenRequest);
 
         if (Boolean.FALSE.equals(validationResult.getResult()))
             return new TokenResultModel(null, validationResult.getError());
