@@ -97,7 +97,7 @@ class TokenGrantProviderClientCredentialsTest {
         when(clientService.decodeClientCredentials(authorizationHeader))
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 
-        when(tokenService.generateToken(clientModel, null, tokenRequest.state))
+        when(tokenService.generateToken(clientModel, tokenRequest.state))
                 .thenReturn(tokenResultModel.getResult());
 
         // Act

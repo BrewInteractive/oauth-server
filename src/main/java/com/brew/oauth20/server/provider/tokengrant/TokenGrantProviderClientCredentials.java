@@ -3,9 +3,7 @@ package com.brew.oauth20.server.provider.tokengrant;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.TokenService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +24,7 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
         if (Boolean.FALSE.equals(validationResult.getResult()))
             return new TokenResultModel(null, validationResult.getError());
 
-        var tokenModel = tokenService.generateToken(client, null, tokenRequest.state);
+        var tokenModel = tokenService.generateToken(client, tokenRequest.state);
 
         return new TokenResultModel(tokenModel, null);
     }
