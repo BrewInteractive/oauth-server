@@ -9,7 +9,6 @@
 <a href="https://sonarcloud.io/summary/new_code?id=BrewInteractive_oauth-server" target="_blank"><img src="https://sonarcloud.io/api/project_badges/measure?project=BrewInteractive_oauth-server&metric=alert_status"/></a>
 <a href="https://sonarcloud.io/summary/new_code?id=BrewInteractive_oauth-server" target="_blank"><img src="https://sonarcloud.io/api/project_badges/measure?project=BrewInteractive_oauth-server&metric=coverage"/></a>
 <a href="https://hub.docker.com/repository/docker/brewery/oauth-server/general" target="_blank"><img src="https://img.shields.io/docker/pulls/brewery/oauth-server" alt="Docker Pulls" /></a> 
-
 <a href="https://github.com/BrewInteractive/oauth-server/blob/main/LICENSE?raw=true" target="_blank"><img src="https://img.shields.io/github/license/BrewInteractive/oauth-server" alt="Package License" /></a>
 </p>
 <p align="center">
