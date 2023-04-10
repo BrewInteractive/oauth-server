@@ -1,8 +1,10 @@
 package com.brew.oauth20.server.integration;
 
+import com.brew.oauth20.server.data.ActiveRefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.*;
+import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
@@ -33,6 +35,7 @@ class AuthorizeControllerTest {
     private String authorizedAuthCode;
     private String authorizedClientId;
     private String authorizedClientSecret;
+    private String authorizedRefreshToken;
 
 
     @Autowired
@@ -50,19 +53,27 @@ class AuthorizeControllerTest {
     private RedirectUriRepository redirectUriRepository;
     @Autowired
     private ClientsUserRepository clientsUserRepository;
+    @Autowired
+    private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @BeforeAll
     void setup() {
+        //TODO: should be refactored as single fixture and dbset
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
         var authorizationCodeFixture = new AuthorizationCodeFixture();
         var clientsUserFixture = new ClientsUserFixture();
+        var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
 
         var authCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
         var clientCredGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
+        var refreshTokenGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.refresh_token});
         var clientsGrantAuthCode = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var clientsGrantClientCred = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var clientsGrantRefreshToken = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var redirectUris = redirectUrisFixture.createRandomOne();
         var authorizationCode = authorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
 
@@ -70,10 +81,19 @@ class AuthorizeControllerTest {
 
         var client = clientsUser.getClient();
 
-
         var savedClient = clientRepository.save(client);
 
         var savedClientUser = clientsUserRepository.save(clientsUser);
+
+        ActiveRefreshToken activeRefreshToken = activeRefreshTokenFixture.createRandomOne(savedClientUser);
+
+        authorizedRefreshToken = activeRefreshToken.getToken();
+
+        activeRefreshTokenRepository.save(activeRefreshToken);
+
+        var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken);
+
+        refreshTokenRepository.save(existingRefreshToken);
 
         authorizationCode.setClient(savedClient);
         authorizationCode.setUserId(savedClientUser.getUserId());
@@ -81,6 +101,7 @@ class AuthorizeControllerTest {
 
         var savedAuthCodeGrant = grantRepository.save(authCodeGrant);
         var savedClientCredGrant = grantRepository.save(clientCredGrant);
+        var savedRefreshTokenGrant = grantRepository.save(refreshTokenGrant);
 
         redirectUris.setClient(savedClient);
         redirectUriRepository.save(redirectUris);
@@ -92,6 +113,10 @@ class AuthorizeControllerTest {
         clientsGrantClientCred.setClient(savedClient);
         clientsGrantClientCred.setGrant(savedClientCredGrant);
         clientGrantRepository.save(clientsGrantClientCred);
+
+        clientsGrantRefreshToken.setClient(savedClient);
+        clientsGrantRefreshToken.setGrant(savedRefreshTokenGrant);
+        clientGrantRepository.save(clientsGrantRefreshToken);
 
         authorizedClientId = client.getClientId();
         authorizedClientSecret = client.getClientSecret();
@@ -372,7 +397,23 @@ class AuthorizeControllerTest {
                         ",\"client_id\":\"" + authorizedClientId + "\"" +
                         ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                         ",\"grant_type\":" + "\""+ GrantType.client_credentials.getGrantType()+"\"" +
-                        ",\"code\":\"" + authorizedAuthCode + "\"" +
+                        "}"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+
+        assertThat(response.getContentAsString()).contains("Bearer");
+        resultActions.andExpect(status().isOk());
+    }
+    @Test
+    void should_return_token_grant_type_refresh_token_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                        ",\"client_id\":\"" + authorizedClientId + "\"" +
+                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
+                        ",\"grant_type\":" + "\"" + GrantType.refresh_token.getGrantType() + "\"" +
+                        ",\"refresh_token\":\"" + authorizedRefreshToken + "\"" +
                         "}"));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
