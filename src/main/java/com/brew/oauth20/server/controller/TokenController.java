@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderFactory;
@@ -24,22 +25,29 @@ public class TokenController {
     }
 
     @PostMapping(value = "/oauth/token")
-    public ResponseEntity<TokenResultModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
+    public ResponseEntity<Object> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
                                                       BindingResult validationResult,
                                                       HttpServletRequest request) {
-        if (validationResult.hasErrors()) {
-            return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
+        try{
+            if (validationResult.hasErrors()) {
+                return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
+            }
+
+            var authorizationHeaderValue = request.getHeader(authorizationHeaderKey);
+
+            var tokenGrantProvider = tokenGrantProviderFactory
+                    .getService(GrantType.fromValue(tokenRequestModel.grant_type));
+
+            var tokenResponse = tokenGrantProvider.generateToken(authorizationHeaderValue, tokenRequestModel);
+
+            if(tokenResponse.getError() != null){
+                return new ResponseEntity<>(tokenResponse.getError(), HttpStatus.BAD_REQUEST);}
+            else{
+                return new ResponseEntity<>(tokenResponse.getResult(), HttpStatus.OK);
+            }
         }
-
-        var authorizationHeaderValue = request.getHeader(authorizationHeaderKey);
-
-        var tokenGrantProvider = tokenGrantProviderFactory
-                .getService(GrantType.fromValue(tokenRequestModel.grant_type));
-
-        var tokenResponse = tokenGrantProvider.generateToken(authorizationHeaderValue, tokenRequestModel);
-
-        HttpStatus httpStatus = tokenResponse.getError() == null ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
-
-        return new ResponseEntity<>(tokenResponse, httpStatus);
+        catch(UnsupportedServiceTypeException e){
+            return new ResponseEntity<>("invalid_grant", HttpStatus.BAD_REQUEST);
+        }
     }
 }

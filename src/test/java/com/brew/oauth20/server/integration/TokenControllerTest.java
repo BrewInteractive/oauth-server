@@ -148,7 +148,7 @@ class TokenControllerTest {
 
     //region /oauth/token tests
     @Test
-    void should_return_token_grant_type_authorization_code_test() throws Exception {
+    void should_return_token_grant_type_authorization_code_ok_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -165,7 +165,7 @@ class TokenControllerTest {
         resultActions.andExpect(status().isOk());
     }
     @Test
-    void should_return_token_grant_type_client_credentials_test() throws Exception {
+    void should_return_token_grant_type_client_credentials_ok_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -181,7 +181,7 @@ class TokenControllerTest {
         resultActions.andExpect(status().isOk());
     }
     @Test
-    void should_return_token_grant_type_refresh_token_test() throws Exception {
+    void should_return_token_grant_type_refresh_token_ok_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -196,6 +196,43 @@ class TokenControllerTest {
 
         assertThat(response.getContentAsString()).contains("Bearer");
         resultActions.andExpect(status().isOk());
+    }
+
+    @Test
+    void should_return_error_invalid_grant_type_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                        ",\"client_id\":\"" + authorizedClientId + "\"" +
+                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
+                        ",\"grant_type\":" + "\"" + "invalidgrant" + "\"" +
+                        ",\"refresh_token\":\"" + authorizedRefreshToken + "\"" +
+                        "}"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+
+        assertThat(response.getContentAsString()).contains("invalid_grant");
+        resultActions.andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void should_return_error_grant_type_refresh_token_unauthorized_client_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                        ",\"client_id\":\"" + "invalid_client" + "\"" +
+                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
+                        ",\"grant_type\":" + "\"" + GrantType.refresh_token.getGrantType() + "\"" +
+                        ",\"refresh_token\":\"" + authorizedRefreshToken + "\"" +
+                        "}"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+
+        assertThat(response.getContentAsString()).contains("unauthorized_client");
+        resultActions.andExpect(status().isBadRequest());
     }
     //endregion
 
