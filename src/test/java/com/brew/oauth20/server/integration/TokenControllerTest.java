@@ -216,6 +216,18 @@ class TokenControllerTest {
         resultActions.andExpect(status().isBadRequest());
     }
 
+    @Test
+    void should_return_error_invalid_request_test() throws Exception {
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+
+        assertThat(response.getContentAsString()).contains("invalid_request");
+        resultActions.andExpect(status().isBadRequest());
+    }
+
 
     @Test
     void should_return_error_grant_type_refresh_token_unauthorized_client_test() throws Exception {
