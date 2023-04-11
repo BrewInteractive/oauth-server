@@ -7,6 +7,7 @@ import com.brew.oauth20.server.fixture.*;
 import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
 import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
+import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ class AuthorizeControllerTest {
     private String authorizedClientSecret;
     private String authorizedRefreshToken;
 
-
+    private Faker faker;
     @Autowired
     private MockMvc mockMvc;
 
@@ -64,6 +65,7 @@ class AuthorizeControllerTest {
     @BeforeAll
     void setup() {
         //TODO: should be refactored as single fixture and dbset
+        this.faker = new Faker();
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
@@ -327,7 +329,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
-        long userId = 1234L;
+        long userId = faker.random().nextLong();
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("SESSION_ID", userId + ""))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -353,7 +355,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code_get_test() throws Exception {
-        long userId = 12345L;
+        long userId = faker.random().nextLong();
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("SESSION_ID", userId + ""))
                 .queryParam("redirect_uri", authorizedRedirectUri)
