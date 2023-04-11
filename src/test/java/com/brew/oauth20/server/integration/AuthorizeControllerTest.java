@@ -4,6 +4,7 @@ import com.brew.oauth20.server.data.ActiveRefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.*;
+import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
 import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
 import jakarta.servlet.http.Cookie;
@@ -44,6 +45,8 @@ class AuthorizeControllerTest {
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
     @Autowired
+    private ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
+    @Autowired
     private ClientRepository clientRepository;
     @Autowired
     private ClientGrantRepository clientGrantRepository;
@@ -65,6 +68,7 @@ class AuthorizeControllerTest {
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
         var authorizationCodeFixture = new AuthorizationCodeFixture();
+        var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
         var clientsUserFixture = new ClientsUserFixture();
         var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
 
@@ -75,7 +79,7 @@ class AuthorizeControllerTest {
         var clientsGrantClientCred = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var clientsGrantRefreshToken = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var redirectUris = redirectUrisFixture.createRandomOne();
-        var authorizationCode = authorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
+        var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
 
         var clientsUser = clientsUserFixture.createRandomOne();
 
@@ -94,6 +98,12 @@ class AuthorizeControllerTest {
         var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken);
 
         refreshTokenRepository.save(existingRefreshToken);
+
+        activeAuthorizationCode.setClient(savedClient);
+        activeAuthorizationCode.setUserId(savedClientUser.getUserId());
+        activeAuthorizationCodeRepository.save(activeAuthorizationCode);
+
+        var authorizationCode = AuthorizationCodeMapper.INSTANCE.toAuthorizationCode(activeAuthorizationCode);
 
         authorizationCode.setClient(savedClient);
         authorizationCode.setUserId(savedClientUser.getUserId());
@@ -127,15 +137,11 @@ class AuthorizeControllerTest {
     @AfterAll
     void emptyData() {
         authorizationCodeRepository.deleteAll();
+        activeAuthorizationCodeRepository.deleteAll();
         clientGrantRepository.deleteAllInBatch();
         redirectUriRepository.deleteAllInBatch();
         clientRepository.deleteAll();
         grantRepository.deleteAllInBatch();
-    }
-
-    @AfterEach
-    void delete() {
-        //refreshTokenRepository.deleteAll();
     }
 
     //region /oauth/authorize tests
@@ -369,58 +375,5 @@ class AuthorizeControllerTest {
     }
 
     //endregion tests
-
-    //region /oauth/token tests
-    @Test
-    void should_return_token_grant_type_authorization_code_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
-                        ",\"grant_type\":" + "\""+ GrantType.authorization_code.getGrantType()+"\"" +
-                        ",\"code\":\"" + authorizedAuthCode + "\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-
-        assertThat(response.getContentAsString()).contains("Bearer");
-        resultActions.andExpect(status().isOk());
-    }
-    @Test
-    void should_return_token_grant_type_client_credentials_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
-                        ",\"grant_type\":" + "\""+ GrantType.client_credentials.getGrantType()+"\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-
-        assertThat(response.getContentAsString()).contains("Bearer");
-        resultActions.andExpect(status().isOk());
-    }
-    @Test
-    void should_return_token_grant_type_refresh_token_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
-                        ",\"grant_type\":" + "\"" + GrantType.refresh_token.getGrantType() + "\"" +
-                        ",\"refresh_token\":\"" + authorizedRefreshToken + "\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-
-        assertThat(response.getContentAsString()).contains("Bearer");
-        resultActions.andExpect(status().isOk());
-    }
-    //endregion
 
 }

@@ -20,10 +20,11 @@ public class TokenServiceImpl implements TokenService {
     @Autowired
     private RefreshTokenService refreshTokenService;
 
+    private final int refreshTokenLength = 64;
     @Override
     public TokenModel generateToken(ClientModel client, Long userId, String state) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
-            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(64), client.refreshTokenExpiresInDays());
+            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(this.refreshTokenLength), client.refreshTokenExpiresInDays());
             return generateToken(client, userId, state, refreshToken.getToken());
         }
 

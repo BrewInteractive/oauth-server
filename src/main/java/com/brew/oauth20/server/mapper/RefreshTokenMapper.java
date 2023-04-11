@@ -11,3 +11,4 @@ public interface RefreshTokenMapper {
 
     RefreshToken toRefreshToken(ActiveRefreshToken refreshToken);
 }
+

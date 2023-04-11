@@ -1,13 +1,9 @@
 package com.brew.oauth20.server.controller;
 
-import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
-import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.UserCookieService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,22 +19,17 @@ public class AuthorizeController {
     private final UserCookieService userCookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
-    private final TokenGrantProviderFactory tokenGrantProviderFactory;
     private final String userIdCookieKey;
     private final String locationHeaderKey;
-    private final String authorizationHeaderKey;
 
     public AuthorizeController(UserCookieService userCookieService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
-                               AuthorizationCodeService authorizationCodeService,
-                               TokenGrantProviderFactory tokenGrantProviderFactory) {
+                               AuthorizationCodeService authorizationCodeService) {
         this.userCookieService = userCookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
-        this.tokenGrantProviderFactory = tokenGrantProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
         this.userIdCookieKey = "SESSION_ID";
         this.locationHeaderKey = "Location";
-        this.authorizationHeaderKey = "Authorization";
     }
 
     @GetMapping(value = "/oauth/authorize")
@@ -56,25 +47,7 @@ public class AuthorizeController {
         return authorize(authorizeRequest, validationResult, request);
     }
 
-    @PostMapping(value = "/oauth/token")
-    public ResponseEntity<TokenResultModel> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
-                                                      BindingResult validationResult,
-                                                      HttpServletRequest request) {
-        if (validationResult.hasErrors()) {
-            return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
-        }
 
-        var authorizationHeaderValue = request.getHeader(authorizationHeaderKey);
-
-        var tokenGrantProvider = tokenGrantProviderFactory
-                .getService(GrantType.fromValue(tokenRequestModel.grant_type));
-
-        var tokenResponse = tokenGrantProvider.generateToken(authorizationHeaderValue, tokenRequestModel);
-
-        HttpStatus httpStatus = tokenResponse.getError() == null ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
-
-        return new ResponseEntity<>(tokenResponse, httpStatus);
-    }
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
                                              BindingResult validationResult,

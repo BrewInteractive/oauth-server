@@ -10,6 +10,8 @@ import com.brew.oauth20.server.repository.RefreshTokenRepository;
 import com.brew.oauth20.server.service.impl.RefreshTokenServiceImpl;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class RefreshTokenServiceTest {
     private static Faker faker;
     private static ClientsUserFixture clientsUserFixture;
