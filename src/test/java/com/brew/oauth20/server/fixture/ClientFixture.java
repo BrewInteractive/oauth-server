@@ -1,14 +1,16 @@
 package com.brew.oauth20.server.fixture;
 
 import com.brew.oauth20.server.data.Client;
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +20,8 @@ public class ClientFixture extends Fixture<Client> {
 
     private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code,
             ResponseType.token};
+    private final GrantType[] defaultGrantTypeOptions = new GrantType[]{GrantType.authorization_code,
+            GrantType.client_credentials,GrantType.refresh_token};
     private final ClientGrantFixture clientGrantFixture;
     private final RedirectUriFixture redirectUriModelFixture;
     private final Integer defaultClientGrantSize = 1;
@@ -30,28 +34,23 @@ public class ClientFixture extends Fixture<Client> {
     }
 
     public Client createRandomOne(Boolean withChildren) {
-        return createRandomOne(this.defaultResponseTypeOptions, withChildren);
+        return createRandomOne(defaultResponseTypeOptions, defaultGrantTypeOptions, withChildren);
     }
 
-    public Client createRandomOne(ResponseType[] responseTypeOptions, Boolean withChildren) {
-        return Instancio.of(client(responseTypeOptions, withChildren))
+    public Client createRandomOne(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptionsOptions) {
+        return createRandomOne(responseTypeOptions, grantTypeOptionsOptions,true);
+    }
+
+    private Client createRandomOne(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptionsOptions, Boolean withChildren) {
+        return Instancio.of(client(responseTypeOptions, grantTypeOptionsOptions, withChildren))
                 .create();
     }
 
-    public Set<Client> createRandomList(Integer size) {
-        return createRandomList(size, this.defaultResponseTypeOptions);
-    }
-
-    public Set<Client> createRandomList(Integer size, ResponseType[] responseTypeOptions) {
-        return Instancio.ofSet(client(responseTypeOptions, true))
-                .size(size)
-                .create();
-    }
-
-    private Model<Client> client(ResponseType[] responseTypeOptions, Boolean withChildren) {
+    private Model<Client> client(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions, Boolean withChildren) {
         var model = Instancio.of(Client.class)
                 .supply(field(Client::getName), () -> faker.name().title())
-                .supply(field(Client::getId), () -> UUID.randomUUID())
+                .supply(field(Client::getClientSecret), () -> encodeClientSecret(faker.letterify("?".repeat(64))))
+                .supply(field(Client::getId), UUID::randomUUID)
                 .supply(field(Client::getCreatedAt),
                         () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
                 .supply(field(Client::getUpdatedAt),
@@ -62,7 +61,7 @@ public class ClientFixture extends Fixture<Client> {
             model = model
                     .supply(field(Client::getClientGrants),
                             () -> clientGrantFixture.createRandomList(this.defaultClientGrantSize,
-                                    responseTypeOptions))
+                                    responseTypeOptions, grantTypeOptions))
                     .supply(field(Client::getRedirectUris),
                             () -> redirectUriModelFixture.createRandomList(this.defaultRedirectUriSize));
         } else {
@@ -73,5 +72,10 @@ public class ClientFixture extends Fixture<Client> {
         }
 
         return model.toModel();
+    }
+
+    private String encodeClientSecret(String clientSecret) {
+        byte[] encodedBytes = Base64.getEncoder().encode(clientSecret.getBytes(StandardCharsets.UTF_8));
+        return new String(encodedBytes, StandardCharsets.UTF_8);
     }
 }

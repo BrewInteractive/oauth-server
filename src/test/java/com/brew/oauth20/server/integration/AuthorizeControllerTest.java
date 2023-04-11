@@ -1,11 +1,13 @@
 package com.brew.oauth20.server.integration;
 
+import com.brew.oauth20.server.data.ActiveRefreshToken;
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.fixture.ClientFixture;
-import com.brew.oauth20.server.fixture.ClientGrantFixture;
-import com.brew.oauth20.server.fixture.GrantFixture;
-import com.brew.oauth20.server.fixture.RedirectUriFixture;
+import com.brew.oauth20.server.fixture.*;
+import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
+import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
+import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@SuppressWarnings("ALL")
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -31,12 +34,19 @@ class AuthorizeControllerTest {
 
     private final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
     private String authorizedRedirectUri;
+    private String authorizedAuthCode;
     private String authorizedClientId;
+    private String authorizedClientSecret;
+    private String authorizedRefreshToken;
+
+    private Faker faker;
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
+    @Autowired
+    private ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
     @Autowired
     private ClientRepository clientRepository;
     @Autowired
@@ -45,46 +55,98 @@ class AuthorizeControllerTest {
     private GrantRepository grantRepository;
     @Autowired
     private RedirectUriRepository redirectUriRepository;
+    @Autowired
+    private ClientsUserRepository clientsUserRepository;
+    @Autowired
+    private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @BeforeAll
     void setup() {
-        var clientFixture = new ClientFixture();
+        //TODO: should be refactored as single fixture and dbset
+        this.faker = new Faker();
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
+        var authorizationCodeFixture = new AuthorizationCodeFixture();
+        var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
+        var clientsUserFixture = new ClientsUserFixture();
+        var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
 
-        var client = clientFixture.createRandomOne(false);
-        var grant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
-        var clientsGrant = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var authCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
+        var clientCredGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
+        var refreshTokenGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.refresh_token});
+        var clientsGrantAuthCode = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var clientsGrantClientCred = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var clientsGrantRefreshToken = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var redirectUris = redirectUrisFixture.createRandomOne();
+        var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
+
+        var clientsUser = clientsUserFixture.createRandomOne();
+
+        var client = clientsUser.getClient();
 
         var savedClient = clientRepository.save(client);
-        var savedGrant = grantRepository.save(grant);
+
+        var savedClientUser = clientsUserRepository.save(clientsUser);
+
+        ActiveRefreshToken activeRefreshToken = activeRefreshTokenFixture.createRandomOne(savedClientUser);
+
+        authorizedRefreshToken = activeRefreshToken.getToken();
+
+        activeRefreshTokenRepository.save(activeRefreshToken);
+
+        var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken);
+
+        refreshTokenRepository.save(existingRefreshToken);
+
+        activeAuthorizationCode.setClient(savedClient);
+        activeAuthorizationCode.setUserId(savedClientUser.getUserId());
+        activeAuthorizationCodeRepository.save(activeAuthorizationCode);
+
+        var authorizationCode = AuthorizationCodeMapper.INSTANCE.toAuthorizationCode(activeAuthorizationCode);
+
+        authorizationCode.setClient(savedClient);
+        authorizationCode.setUserId(savedClientUser.getUserId());
+        authorizationCodeRepository.save(authorizationCode);
+
+        var savedAuthCodeGrant = grantRepository.save(authCodeGrant);
+        var savedClientCredGrant = grantRepository.save(clientCredGrant);
+        var savedRefreshTokenGrant = grantRepository.save(refreshTokenGrant);
 
         redirectUris.setClient(savedClient);
         redirectUriRepository.save(redirectUris);
 
-        clientsGrant.setClient(savedClient);
-        clientsGrant.setGrant(savedGrant);
-        clientGrantRepository.save(clientsGrant);
+        clientsGrantAuthCode.setClient(savedClient);
+        clientsGrantAuthCode.setGrant(savedAuthCodeGrant);
+        clientGrantRepository.save(clientsGrantAuthCode);
+
+        clientsGrantClientCred.setClient(savedClient);
+        clientsGrantClientCred.setGrant(savedClientCredGrant);
+        clientGrantRepository.save(clientsGrantClientCred);
+
+        clientsGrantRefreshToken.setClient(savedClient);
+        clientsGrantRefreshToken.setGrant(savedRefreshTokenGrant);
+        clientGrantRepository.save(clientsGrantRefreshToken);
 
         authorizedClientId = client.getClientId();
+        authorizedClientSecret = client.getClientSecret();
         authorizedRedirectUri = redirectUris.getRedirectUri();
+        authorizedAuthCode = authorizationCode.getCode();
     }
 
     @AfterAll
     void emptyData() {
         authorizationCodeRepository.deleteAll();
+        activeAuthorizationCodeRepository.deleteAll();
         clientGrantRepository.deleteAllInBatch();
         redirectUriRepository.deleteAllInBatch();
         clientRepository.deleteAll();
         grantRepository.deleteAllInBatch();
     }
 
-    @AfterEach
-    void deleteCodes() {
-        authorizationCodeRepository.deleteAll();
-    }
+    //region /oauth/authorize tests
 
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
@@ -267,7 +329,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
-        long userId = 12345L;
+        long userId = faker.random().nextLong();
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("SESSION_ID", userId + ""))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -283,7 +345,9 @@ class AuthorizeControllerTest {
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var codeEntity = authorizationCodeRepository.findAll().get(0);
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
         assertThat(location).contains("code=" + codeEntity.getCode());
@@ -291,7 +355,7 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_with_authorization_code_get_test() throws Exception {
-        long userId = 12345L;
+        long userId = faker.random().nextLong();
         ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("SESSION_ID", userId + ""))
                 .queryParam("redirect_uri", authorizedRedirectUri)
@@ -304,10 +368,14 @@ class AuthorizeControllerTest {
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var codeEntity = authorizationCodeRepository.findAll().get(0);
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
         assertThat(location).contains("code=" + codeEntity.getCode());
     }
+
+    //endregion tests
 
 }

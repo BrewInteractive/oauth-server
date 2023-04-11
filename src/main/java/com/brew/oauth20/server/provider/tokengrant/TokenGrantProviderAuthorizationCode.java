@@ -35,12 +35,12 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
         if (Boolean.FALSE.equals(validationResult.getResult()))
             return new TokenResultModel(null, validationResult.getError());
 
-        var authorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
+        var activeAuthorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
 
-        if (authorizationCode == null)
+        if (activeAuthorizationCode == null)
             return new TokenResultModel(null, "invalid_request");
 
-        var tokenModel = tokenService.generateToken(client, authorizationCode.getUserId(), tokenRequest.state);
+        var tokenModel = tokenService.generateToken(client, activeAuthorizationCode.getUserId(), tokenRequest.state);
 
         return new TokenResultModel(tokenModel, null);
     }

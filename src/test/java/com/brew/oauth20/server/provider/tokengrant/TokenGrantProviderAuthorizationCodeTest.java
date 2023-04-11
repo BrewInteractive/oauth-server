@@ -1,8 +1,8 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
-import com.brew.oauth20.server.data.AuthorizationCode;
+import com.brew.oauth20.server.data.ActiveAuthorizationCode;
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.fixture.AuthorizationCodeFixture;
+import com.brew.oauth20.server.fixture.ActiveAuthorizationCodeFixture;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.model.*;
@@ -11,6 +11,8 @@ import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class TokenGrantProviderAuthorizationCodeTest {
     @Mock
     AuthorizationCodeService authorizationCodeService;
@@ -135,16 +138,16 @@ class TokenGrantProviderAuthorizationCodeTest {
 
         var tokenModel = TokenModel.builder().build();
 
-        var authorizationCodeFixture = new AuthorizationCodeFixture();
-        var authorizationCode = authorizationCodeFixture.createRandomOne();
-        authorizationCode.setCode(validTokenRequest.code);
-        authorizationCode.setRedirectUri(validTokenRequest.redirect_uri);
+        var authorizationCodeFixture = new ActiveAuthorizationCodeFixture();
+        var activeAuthorizationCode = authorizationCodeFixture.createRandomOne();
+        activeAuthorizationCode.setCode(validTokenRequest.code);
+        activeAuthorizationCode.setRedirectUri(validTokenRequest.redirect_uri);
 
         return Stream.of(
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
-                        authorizationCode,
+                        activeAuthorizationCode,
                         new TokenResultModel(tokenModel, null),
                         pair),
                 Arguments.of(client,
@@ -156,7 +159,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
-                        authorizationCode,
+                        activeAuthorizationCode,
                         new TokenResultModel(null, "unauthorized_client"),
                         null)
         );
@@ -196,7 +199,7 @@ class TokenGrantProviderAuthorizationCodeTest {
     void should_generate_token_from_valid_request(ClientModel clientModel,
                                                   String authorizationHeader,
                                                   TokenRequestModel tokenRequest,
-                                                  AuthorizationCode authorizationCode,
+                                                  ActiveAuthorizationCode authorizationCode,
                                                   TokenResultModel tokenResultModel,
                                                   Pair<String, String> clientCredentialsPair) {
 

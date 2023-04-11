@@ -15,6 +15,7 @@ import java.util.Map;
 @Service
 public class TokenServiceImpl implements TokenService {
 
+    private static final int REFRESH_TOKEN_LENGTH = 64;
     @Autowired
     private JwtService jwtService;
     @Autowired
@@ -23,7 +24,7 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public TokenModel generateToken(ClientModel client, Long userId, String state) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
-            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(), client.refreshTokenExpiresInDays());
+            var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(REFRESH_TOKEN_LENGTH), client.refreshTokenExpiresInDays());
             return generateToken(client, userId, state, refreshToken.getToken());
         }
 

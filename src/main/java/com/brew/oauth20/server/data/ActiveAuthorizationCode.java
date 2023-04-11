@@ -8,7 +8,6 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-
 @Getter
 @Setter
 @ToString
@@ -16,8 +15,8 @@ import java.util.UUID;
 @Builder
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Table(name = "authorization_codes")
-public class AuthorizationCode {
+@Table(name = "authorization_codes__active")
+public class ActiveAuthorizationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -65,4 +64,3 @@ public class AuthorizationCode {
         return getClass().hashCode();
     }
 }
-

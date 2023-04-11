@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.fixture;
 
 import com.brew.oauth20.server.data.ClientGrant;
+import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
@@ -14,6 +15,8 @@ public class ClientGrantFixture extends Fixture<ClientGrant> {
 
     private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code, ResponseType.token};
 
+    private final GrantType[] defaultGrantTypeOptions = new GrantType[]{GrantType.authorization_code,
+            GrantType.client_credentials,GrantType.refresh_token};
     private final GrantFixture grantFixture;
 
     public ClientGrantFixture() {
@@ -25,23 +28,20 @@ public class ClientGrantFixture extends Fixture<ClientGrant> {
     }
 
     public ClientGrant createRandomOne(ResponseType[] responseTypeOptions) {
-        return Instancio.of(clientsGrant(responseTypeOptions))
+        return Instancio.of(clientsGrant(responseTypeOptions, defaultGrantTypeOptions))
                 .create();
     }
 
-    public Set<ClientGrant> createRandomList(Integer size) {
-        return createRandomList(size, this.defaultResponseTypeOptions);
-    }
-
-    public Set<ClientGrant> createRandomList(Integer size, ResponseType[] responseTypeOptions) {
-        return Instancio.ofSet(clientsGrant(responseTypeOptions))
+    public Set<ClientGrant> createRandomList(Integer size, ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions) {
+        return Instancio.ofSet(clientsGrant(responseTypeOptions, grantTypeOptions))
                 .size(size)
                 .create();
     }
 
-    private Model<ClientGrant> clientsGrant(ResponseType[] responseTypeOptions) {
+    private Model<ClientGrant> clientsGrant(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptions) {
         return Instancio.of(ClientGrant.class)
-                .supply(field(ClientGrant::getGrant), () -> grantFixture.createRandomOne(responseTypeOptions))
+                .supply(field(ClientGrant::getGrant), () -> grantFixture.createRandomOne(responseTypeOptions, grantTypeOptions))
+                .supply(field(ClientGrant::getClient), () -> null)
                 .toModel();
     }
 }

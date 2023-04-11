@@ -46,6 +46,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken refreshToken = RefreshToken.builder()
                 .clientUser(clientsUser.get())
                 .token(token)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
                 .expiresAt(expirationDate)
                 .build();
 
