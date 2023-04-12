@@ -38,7 +38,7 @@ jobs:
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT }}
           message: "Set version to $RELEASE_VERSION [skip ci]"
           branch: ${{ steps.branch-name.outputs.current_branch }}
 
