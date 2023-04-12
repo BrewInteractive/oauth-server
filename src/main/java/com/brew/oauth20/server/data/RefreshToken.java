@@ -26,6 +26,7 @@ public class RefreshToken {
     @ToString.Exclude
     private final Set<RefreshToken> refreshTokens = new LinkedHashSet<>();
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
     @Column(name = "created_at", nullable = false)
@@ -38,7 +39,7 @@ public class RefreshToken {
     private String token;
     @Column(name = "revoked_at", nullable = true)
     private OffsetDateTime revokedAt;
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "replaced_by_token_id", nullable = true)
     @ToString.Exclude
     private RefreshToken replacedByToken;

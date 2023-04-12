@@ -22,7 +22,9 @@ public class AuthorizeController {
     private final String userIdCookieKey;
     private final String locationHeaderKey;
 
-    public AuthorizeController(UserCookieService userCookieService, AuthorizeTypeProviderFactory authorizeTypeProviderFactory, AuthorizationCodeService authorizationCodeService) {
+    public AuthorizeController(UserCookieService userCookieService,
+                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
+                               AuthorizationCodeService authorizationCodeService) {
         this.userCookieService = userCookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
@@ -31,54 +33,66 @@ public class AuthorizeController {
     }
 
     @GetMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> get(@Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+    public ResponseEntity<String> authorizeGet(
+            @Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
+            BindingResult validationResult,
+            HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
-
 
     @PostMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> post(@Valid @RequestBody AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+    public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
 
-    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, HttpServletRequest request) {
+
+
+    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
+                                             BindingResult validationResult,
+                                             HttpServletRequest request) {
         try {
             String queryString = request.getQueryString();
 
-            /*request parameters validation*/
+            /* request parameters validation */
             if (validationResult.hasErrors()) {
                 return generateErrorResponse("invalid_request", queryString, authorizeRequest.redirect_uri);
             }
 
-            /*authorize type validator*/
-            var authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.response_type));
+            /* authorize type validator */
+            var authorizeTypeProvider = authorizeTypeProviderFactory
+                    .getService(ResponseType.fromValue(authorizeRequest.response_type));
 
-            var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id, authorizeRequest.redirect_uri);
+            var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id,
+                    authorizeRequest.redirect_uri);
+
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
                 return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString, authorizeRequest.redirect_uri);
             }
 
-            /*user cookie and authorization code*/
+            /* user cookie and authorization code */
             var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
 
-            /*not logged-in user redirect login signup*/
+            /* not logged-in user redirect login signup */
 
             if (userCookie == null) {
                 return generateLoginResponse(authorizeRequest.redirect_uri);
             }
 
-            var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie), authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
+            var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
+                    authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
 
-            /*logged-in user redirect with authorization code*/
+            /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.redirect_uri);
         } catch (UnsupportedServiceTypeException e) {
-            return generateErrorResponse("unsupported_response_type", request.getQueryString(), authorizeRequest.redirect_uri);
+            return generateErrorResponse("unsupported_response_type", request.getQueryString(),
+                    authorizeRequest.redirect_uri);
         } catch (Exception e) {
             return generateErrorResponse("server_error", request.getQueryString(), authorizeRequest.redirect_uri);
         }
     }
-
 
     private ResponseEntity<String> generateErrorResponse(String error, String queryString, String redirectUri) {
         HttpHeaders responseHeaders = new HttpHeaders();

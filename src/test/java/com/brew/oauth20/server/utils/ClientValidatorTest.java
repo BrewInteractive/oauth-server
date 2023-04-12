@@ -11,6 +11,8 @@ import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,6 +22,8 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SuppressWarnings("ALL")
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ClientValidatorTest {
     private static Faker faker;
 
@@ -70,7 +74,6 @@ class ClientValidatorTest {
 
     private static ResponseType getValidResponseType(ClientModel clientModel) {
         return clientModel.grantList().stream().map(GrantModel::responseType).findFirst().get();
-
     }
 
     private static String getValidRedirectUri(ClientModel clientModel) {

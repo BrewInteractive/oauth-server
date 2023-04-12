@@ -5,6 +5,8 @@ import com.brew.oauth20.server.fixture.ClientFixture;
 import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.impl.ClientServiceImpl;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ClientServiceTest {
     @Mock
     private ClientRepository clientRepository;

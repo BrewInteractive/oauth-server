@@ -12,7 +12,7 @@ public class RefreshTokenFixture extends Fixture<RefreshToken> {
     private final ClientsUserFixture clientsUserFixture;
 
     public RefreshTokenFixture() {
-        this.clientsUserFixture = new ClientsUserFixture();
+        this.clientsUserFixture=new ClientsUserFixture();
     }
 
     public RefreshToken createRandomOne() {

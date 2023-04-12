@@ -13,7 +13,8 @@ public class TokenGrantProviderFactory extends ServiceFactory<GrantType, BaseTok
 
         Map<GrantType, Type> map = Map.of(
                 GrantType.refresh_token, TokenGrantProviderRefreshToken.class,
-                GrantType.authorization_code, TokenGrantProviderAuthorizationCode.class);
+                GrantType.authorization_code, TokenGrantProviderAuthorizationCode.class,
+                GrantType.client_credentials, TokenGrantProviderClientCredentials.class);
 
         setRegisteredServiceTypes(map);
     }

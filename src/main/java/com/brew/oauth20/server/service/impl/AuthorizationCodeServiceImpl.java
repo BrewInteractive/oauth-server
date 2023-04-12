@@ -1,7 +1,10 @@
 package com.brew.oauth20.server.service.impl;
 
+import com.brew.oauth20.server.data.ActiveAuthorizationCode;
 import com.brew.oauth20.server.data.AuthorizationCode;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
+import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
+import com.brew.oauth20.server.repository.ActiveAuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
@@ -16,10 +19,14 @@ import java.time.ZoneOffset;
 public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
 
     private final AuthorizationCodeRepository authorizationCodeRepository;
+    private final ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
     private final ClientRepository clientRepository;
 
-    public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository, ClientRepository clientRepository) {
+    public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository,
+                                        ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository,
+                                        ClientRepository clientRepository) {
         this.authorizationCodeRepository = authorizationCodeRepository;
+        this.activeAuthorizationCodeRepository = activeAuthorizationCodeRepository;
         this.clientRepository = clientRepository;
     }
 
@@ -46,15 +53,17 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     }
 
     @Override
-    public AuthorizationCode getAuthorizationCode(String code, String redirectUri, boolean markAsUsed) {
-        var authorizationCode = authorizationCodeRepository.findByCodeAndRedirectUri(code, redirectUri);
-        if(authorizationCode == null){
+    public ActiveAuthorizationCode getAuthorizationCode(String code, String redirectUri, boolean markAsUsed) {
+        var activeAuthorizationCode = activeAuthorizationCodeRepository.findByCodeAndRedirectUri(code, redirectUri);
+        if(activeAuthorizationCode.isEmpty()){
             return null;
         }
+        var activeAuthorizationCodeEntity = activeAuthorizationCode.get();
         if (markAsUsed) {
+            var authorizationCode = AuthorizationCodeMapper.INSTANCE.toAuthorizationCode(activeAuthorizationCodeEntity);
             authorizationCode.setUsedAt(OffsetDateTime.now());
             authorizationCodeRepository.save(authorizationCode);
         }
-        return authorizationCode;
+        return activeAuthorizationCodeEntity;
     }
 }
