@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/BrewInteractive/oauth-server/compare/v1.2.0...v1.2.1) (2023-04-13)
+
+
+### Bug Fixes
+
+* fix expiresAt value, ([c82ae3a](https://github.com/BrewInteractive/oauth-server/commit/c82ae3a243a9143ae3a42c513c50611f837b0115))
+
 ## [1.2.0](https://github.com/BrewInteractive/oauth-server/compare/v1.1.0...v1.2.0) (2023-04-11)
 
 
