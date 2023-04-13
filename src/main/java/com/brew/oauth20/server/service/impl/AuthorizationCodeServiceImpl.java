@@ -11,9 +11,8 @@ import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 @Service
 public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
@@ -36,7 +35,7 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
         if (optionalClient.isEmpty())
             throw new ClientNotFoundException(clientId);
         var client = optionalClient.get();
-        OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(expiresIn), ZoneOffset.UTC);
+        OffsetDateTime expiresAt = OffsetDateTime.now().plus(Duration.ofMillis(expiresIn));
         String code = StringUtils.generateSecureRandomString();
         var authorizationCode = AuthorizationCode.builder()
                 .client(client)
@@ -55,7 +54,7 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     @Override
     public ActiveAuthorizationCode getAuthorizationCode(String code, String redirectUri, boolean markAsUsed) {
         var activeAuthorizationCode = activeAuthorizationCodeRepository.findByCodeAndRedirectUri(code, redirectUri);
-        if(activeAuthorizationCode.isEmpty()){
+        if (activeAuthorizationCode.isEmpty()) {
             return null;
         }
         var activeAuthorizationCodeEntity = activeAuthorizationCode.get();

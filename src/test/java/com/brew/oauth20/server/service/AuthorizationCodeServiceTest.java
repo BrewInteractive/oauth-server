@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,7 +59,7 @@ class AuthorizationCodeServiceTest {
                 x.getUserId().equals(activeAuthorizationCode.getUserId())
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
                         && x.getClient().equals(activeAuthorizationCode.getClient())
-                        && x.getExpiresAt().getDayOfYear() == activeAuthorizationCode.getExpiresAt().getDayOfYear()
+                        && x.getExpiresAt().isAfter(OffsetDateTime.now())
         ));
     }
 

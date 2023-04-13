@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
@@ -19,7 +20,7 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
 
     protected TokenGrantProviderRefreshToken(
-            ) {
+    ) {
         super();
         this.grantType = GrantType.refresh_token;
     }
@@ -33,19 +34,23 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
     @Override
     public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var validationResult = validate(authorizationHeader, tokenRequest);
+        try {
+            var validationResult = validate(authorizationHeader, tokenRequest);
 
-        if (Boolean.FALSE.equals(validationResult.getResult()))
-            return new TokenResultModel(null, validationResult.getError());
+            if (Boolean.FALSE.equals(validationResult.getResult()))
+                return new TokenResultModel(null, validationResult.getError());
 
-        var newRefreshTokenCode = StringUtils.generateSecureRandomString(54);
+            var newRefreshTokenCode = StringUtils.generateSecureRandomString(54);
 
-        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
+            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
 
-        var userId = refreshToken.getClientUser().getUserId();
+            var userId = refreshToken.getClientUser().getUserId();
 
-        var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, refreshToken.getToken());
+            var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, refreshToken.getToken());
 
-        return new TokenResultModel(tokenModel, null);
+            return new TokenResultModel(tokenModel, null);
+        } catch (ClientsUserNotFoundException e) {
+            return new TokenResultModel(null, "unauthorized_client");
+        }
     }
 }

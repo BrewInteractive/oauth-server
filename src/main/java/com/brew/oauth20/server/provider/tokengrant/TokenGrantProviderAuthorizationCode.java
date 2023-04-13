@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
@@ -30,18 +31,22 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
 
     @Override
     public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var validationResult = validate(authorizationHeader, tokenRequest);
+        try {
+            var validationResult = validate(authorizationHeader, tokenRequest);
 
-        if (Boolean.FALSE.equals(validationResult.getResult()))
-            return new TokenResultModel(null, validationResult.getError());
+            if (Boolean.FALSE.equals(validationResult.getResult()))
+                return new TokenResultModel(null, validationResult.getError());
 
-        var activeAuthorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
+            var activeAuthorizationCode = authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
 
-        if (activeAuthorizationCode == null)
-            return new TokenResultModel(null, "invalid_request");
+            if (activeAuthorizationCode == null)
+                return new TokenResultModel(null, "invalid_request");
 
-        var tokenModel = tokenService.generateToken(client, activeAuthorizationCode.getUserId(), tokenRequest.state);
+            var tokenModel = tokenService.generateToken(client, activeAuthorizationCode.getUserId(), tokenRequest.state);
 
-        return new TokenResultModel(tokenModel, null);
+            return new TokenResultModel(tokenModel, null);
+        } catch (ClientsUserNotFoundException e) {
+            return new TokenResultModel(null, "unauthorized_client");
+        }
     }
 }

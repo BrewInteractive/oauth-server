@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.service.TokenService;
@@ -19,13 +20,17 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
 
     @Override
     public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        var validationResult = super.validate(authorizationHeader, tokenRequest);
+        try {
+            var validationResult = super.validate(authorizationHeader, tokenRequest);
 
-        if (Boolean.FALSE.equals(validationResult.getResult()))
-            return new TokenResultModel(null, validationResult.getError());
+            if (Boolean.FALSE.equals(validationResult.getResult()))
+                return new TokenResultModel(null, validationResult.getError());
 
-        var tokenModel = tokenService.generateToken(client, tokenRequest.state);
+            var tokenModel = tokenService.generateToken(client, tokenRequest.state);
 
-        return new TokenResultModel(tokenModel, null);
+            return new TokenResultModel(tokenModel, null);
+        } catch (ClientsUserNotFoundException e) {
+            return new TokenResultModel(null, "unauthorized_client");
+        }
     }
 }
