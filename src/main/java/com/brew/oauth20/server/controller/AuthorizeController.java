@@ -8,6 +8,8 @@ import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.UserCookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ public class AuthorizeController {
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
     private final String locationHeaderKey;
+    @Autowired
+    private Environment env;
 
     public AuthorizeController(UserCookieService userCookieService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
@@ -76,13 +80,16 @@ public class AuthorizeController {
             var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
 
             /* not logged-in user redirect login signup */
-
             if (userCookie == null) {
                 return generateLoginResponse(authorizeRequest.redirect_uri);
             }
 
+            var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", "300000");
+
             var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
-                    authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
+                    authorizeRequest.redirect_uri,
+                    Long.parseLong(expiresMs),
+                    authorizeRequest.client_id);
 
             /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.redirect_uri);

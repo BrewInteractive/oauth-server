@@ -40,6 +40,8 @@ spec:
                 secretKeyRef:
                   key: db-password
                   name: oauth-server-secrets-test
+            - name: AUTHORIZATION_CODE_EXPIRES_MS
+              value: 300000
           imagePullPolicy: Always
           resources: {}
           ports:
