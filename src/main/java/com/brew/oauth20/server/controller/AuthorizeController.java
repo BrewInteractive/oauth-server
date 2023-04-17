@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthorizeController {
+    public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieService userCookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
@@ -52,7 +53,6 @@ public class AuthorizeController {
     }
 
 
-
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
                                              BindingResult validationResult,
                                              HttpServletRequest request) {
@@ -84,7 +84,7 @@ public class AuthorizeController {
                 return generateLoginResponse(authorizeRequest.redirect_uri);
             }
 
-            var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", "300000");
+            var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
 
             var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
                     authorizeRequest.redirect_uri,
