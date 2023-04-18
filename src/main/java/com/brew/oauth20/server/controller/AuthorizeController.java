@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthorizeController {
-    private final CookieService cookieService;
     public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
+    private final CookieService cookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
@@ -28,8 +28,8 @@ public class AuthorizeController {
     private Environment env;
 
     public AuthorizeController(CookieService cookieService,
-            AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
-            AuthorizationCodeService authorizationCodeService) {
+                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
+                               AuthorizationCodeService authorizationCodeService) {
         this.cookieService = cookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
@@ -47,14 +47,14 @@ public class AuthorizeController {
 
     @PostMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request) {
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request) {
+                                             BindingResult validationResult,
+                                             HttpServletRequest request) {
         try {
             String queryString = request.getQueryString();
 
