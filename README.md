@@ -50,6 +50,7 @@ You will need to add below environment variables to run the server. These values
 | DB_USER                       | Represents the user of the database that needs to be connected.     | YES      |
 | DB_PASSWORD                   | Represents the password of the database that needs to be connected. | YES      |
 | AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.   | YES      |
+| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application.| YES      |
 
 #### Starting the Server
 

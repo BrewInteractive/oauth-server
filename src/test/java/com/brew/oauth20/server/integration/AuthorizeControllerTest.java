@@ -13,11 +13,13 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.LOCATION;
@@ -38,6 +40,7 @@ class AuthorizeControllerTest {
     private String authorizedClientId;
     private String authorizedClientSecret;
     private String authorizedRefreshToken;
+    private String authorizedLoginSignupEndpoint;
 
     private Faker faker;
     @Autowired
@@ -61,6 +64,8 @@ class AuthorizeControllerTest {
     private ActiveRefreshTokenRepository activeRefreshTokenRepository;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private Environment env;
 
     @BeforeAll
     void setup() {
@@ -134,6 +139,7 @@ class AuthorizeControllerTest {
         authorizedClientSecret = client.getClientSecret();
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
+        authorizedLoginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT", "https://test.com/login");
     }
 
     @AfterAll
@@ -298,17 +304,22 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_to_login_post_test() throws Exception {
+        var queryParams = new MultiValueMap<String, String>() {
+                            "state",
+        };
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
                         "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
                         ",\"client_id\":\"" + authorizedClientId + "\"" +
                         ",\"response_type\":" + "\"code\"" +
-                        "}"));
+                        "}")
+                .queryParams());
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
         String location = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
+
         assertThat(location).contains(authorizedRedirectUri)
                 .contains("login");
     }
