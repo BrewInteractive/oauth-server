@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/BrewInteractive/oauth-server/compare/v1.2.1...v1.2.2) (2023-04-18)
+
+
+### Bug Fixes
+
+* authorization code expires ms value from environment value ([78da1c9](https://github.com/BrewInteractive/oauth-server/commit/78da1c9008e0cfebe0118e8f699ed0a3d466bc84))
+
 ### [1.2.1](https://github.com/BrewInteractive/oauth-server/compare/v1.2.0...v1.2.1) (2023-04-13)
 
 

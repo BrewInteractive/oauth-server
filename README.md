@@ -43,12 +43,13 @@ You will need a postgres database with OAuth Server entities to run the server. 
 
 You will need to add below environment variables to run the server. These values must be provided in **env.properties** file in the root directory.:
 
-| Variable Name           | Description                                                                           | Required |
-| ----------------------- | ------------------------------------------------------------------------------------- | -------- |
-| DB_HOST                 | Represents the hostname of the database that needs to be connected.                   | YES      |
-| DB_NAME                 | Represents the name of the database that needs to be connected.                       | YES      |
-| DB_USER                 | Represents the user of the database that needs to be connected.                       | YES      |
-| DB_PASSWORD             | Represents the password of the database that needs to be connected.                   | YES      |
+| Variable Name                 | Description                                                         | Required |
+|-------------------------------|---------------------------------------------------------------------| -------- |
+| DB_HOST                       | Represents the hostname of the database that needs to be connected. | YES      |
+| DB_NAME                       | Represents the name of the database that needs to be connected.     | YES      |
+| DB_USER                       | Represents the user of the database that needs to be connected.     | YES      |
+| DB_PASSWORD                   | Represents the password of the database that needs to be connected. | YES      |
+| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.   | YES      |
 
 #### Starting the Server
 

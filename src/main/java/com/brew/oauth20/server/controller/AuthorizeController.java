@@ -8,6 +8,8 @@ import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +19,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthorizeController {
     private final CookieService cookieService;
+    public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
     private final String locationHeaderKey;
+    @Autowired
+    private Environment env;
 
     public AuthorizeController(CookieService cookieService,
-                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
-                               AuthorizationCodeService authorizationCodeService) {
+            AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
+            AuthorizationCodeService authorizationCodeService) {
         this.cookieService = cookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
@@ -42,15 +47,14 @@ public class AuthorizeController {
 
     @PostMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-                                                BindingResult validationResult,
-                                                HttpServletRequest request) {
+            BindingResult validationResult,
+            HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
 
-
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-                                             BindingResult validationResult,
-                                             HttpServletRequest request) {
+            BindingResult validationResult,
+            HttpServletRequest request) {
         try {
             String queryString = request.getQueryString();
 
@@ -66,22 +70,25 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id,
                     authorizeRequest.redirect_uri);
 
-
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
-                return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString, authorizeRequest.redirect_uri);
+                return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString,
+                        authorizeRequest.redirect_uri);
             }
 
             /* user cookie and authorization code */
             var userCookie = cookieService.getCookie(request, userIdCookieKey);
 
             /* not logged-in user redirect login signup */
-
             if (userCookie == null) {
                 return generateLoginResponse(authorizeRequest.redirect_uri);
             }
 
+            var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+
             var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
-                    authorizeRequest.redirect_uri, 100, authorizeRequest.client_id);
+                    authorizeRequest.redirect_uri,
+                    Long.parseLong(expiresMs),
+                    authorizeRequest.client_id);
 
             /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.redirect_uri);
