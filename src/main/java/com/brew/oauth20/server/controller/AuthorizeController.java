@@ -5,7 +5,7 @@ import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
-import com.brew.oauth20.server.service.UserCookieService;
+import com.brew.oauth20.server.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -16,16 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthorizeController {
-    private final UserCookieService userCookieService;
+    private final CookieService cookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
     private final String locationHeaderKey;
 
-    public AuthorizeController(UserCookieService userCookieService,
+    public AuthorizeController(CookieService cookieService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
                                AuthorizationCodeService authorizationCodeService) {
-        this.userCookieService = userCookieService;
+        this.cookieService = cookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
         this.userIdCookieKey = "SESSION_ID";
@@ -46,7 +46,6 @@ public class AuthorizeController {
                                                 HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request);
     }
-
 
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
@@ -73,7 +72,7 @@ public class AuthorizeController {
             }
 
             /* user cookie and authorization code */
-            var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
+            var userCookie = cookieService.getCookie(request, userIdCookieKey);
 
             /* not logged-in user redirect login signup */
 
