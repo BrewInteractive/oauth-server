@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.service;
 
 import com.brew.oauth20.server.fixture.CookieFixture;
-import com.brew.oauth20.server.service.impl.UserCookieServiceImpl;
+import com.brew.oauth20.server.service.impl.CookieServiceImpl;
 import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,8 +40,8 @@ public class CookieServiceTest {
         response.addCookie(cookie);
 
         // Assert
-        var service = new UserCookieServiceImpl();
-        service.deleteUserCookie(response, cookie.getName());
+        var service = new CookieServiceImpl();
+        service.deleteCookie(response, cookie.getName());
 
         assertThat(response.getCookies()).contains(expected);
     }
@@ -55,8 +55,8 @@ public class CookieServiceTest {
         request.setCookies(cookie);
 
         // Assert
-        var service = new UserCookieServiceImpl();
-        var result = service.getUserCookie(request, cookie.getName());
+        var service = new CookieServiceImpl();
+        var result = service.getCookie(request, cookie.getName());
 
         assertThat(result).isEqualTo(cookie.getValue());
     }
@@ -72,8 +72,8 @@ public class CookieServiceTest {
             request.setCookies(new Cookie("existingkey", "test"));
 
         // Act
-        var service = new UserCookieServiceImpl();
-        var result = service.getUserCookie(request, "notexistingkey");
+        var service = new CookieServiceImpl();
+        var result = service.getCookie(request, "notexistingkey");
 
         // Assert
         assertThat(result).isNull();
@@ -87,8 +87,8 @@ public class CookieServiceTest {
         Cookie cookie = cookieFixture.createDefaultOne();
 
         // Act
-        var service = new UserCookieServiceImpl();
-        service.setUserCookie(response, cookie.getName(), cookie.getValue());
+        var service = new CookieServiceImpl();
+        service.setCookie(response, cookie.getName(), cookie.getValue());
         var result = response.getCookie(cookie.getName());
 
         // Assert
@@ -106,8 +106,8 @@ public class CookieServiceTest {
         cookie.setMaxAge(maxAge * 60);
 
         // Act
-        var service = new UserCookieServiceImpl();
-        service.setUserCookie(response, cookie.getName(), cookie.getValue(), maxAge);
+        var service = new CookieServiceImpl();
+        service.setCookie(response, cookie.getName(), cookie.getValue(), maxAge);
         var result = response.getCookie(cookie.getName());
 
         // Assert
@@ -127,8 +127,8 @@ public class CookieServiceTest {
         cookie.setHttpOnly(isHttpOnly);
 
         // Act
-        var service = new UserCookieServiceImpl();
-        service.setUserCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly);
+        var service = new CookieServiceImpl();
+        service.setCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly);
         var result = response.getCookie(cookie.getName());
 
         // Assert
@@ -150,8 +150,8 @@ public class CookieServiceTest {
         cookie.setSecure(isSecure);
 
         // Act
-        var service = new UserCookieServiceImpl();
-        service.setUserCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly, isSecure);
+        var service = new CookieServiceImpl();
+        service.setCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly, isSecure);
         var result = response.getCookie(cookie.getName());
 
         // Assert
@@ -175,8 +175,8 @@ public class CookieServiceTest {
         cookie.setPath(path);
 
         // Act
-        var service = new UserCookieServiceImpl();
-        service.setUserCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly, isSecure, path);
+        var service = new CookieServiceImpl();
+        service.setCookie(response, cookie.getName(), cookie.getValue(), maxAge, isHttpOnly, isSecure, path);
         var result = response.getCookie(cookie.getName());
 
         // Assert

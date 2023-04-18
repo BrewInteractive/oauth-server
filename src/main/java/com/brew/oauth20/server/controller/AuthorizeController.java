@@ -5,7 +5,7 @@ import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
-import com.brew.oauth20.server.service.UserCookieService;
+import com.brew.oauth20.server.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthorizeController {
     public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
-    private final UserCookieService userCookieService;
+    private final CookieService cookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
@@ -27,10 +27,10 @@ public class AuthorizeController {
     @Autowired
     private Environment env;
 
-    public AuthorizeController(UserCookieService userCookieService,
+    public AuthorizeController(CookieService cookieService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
                                AuthorizationCodeService authorizationCodeService) {
-        this.userCookieService = userCookieService;
+        this.cookieService = cookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
         this.userIdCookieKey = "SESSION_ID";
@@ -52,7 +52,6 @@ public class AuthorizeController {
         return authorize(authorizeRequest, validationResult, request);
     }
 
-
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
                                              BindingResult validationResult,
                                              HttpServletRequest request) {
@@ -71,13 +70,13 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.client_id,
                     authorizeRequest.redirect_uri);
 
-
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
-                return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString, authorizeRequest.redirect_uri);
+                return generateErrorResponse(authorizeTypeValidationResult.getError(), queryString,
+                        authorizeRequest.redirect_uri);
             }
 
             /* user cookie and authorization code */
-            var userCookie = userCookieService.getUserCookie(request, userIdCookieKey);
+            var userCookie = cookieService.getCookie(request, userIdCookieKey);
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
