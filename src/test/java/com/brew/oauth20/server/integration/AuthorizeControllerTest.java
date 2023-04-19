@@ -173,7 +173,7 @@ class AuthorizeControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
         return this.mockMvc.perform(post("/oauth/authorize")
-                .cookie(new Cookie("SESSION_ID", cookieValue))
+                .cookie(new Cookie("user", cookieValue))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody));
 
@@ -195,7 +195,7 @@ class AuthorizeControllerTest {
                     .queryParam("response_type", responseType)
                     .queryParam("state", state));
         return this.mockMvc.perform(get("/oauth/authorize")
-                .cookie(new Cookie("SESSION_ID", cookieValue))
+                .cookie(new Cookie("user", cookieValue))
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", responseType)
