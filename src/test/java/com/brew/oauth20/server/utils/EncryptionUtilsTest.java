@@ -36,6 +36,10 @@ public class EncryptionUtilsTest {
 
     @Test
     public void should_not_encrypt_null_data() {
+        // Arrange
+        var key = faker.regexify("[A-Za-z0-9]{16}");
+
+        // Assert
         assertThrows(Exception.class, () -> {
             EncryptionUtils.encrypt(null, ALGORITHM, key);
         });
