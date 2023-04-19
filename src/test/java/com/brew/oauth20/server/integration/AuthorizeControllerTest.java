@@ -7,6 +7,7 @@ import com.brew.oauth20.server.fixture.*;
 import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
 import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
@@ -17,9 +18,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.util.MultiValueMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.LOCATION;
@@ -41,6 +43,7 @@ class AuthorizeControllerTest {
     private String authorizedClientSecret;
     private String authorizedRefreshToken;
     private String authorizedLoginSignupEndpoint;
+    private String authorizedState;
 
     private Faker faker;
     @Autowired
@@ -69,7 +72,6 @@ class AuthorizeControllerTest {
 
     @BeforeAll
     void setup() {
-        //TODO: should be refactored as single fixture and dbset
         this.faker = new Faker();
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
@@ -140,7 +142,10 @@ class AuthorizeControllerTest {
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
         authorizedLoginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT", "https://test.com/login");
+        authorizedState = faker.lordOfTheRings().character().replace(" ", "");
+
     }
+
 
     @AfterAll
     void emptyData() {
@@ -152,49 +157,108 @@ class AuthorizeControllerTest {
         grantRepository.deleteAllInBatch();
     }
 
+    private ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String cookieValue) throws Exception {
+        Map<String, String> requestBodyMap = new HashMap<>();
+        requestBodyMap.put("redirect_uri", redirectUri);
+        requestBodyMap.put("client_id", clientId);
+        requestBodyMap.put("response_type", responseType);
+        requestBodyMap.put("state", state);
+
+        String requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
+
+        if (cookieValue.isBlank())
+            return this.mockMvc.perform(post("/oauth/authorize")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody));
+        return this.mockMvc.perform(post("/oauth/authorize")
+                .cookie(new Cookie("SESSION_ID", cookieValue))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+    }
+
+    private ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", "");
+    }
+
+    private ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", cookieValue);
+    }
+
+    private ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String cookieValue) throws Exception {
+        if (cookieValue.isBlank())
+            return this.mockMvc.perform(get("/oauth/authorize")
+                    .queryParam("redirect_uri", redirectUri)
+                    .queryParam("client_id", clientId)
+                    .queryParam("response_type", responseType)
+                    .queryParam("state", state));
+        return this.mockMvc.perform(get("/oauth/authorize")
+                .cookie(new Cookie("SESSION_ID", cookieValue))
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("client_id", clientId)
+                .queryParam("response_type", responseType)
+                .queryParam("state", state));
+
+
+    }
+
+    private ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, "", "");
+    }
+
+    private ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, "", cookieValue);
+    }
+
     //region /oauth/authorize tests
 
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
+        // Act
+        ResultActions resultActions = postAuthorize("", "", "", "");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
         resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_get_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
+        // Act
+        ResultActions resultActions = getAuthorize("", "", "");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
         resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
+
     @Test
     void should_not_redirect_with_invalid_uri_parameter_invalid_request_post_test() throws Exception {
+        // Arrange
         String invalidRedirectUri = "redirect_uri";
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + invalidRedirectUri + "\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
+
+        // Act
+        ResultActions resultActions = postAuthorize(invalidRedirectUri, authorizedClientId, "code");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
         resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
     @Test
     void should_not_redirect_with_invalid_uri_parameter_invalid_request_get_test() throws Exception {
+        // Arrange
         String invalidRedirectUri = "redirect_uri";
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", invalidRedirectUri));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
+
+        // Act
+        ResultActions resultActions = getAuthorize(invalidRedirectUri, authorizedClientId, "code");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
         resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
@@ -202,19 +266,18 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_unauthorized_client_post_test() throws Exception {
+        // Arrange
         String unauthorizedClientId = "unauthorized_client_id";
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + unauthorizedClientId + "\"" +
-                        ",\"response_type\":" + "\"code\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+
+        // Act
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, unauthorizedClientId, "code");
+
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
@@ -222,140 +285,126 @@ class AuthorizeControllerTest {
 
     @Test
     void should_redirect_unauthorized_client_get_test() throws Exception {
+        // Arrange
         String unauthorizedClientId = "unauthorized_client_id";
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", authorizedRedirectUri)
-                .queryParam("client_id", unauthorizedClientId)
-                .queryParam("response_type", "code"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+
+        // Act
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, unauthorizedClientId, "code");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
 
     @Test
     void should_redirect_unauthorized_redirect_uri_unauthorized_client_post_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + notAuthorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"response_type\":" + "\"code\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Act
+        ResultActions resultActions = postAuthorize(notAuthorizedRedirectUri, authorizedClientId, "code");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
 
     @Test
     void should_redirect_unauthorized_redirect_uri_unauthorized_client_get_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", notAuthorizedRedirectUri)
-                .queryParam("client_id", authorizedClientId)
-                .queryParam("response_type", "code"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Act
+        ResultActions resultActions = getAuthorize(notAuthorizedRedirectUri, authorizedClientId, "code");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
 
     @Test
     void should_redirect_unsupported_response_type_post_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + notAuthorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"response_type\":" + "\"unsupported_response_type\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Act
+        ResultActions resultActions = postAuthorize(notAuthorizedRedirectUri, authorizedClientId, "unsupported_response_type");
+
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
 
     @Test
     void should_redirect_unsupported_response_type_get_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", notAuthorizedRedirectUri)
-                .queryParam("client_id", authorizedClientId)
-                .queryParam("response_type", "unsupported_response_type"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Act
+        ResultActions resultActions = getAuthorize(notAuthorizedRedirectUri, authorizedClientId, "unsupported_response_type");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
 
     @Test
     void should_redirect_to_login_post_test() throws Exception {
+        // Act
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, "");
 
-        // Todo: Fix this.
-        var queryParams = new MultiValueMap<String, String>() {
-                            "state",
-        };
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"response_type\":" + "\"code\"" +
-                        "}")
-                .queryParams());
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(location).contains(authorizedRedirectUri)
-                .contains("login");
+        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+                .contains("response_type=code")
+                .contains("client_id=%s".formatted(authorizedClientId))
+                .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
+                .contains("state=%s".formatted(authorizedState));
     }
+
 
     @Test
     void should_redirect_to_login_get_test() throws Exception {
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .queryParam("redirect_uri", authorizedRedirectUri)
-                .queryParam("client_id", authorizedClientId)
-                .queryParam("response_type", "code"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+        // Act
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, "");
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
-                .contains("login");
+        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+                .contains("response_type=code")
+                .contains("client_id=%s".formatted(authorizedClientId))
+                .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
+                .contains("state=%s".formatted(authorizedState));
     }
 
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
+        // Arrange
         long userId = faker.random().nextLong();
-        ResultActions resultActions = this.mockMvc.perform(post("/oauth/authorize")
-                .cookie(new Cookie("SESSION_ID", userId + ""))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{" +
-                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
-                        ",\"client_id\":\"" + authorizedClientId + "\"" +
-                        ",\"response_type\":" + "\"code\"" +
-                        "}"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+
+        // Act
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", Long.toString(userId));
+
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
         var codeEntityList = authorizationCodeRepository.findAll();
@@ -363,22 +412,22 @@ class AuthorizeControllerTest {
         var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
-        assertThat(location).contains("code=" + codeEntity.getCode());
+        assertThat(locationHeader).contains("code=" + codeEntity.getCode());
     }
 
     @Test
     void should_redirect_with_authorization_code_get_test() throws Exception {
+        // Arrange
         long userId = faker.random().nextLong();
-        ResultActions resultActions = this.mockMvc.perform(get("/oauth/authorize")
-                .cookie(new Cookie("SESSION_ID", userId + ""))
-                .queryParam("redirect_uri", authorizedRedirectUri)
-                .queryParam("client_id", authorizedClientId)
-                .queryParam("response_type", "code"));
-        MvcResult mvcResult = resultActions.andReturn();
-        MockHttpServletResponse response = mvcResult.getResponse();
-        String location = response.getHeader(LOCATION);
+
+        // Act
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", Long.toString(userId));
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(location).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
         var codeEntityList = authorizationCodeRepository.findAll();
@@ -386,9 +435,8 @@ class AuthorizeControllerTest {
         var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
 
         assertThat(codeEntity).isNotNull();
-        assertThat(location).contains("code=" + codeEntity.getCode());
+        assertThat(locationHeader).contains("code=" + codeEntity.getCode());
     }
 
     //endregion tests
-
 }
