@@ -124,5 +124,3 @@ nb-configuration.xml
 /.kubernetes/test/secret.yml
 /.kubernetes/production/kustomization.yml
 /.kubernetes/production/secret.yml
-
-.env
