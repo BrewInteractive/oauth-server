@@ -8,6 +8,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 public class EncryptionUtils {
+    private EncryptionUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static String encrypt(String data, String algorithm, String key) throws Exception {
         SecretKey secretKey = new SecretKeySpec(key.getBytes(), algorithm);
         Cipher cipher = Cipher.getInstance(algorithm);
