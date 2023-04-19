@@ -371,7 +371,8 @@ class AuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(authorizedState));
+                .contains("state=%s".formatted(authorizedState))
+                .doesNotContain("error");
     }
 
 
@@ -388,7 +389,8 @@ class AuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(authorizedState));
+                .contains("state=%s".formatted(authorizedState))
+                .doesNotContain("error");
     }
 
     @Test

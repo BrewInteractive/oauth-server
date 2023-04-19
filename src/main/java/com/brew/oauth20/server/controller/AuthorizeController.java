@@ -81,14 +81,14 @@ public class AuthorizeController {
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
-                var loginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT");
+                var loginSignupEndpoint = env.getProperty("oauth.login_signup_endpoint");
                 if (loginSignupEndpoint == null)
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
                 return generateLoginResponse(loginSignupEndpoint, parameters);
             }
 
-            var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+            var expiresMs = env.getProperty("oauth.authorization_code_expires_ms", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
 
             var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
                     authorizeRequest.getRedirect_uri(),
