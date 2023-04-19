@@ -9,6 +9,7 @@ import com.brew.oauth20.server.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,8 @@ public class AuthorizeController {
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final String userIdCookieKey;
+    @Value("${oauth.login_signup_endpoint}")
+    private String loginSignupEndpoint;
     @Autowired
     private Environment env;
 
@@ -81,7 +84,6 @@ public class AuthorizeController {
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
-                var loginSignupEndpoint = env.getProperty("oauth.login_signup_endpoint");
                 if (loginSignupEndpoint == null)
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
