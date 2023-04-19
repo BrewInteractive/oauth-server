@@ -72,7 +72,7 @@ public class AuthorizeController {
                     authorizeRequest.getRedirect_uri());
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
-                return generateErrorResponse(authorizeTypeValidationResult.getError(), request.getQueryString(),
+                return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
                         authorizeRequest.getRedirect_uri());
             }
 
@@ -85,7 +85,7 @@ public class AuthorizeController {
                 if (loginSignupEndpoint == null)
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
-                return generateLoginResponse(loginSignupEndpoint, request.getQueryString());
+                return generateLoginResponse(loginSignupEndpoint, parameters);
             }
 
             var expiresMs = env.getProperty("AUTHORIZATION_CODE_EXPIRES_MS", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
@@ -106,11 +106,13 @@ public class AuthorizeController {
     }
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
-        String queryStringBuilder = "response_type=" + URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8) +
-                "&redirect_uri=" + URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8) +
-                "&client_id=" + URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8) +
-                "&state=" + URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8);
-        return queryStringBuilder;
+        var queryStringBuilder = new StringBuilder();
+        queryStringBuilder.append("response_type=" + URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8));
+        queryStringBuilder.append("&redirect_uri=" + URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8));
+        queryStringBuilder.append("&client_id=" + URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
+        if (!authorizeRequest.getState().isBlank())
+            queryStringBuilder.append("&state=" + URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
+        return queryStringBuilder.toString();
     }
 
     private ResponseEntity<String> generateErrorResponse(String error, String parameters, String redirectUri) {
