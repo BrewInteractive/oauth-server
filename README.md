@@ -19,7 +19,9 @@
 
 ## Purpose
 
-This project contains implementation of [OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749) which is the industry-standard protocol for authorization. It's developed by using [Spring Boot](https://spring.io/guides/gs/spring-boot/) framework in Java.
+This project contains implementation of [OAuth 2.0](https://www.rfc-editor.org/rfc/rfc6749) which is the
+industry-standard protocol for authorization. It's developed by
+using [Spring Boot](https://spring.io/guides/gs/spring-boot/) framework in Java.
 
 ## Usage Instructions
 
@@ -37,33 +39,37 @@ mvn clean install
 
 #### Database Connection
 
-You will need a postgres database with OAuth Server entities to run the server. You can run the [OAuth Server Hasura](https://github.com/BrewInteractive/oauth-server-hasura) in your local environment to get a proper database.
+You will need a postgres database with OAuth Server entities to run the server. You can run
+the [OAuth Server Hasura](https://github.com/BrewInteractive/oauth-server-hasura) in your local environment to get a
+proper database.
 
 #### Environment Variables
 
-You will need to add below environment variables to run the server. These values must be provided in **env.properties** file in the root directory.:
+You will need to add below environment variables to run the server. These values must be provided in **env.properties**
+file in the root directory.:
 
-| Variable Name                 | Description                                                         | Required |
-|-------------------------------|---------------------------------------------------------------------| -------- |
-| DB_HOST                       | Represents the hostname of the database that needs to be connected. | YES      |
-| DB_NAME                       | Represents the name of the database that needs to be connected.     | YES      |
-| DB_USER                       | Represents the user of the database that needs to be connected.     | YES      |
-| DB_PASSWORD                   | Represents the password of the database that needs to be connected. | YES      |
-| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.   | YES      |
-| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application.| YES      |
+| Variable Name                 | Description                                                          | Required |
+|-------------------------------|----------------------------------------------------------------------|----------|
+| DB_HOST                       | Represents the hostname of the database that needs to be connected.  | YES      |
+| DB_NAME                       | Represents the name of the database that needs to be connected.      | YES      |
+| DB_USER                       | Represents the user of the database that needs to be connected.      | YES      |
+| DB_PASSWORD                   | Represents the password of the database that needs to be connected.  | YES      |
+| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.    | YES      |
+| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application. | YES      |
 
 #### Starting the Server
 
 ```bash
 mvn spring-boot:start
 ```
+
 #### Stopping the Server
 
 ```bash
 mvn spring-boot:stop
 ```
 
-### Running with Docker
+### Running with Docker
 
 You can run the server in Docker environment with below commands:
 
@@ -76,10 +82,10 @@ docker build . -t oauth-server
 Then, you can run the image with following command:
 
 ```bash
-docker run -d -p 8080:8080 -e DB_HOST=<database_host> -e DB_NAME=<database_name> -e DB_USER=<database_username> -e DB_PASSWORD=<database_password> oauth-server
+docker run -d -p 8080:8080 -e DB_HOST=<database_host> -e DB_NAME=<database_name> -e DB_USER=<database_username> -e DB_PASSWORD=<database_password> oauth-server -e LOGIN_SIGNUP_ENDPOINT=<login_signup_endpoint>
 ```
 
-### Running Tests
+### Running Tests
 
 You can run the tests with below command:
 
