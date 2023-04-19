@@ -20,6 +20,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -142,7 +144,7 @@ class AuthorizeControllerTest {
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
         authorizedLoginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT", "https://test.com/login");
-        authorizedState = faker.lordOfTheRings().character().replace(" ", "");
+        authorizedState = URLEncoder.encode(faker.lordOfTheRings().character().replace(" ", ""), StandardCharsets.UTF_8);
 
     }
 
