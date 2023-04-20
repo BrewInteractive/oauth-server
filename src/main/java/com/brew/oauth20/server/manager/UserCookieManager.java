@@ -17,17 +17,15 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 
 @Component
+@SuppressWarnings("java:S3010")
 public class UserCookieManager {
     private static final String USER_COOKIE_KEY = "user";
 
     static CookieService cookieService;
 
-    static String COOKIE_ENCRYPTION_ALGORITHM;
-    static String COOKIE_ENCRYPTION_SECRET;
-    @Value("${cookie.encryption.algorithm}")
-    private String cookieEncryptionAlgorithm;
-    @Value("${cookie.encryption.secret}")
-    private String cookieEncryptionSecret;
+    static String cookieEncryptionAlgorithm;
+    static String cookieEncryptionSecret;
+
 
     @Autowired
     public UserCookieManager(CookieService cookieService) {
@@ -42,7 +40,7 @@ public class UserCookieManager {
         if (cookieValue.isBlank())
             return Optional.empty();
 
-        var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, COOKIE_ENCRYPTION_ALGORITHM, COOKIE_ENCRYPTION_SECRET);
+        var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
         var userCookieModel = UserCookieModel.parse(decryptedCookieValue);
 
         if (userCookieModel.expiresAt().isBefore(OffsetDateTime.now()))
@@ -52,13 +50,13 @@ public class UserCookieManager {
     }
 
     @Value("${cookie.encryption.secret}")
-    public void setCookieEncryptionSecret(String secret) {
-        UserCookieManager.COOKIE_ENCRYPTION_SECRET = secret;
+    public static void setCookieEncryptionSecret(String secret) {
+        UserCookieManager.cookieEncryptionSecret = secret;
     }
 
     @Value("${cookie.encryption.algorithm}")
-    public void setCookieEncryptionAlgorithm(String algorithm) {
-        UserCookieManager.COOKIE_ENCRYPTION_ALGORITHM = algorithm;
+    public static void setCookieEncryptionAlgorithm(String algorithm) {
+        UserCookieManager.cookieEncryptionAlgorithm = algorithm;
     }
 
 
