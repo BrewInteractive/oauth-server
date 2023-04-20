@@ -28,11 +28,10 @@ public class UserCookieManager {
 
 
     @Autowired
-    public UserCookieManager(CookieService cookieService) {
+    private UserCookieManager(CookieService cookieService) {
         UserCookieManager.cookieService = cookieService;
 
     }
-
 
     public static Optional<Long> getUser(HttpServletRequest request) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         var cookieValue = cookieService.getCookie(request, USER_COOKIE_KEY);
