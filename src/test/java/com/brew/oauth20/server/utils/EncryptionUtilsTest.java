@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-public class EncryptionUtilsTest {
+class EncryptionUtilsTest {
 
     private static final String ALGORITHM = "AES";
     private Faker faker;
@@ -36,7 +36,7 @@ public class EncryptionUtilsTest {
     }
 
     @Test
-    public void should_not_encrypt_null_data() {
+    void should_not_encrypt_null_data() {
         // Arrange
         var key = FakerUtils.create128BitRandomString(faker);
 
@@ -47,7 +47,7 @@ public class EncryptionUtilsTest {
     }
 
     @Test
-    public void should_not_decrypt_null_data() {
+    void should_not_decrypt_null_data() {
         // Arrange
         var key = faker.regexify("[A-Za-z0-9]{16}");
 
@@ -58,7 +58,7 @@ public class EncryptionUtilsTest {
     }
 
     @Test
-    public void should_not_decrypt_invalid_data() {
+    void should_not_decrypt_invalid_data() {
         // Arrange
         var key = FakerUtils.create128BitRandomString(faker);
 
