@@ -1,7 +1,7 @@
-package com.brew.oauth20.server.manager;
+package com.brew.oauth20.server.component;
 
+import com.brew.oauth20.server.component.impl.UserCookieManagerImpl;
 import com.brew.oauth20.server.service.CookieService;
-import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.*;
@@ -11,14 +11,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
 
-//@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -26,22 +26,23 @@ class UserCookieManagerTest {
     private static final String USER_COOKIE_KEY = "user";
     private static final String ENCRYPTION_ALGORITHM = "AES";
     private static final String ENCRYPTION_SECRET = "jHk$5hVpLm#nG@9$";
+    private static Faker faker;
     @Mock
     CookieService cookieService;
     @InjectMocks
-    UserCookieManager userCookieManager;
-    private Faker faker;
+    UserCookieManagerImpl userCookieManager;
+
+    @BeforeAll
+    void initialize() {
+        faker = new Faker();
+
+    }
 
     @BeforeEach
     void Setup() {
         Mockito.reset(cookieService);
-        userCookieManager.setCookieEncryptionAlgorithm(ENCRYPTION_ALGORITHM);
-        userCookieManager.setCookieEncryptionSecret(ENCRYPTION_SECRET);
-    }
-
-    @BeforeAll
-    void initialize() {
-        this.faker = new Faker();
+        ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionSecret", ENCRYPTION_SECRET);
+        ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionAlgorithm", ENCRYPTION_ALGORITHM);
     }
 
     @Test
@@ -51,13 +52,12 @@ class UserCookieManagerTest {
         var expiresAt = faker.date().future(5, TimeUnit.DAYS);
         var request = new MockHttpServletRequest();
         var cookieValue = userId + ":" + expiresAt.toInstant().getEpochSecond();
-        var encryptionCookieSecret = FakerUtils.create128BitRandomString(faker);
-        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, encryptionCookieSecret);
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
 
         // Act
-        var actualUserId = UserCookieManager.getUser(request);
+        var actualUserId = userCookieManager.getUser(request);
 
         // Assert
         assertThat(actualUserId).isPresent().contains(userId);
@@ -68,9 +68,11 @@ class UserCookieManagerTest {
     void should_get_null_value_if_cookie_does_not_exist() throws Exception {
         // Arrange
         var request = new MockHttpServletRequest();
+        when(cookieService.getCookie(request, USER_COOKIE_KEY))
+                .thenReturn(null);
 
         // Act
-        var actualUserId = UserCookieManager.getUser(request);
+        var actualUserId = userCookieManager.getUser(request);
 
         // Assert
         assertThat(actualUserId).isNotPresent();
@@ -80,9 +82,15 @@ class UserCookieManagerTest {
     void should_get_null_value_if_cookie_is_expired() throws Exception {
         // Arrange
         var request = new MockHttpServletRequest();
+        var userId = faker.random().nextLong();
+        var expiresAt = faker.date().past(5, TimeUnit.DAYS);
+        var cookieValue = userId + ":" + expiresAt.toInstant().getEpochSecond();
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
+        when(cookieService.getCookie(request, USER_COOKIE_KEY))
+                .thenReturn(encryptedCookieValue);
 
         // Act
-        var actualUserId = UserCookieManager.getUser(request);
+        var actualUserId = userCookieManager.getUser(request);
 
         // Assert
         assertThat(actualUserId).isNotPresent();
