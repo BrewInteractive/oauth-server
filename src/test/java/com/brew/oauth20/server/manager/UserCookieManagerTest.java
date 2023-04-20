@@ -6,29 +6,37 @@ import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+
+//@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserCookieManagerTest {
     private static final String USER_COOKIE_KEY = "user";
     private static final String ENCRYPTION_ALGORITHM = "AES";
-    @MockBean
+    private static final String ENCRYPTION_SECRET = "jHk$5hVpLm#nG@9$";
+    @Mock
     CookieService cookieService;
+    @InjectMocks
+    UserCookieManager userCookieManager;
     private Faker faker;
 
     @BeforeEach
     void Setup() {
         Mockito.reset(cookieService);
+        userCookieManager.setCookieEncryptionAlgorithm(ENCRYPTION_ALGORITHM);
+        userCookieManager.setCookieEncryptionSecret(ENCRYPTION_SECRET);
     }
 
     @BeforeAll
@@ -56,8 +64,7 @@ class UserCookieManagerTest {
         assertThat(actualUserId.get()).isEqualTo(userId);
 
     }
-
-
+    
     @Test
     void should_get_null_value_if_cookie_does_not_exist() throws Exception {
         // Arrange

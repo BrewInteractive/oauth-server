@@ -6,19 +6,30 @@ import com.brew.oauth20.server.utils.EncryptionUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
+@Component
 public class UserCookieManager {
-
     private static final String USER_COOKIE_KEY = "user";
-    @Autowired
+
     static CookieService cookieService;
+
+    static String COOKIE_ENCRYPTION_ALGORITHM;
+    static String COOKIE_ENCRYPTION_SECRET;
     @Value("${cookie.encryption.algorithm}")
-    private static String cookieEncryptionAlgorithm;
+    private String cookieEncryptionAlgorithm;
     @Value("${cookie.encryption.secret}")
-    private static String cookieEncryptionSecret;
+    private String cookieEncryptionSecret;
+
+    @Autowired
+    public UserCookieManager(CookieService cookieService) {
+        UserCookieManager.cookieService = cookieService;
+
+    }
+
 
     public static Optional<Long> getUser(HttpServletRequest request) throws Exception {
         var cookieValue = cookieService.getCookie(request, USER_COOKIE_KEY);
@@ -26,7 +37,7 @@ public class UserCookieManager {
         if (cookieValue.isBlank())
             return Optional.empty();
 
-        var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
+        var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, COOKIE_ENCRYPTION_ALGORITHM, COOKIE_ENCRYPTION_SECRET);
         var userCookieModel = UserCookieModel.parse(decryptedCookieValue);
 
         if (userCookieModel.expiresAt().isBefore(OffsetDateTime.now()))
@@ -34,4 +45,16 @@ public class UserCookieManager {
 
         return Optional.of(userCookieModel.userId());
     }
+
+    @Value("${cookie.encryption.secret}")
+    public void setCookieEncryptionSecret(String secret) {
+        UserCookieManager.COOKIE_ENCRYPTION_SECRET = secret;
+    }
+
+    @Value("${cookie.encryption.algorithm}")
+    public void setCookieEncryptionAlgorithm(String algorithm) {
+        UserCookieManager.COOKIE_ENCRYPTION_ALGORITHM = algorithm;
+    }
+
+
 }
