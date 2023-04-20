@@ -61,8 +61,7 @@ mvn spring-boot:start
 ```bash
 mvn spring-boot:stop
 ```
-
-### Running with Docker
+### Running with Docker
 
 You can run the server in Docker environment with below commands:
 
@@ -77,8 +76,7 @@ Then, you can run the image with following command:
 ```bash
 docker run -d -p 8080:8080 -e DB_HOST=<database_host> -e DB_NAME=<database_name> -e DB_USER=<database_username> -e DB_PASSWORD=<database_password> oauth-server
 ```
-
-### Running Tests
+### Running Tests
 
 You can run the tests with below command:
 
