@@ -37,6 +37,4 @@ public class UserCookieManagerImpl implements UserCookieManager {
             return Optional.empty();
         }
     }
-
-
 }
