@@ -8,6 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
@@ -31,7 +36,7 @@ public class UserCookieManager {
     }
 
 
-    public static Optional<Long> getUser(HttpServletRequest request) throws Exception {
+    public static Optional<Long> getUser(HttpServletRequest request) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         var cookieValue = cookieService.getCookie(request, USER_COOKIE_KEY);
 
         if (cookieValue.isBlank())
