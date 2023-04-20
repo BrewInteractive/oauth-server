@@ -60,11 +60,10 @@ class UserCookieManagerTest {
         var actualUserId = UserCookieManager.getUser(request);
 
         // Assert
-        assertThat(actualUserId.isPresent()).isTrue();
-        assertThat(actualUserId.get()).isEqualTo(userId);
+        assertThat(actualUserId).isPresent().contains(userId);
 
     }
-    
+
     @Test
     void should_get_null_value_if_cookie_does_not_exist() throws Exception {
         // Arrange
@@ -74,7 +73,7 @@ class UserCookieManagerTest {
         var actualUserId = UserCookieManager.getUser(request);
 
         // Assert
-        assertThat(actualUserId.isEmpty()).isTrue();
+        assertThat(actualUserId).isNotPresent();
     }
 
     @Test
@@ -86,6 +85,6 @@ class UserCookieManagerTest {
         var actualUserId = UserCookieManager.getUser(request);
 
         // Assert
-        assertThat(actualUserId.isEmpty()).isTrue();
+        assertThat(actualUserId).isNotPresent();
     }
 }
