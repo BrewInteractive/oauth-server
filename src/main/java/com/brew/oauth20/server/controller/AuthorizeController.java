@@ -63,9 +63,9 @@ public class AuthorizeController {
                                              String parameters) {
         try {
             /* request parameters validation */
-            if (validationResult.hasErrors()) {
+            if (validationResult.hasErrors())
                 return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
-            }
+
 
             /* authorize type validator */
             var authorizeTypeProvider = authorizeTypeProviderFactory
@@ -74,10 +74,10 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
                     authorizeRequest.getRedirect_uri());
 
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
+            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
                 return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
                         authorizeRequest.getRedirect_uri());
-            }
+
 
             /* user cookie and authorization code */
             var userCookie = cookieService.getCookie(request, userIdCookieKey);
