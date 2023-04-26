@@ -84,7 +84,7 @@ public class AuthorizeController {
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
-                if (loginSignupEndpoint == null)
+                if (loginSignupEndpoint.isBlank())
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
                 return generateLoginResponse(loginSignupEndpoint, parameters);

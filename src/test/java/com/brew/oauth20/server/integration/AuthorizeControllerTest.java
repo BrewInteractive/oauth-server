@@ -31,46 +31,45 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SuppressWarnings("ALL")
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthorizeControllerTest {
 
-    private final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
-    private String authorizedRedirectUri;
-    private String authorizedAuthCode;
-    private String authorizedClientId;
-    private String authorizedClientSecret;
-    private String authorizedRefreshToken;
-    private String authorizedLoginSignupEndpoint;
-    private String authorizedState;
+    protected final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
+    protected String authorizedRedirectUri;
+    protected String authorizedAuthCode;
+    protected String authorizedClientId;
+    protected String authorizedClientSecret;
+    protected String authorizedRefreshToken;
+    protected String authorizedLoginSignupEndpoint;
+    protected String authorizedState;
 
-    private Faker faker;
+    protected Faker faker;
     @Autowired
-    private MockMvc mockMvc;
+    protected MockMvc mockMvc;
 
     @Autowired
-    private AuthorizationCodeRepository authorizationCodeRepository;
+    protected AuthorizationCodeRepository authorizationCodeRepository;
     @Autowired
-    private ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
+    protected ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
     @Autowired
-    private ClientRepository clientRepository;
+    protected ClientRepository clientRepository;
     @Autowired
-    private ClientGrantRepository clientGrantRepository;
+    protected ClientGrantRepository clientGrantRepository;
     @Autowired
-    private GrantRepository grantRepository;
+    protected GrantRepository grantRepository;
     @Autowired
-    private RedirectUriRepository redirectUriRepository;
+    protected RedirectUriRepository redirectUriRepository;
     @Autowired
-    private ClientsUserRepository clientsUserRepository;
+    protected ClientsUserRepository clientsUserRepository;
     @Autowired
-    private ActiveRefreshTokenRepository activeRefreshTokenRepository;
+    protected ActiveRefreshTokenRepository activeRefreshTokenRepository;
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    protected RefreshTokenRepository refreshTokenRepository;
     @Autowired
-    private Environment env;
+    protected Environment env;
 
     @BeforeAll
     void setup() {
@@ -78,7 +77,6 @@ class AuthorizeControllerTest {
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
-        var authorizationCodeFixture = new AuthorizationCodeFixture();
         var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
         var clientsUserFixture = new ClientsUserFixture();
         var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
@@ -179,11 +177,11 @@ class AuthorizeControllerTest {
 
     }
 
-    private ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
         return postAuthorize(redirectUri, clientId, responseType, "", "");
     }
 
-    private ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
         return postAuthorize(redirectUri, clientId, responseType, "", cookieValue);
     }
 
@@ -200,15 +198,13 @@ class AuthorizeControllerTest {
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", responseType)
                 .queryParam("state", state));
-
-
     }
 
-    private ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
         return getAuthorize(redirectUri, clientId, responseType, "", "");
     }
 
-    private ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
         return getAuthorize(redirectUri, clientId, responseType, "", cookieValue);
     }
 
