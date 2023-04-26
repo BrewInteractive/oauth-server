@@ -14,7 +14,7 @@ RUN echo "DB_HOST=$DB_HOST" > env.properties && \
     echo "DB_USER=$DB_USER" >> env.properties && \
     echo "DB_PASSWORD=$DB_PASSWORD" >> env.properties && \
     echo "AUTHORIZATION_CODE_EXPIRES_MS=$AUTHORIZATION_CODE_EXPIRES_MS" >> env.properties \
-    echo "AUTHORIZATION_CODE_EXPIRES_MS=$LOGIN_SIGNUP_ENDPOINT" >> env.properties
+    echo "LOGIN_SIGNUP_ENDPOINT=$LOGIN_SIGNUP_ENDPOINT" >> env.properties
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
