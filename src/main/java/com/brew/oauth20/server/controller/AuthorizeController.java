@@ -109,9 +109,10 @@ public class AuthorizeController {
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
         var queryStringBuilder = new StringBuilder();
-        queryStringBuilder.append("response_type=" + URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8));
-        queryStringBuilder.append("&redirect_uri=" + URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8));
-        queryStringBuilder.append("&client_id=" + URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
+        queryStringBuilder.append("response_type=")
+                .append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8))
+                .append("&redirect_uri=" + URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8))
+                .append("&client_id=" + URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
         if (!authorizeRequest.getState().isBlank())
             queryStringBuilder.append("&state=" + URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
         return queryStringBuilder.toString();
