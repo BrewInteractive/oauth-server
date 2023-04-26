@@ -49,13 +49,13 @@ You will need to add below environment variables to run the server. These values
 file in the root directory.:
 
 | Variable Name                 | Description                                                          | Required | Default Value |
-|-------------------------------|----------------------------------------------------------------------|----------|---------------|
-| DB_HOST                       | Represents the hostname of the database that needs to be connected.  | YES      | -             | 
-| DB_NAME                       | Represents the name of the database that needs to be connected.      | YES      | -             |
-| DB_USER                       | Represents the user of the database that needs to be connected.      | YES      | -             |
-| DB_PASSWORD                   | Represents the password of the database that needs to be connected.  | YES      | -             |
-| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.    | No       | 300000        |
-| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application. | YES      | -             |
+|-------------------------------|----------------------------------------------------------------------|:--------:|:-------------:|
+| DB_HOST                       | Represents the hostname of the database that needs to be connected.  |   YES    |       -       | 
+| DB_NAME                       | Represents the name of the database that needs to be connected.      |   YES    |       -       |
+| DB_USER                       | Represents the user of the database that needs to be connected.      |   YES    |       -       |
+| DB_PASSWORD                   | Represents the password of the database that needs to be connected.  |   YES    |       -       |
+| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.    |    No    |    300000     |
+| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application. |   YES    |       -       |
 
 #### Starting the Server
 
