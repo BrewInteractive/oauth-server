@@ -41,7 +41,8 @@ class UserCookieManagerTest {
         return Stream.of(
                 Arguments.of(
                         null,
-                        ""
+                        "",
+                        " "
                 )
         );
     }
