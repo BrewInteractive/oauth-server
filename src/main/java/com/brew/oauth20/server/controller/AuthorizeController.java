@@ -62,9 +62,9 @@ public class AuthorizeController {
                                              String parameters) {
         try {
             /* request parameters validation */
-            if (validationResult.hasErrors()) {
+            if (validationResult.hasErrors())
                 return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
-            }
+
 
             /* authorize type validator */
             var authorizeTypeProvider = authorizeTypeProviderFactory
@@ -73,17 +73,17 @@ public class AuthorizeController {
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
                     authorizeRequest.getRedirect_uri());
 
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult())) {
+            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
                 return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
                         authorizeRequest.getRedirect_uri());
-            }
+
 
             /* user cookie and authorization code */
             var userCookie = cookieService.getCookie(request, COOKIE_KEY);
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
-                if (loginSignupEndpoint == null)
+                if (loginSignupEndpoint.isBlank())
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
                 return generateLoginResponse(loginSignupEndpoint, parameters);
@@ -108,9 +108,10 @@ public class AuthorizeController {
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
         var queryStringBuilder = new StringBuilder();
-        queryStringBuilder.append("response_type=").append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8));
-        queryStringBuilder.append("&redirect_uri=").append(URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8));
-        queryStringBuilder.append("&client_id=").append(URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
+        queryStringBuilder
+                .append("response_type=").append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8))
+                .append("&redirect_uri=").append(URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8))
+                .append("&client_id=").append(URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
         if (!authorizeRequest.getState().isBlank())
             queryStringBuilder.append("&state=").append(URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
         return queryStringBuilder.toString();

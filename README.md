@@ -48,14 +48,14 @@ proper database.
 You will need to add below environment variables to run the server. These values must be provided in **env.properties**
 file in the root directory.:
 
-| Variable Name                 | Description                                                          | Required |
-|-------------------------------|----------------------------------------------------------------------|----------|
-| DB_HOST                       | Represents the hostname of the database that needs to be connected.  | YES      |
-| DB_NAME                       | Represents the name of the database that needs to be connected.      | YES      |
-| DB_USER                       | Represents the user of the database that needs to be connected.      | YES      |
-| DB_PASSWORD                   | Represents the password of the database that needs to be connected.  | YES      |
-| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.    | YES      |
-| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application. | YES      |
+| Variable Name                 | Description                                                          | Required | Default Value |
+|-------------------------------|----------------------------------------------------------------------|:--------:|:-------------:|
+| DB_HOST                       | Represents the hostname of the database that needs to be connected.  |   YES    |       -       | 
+| DB_NAME                       | Represents the name of the database that needs to be connected.      |   YES    |       -       |
+| DB_USER                       | Represents the user of the database that needs to be connected.      |   YES    |       -       |
+| DB_PASSWORD                   | Represents the password of the database that needs to be connected.  |   YES    |       -       |
+| AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.    |    No    |    300000     |
+| LOGIN_SIGNUP_ENDPOINT.        | Represents the login/signup endpoint of the implementer application. |   YES    |       -       |
 
 #### Starting the Server
 
@@ -68,6 +68,7 @@ mvn spring-boot:start
 ```bash
 mvn spring-boot:stop
 ```
+
 ### Running with Docker
 
 You can run the server in Docker environment with below commands:
@@ -83,6 +84,7 @@ Then, you can run the image with following command:
 ```bash
 docker run -d -p 8080:8080 -e DB_HOST=<database_host> -e DB_NAME=<database_name> -e DB_USER=<database_username> -e DB_PASSWORD=<database_password> oauth-server -e LOGIN_SIGNUP_ENDPOINT=<login_signup_endpoint>
 ```
+
 ### Running Tests
 
 You can run the tests with below command:
