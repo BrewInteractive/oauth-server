@@ -6,6 +6,9 @@ import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -14,6 +17,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
@@ -31,6 +35,16 @@ class UserCookieManagerTest {
     CookieService cookieService;
     @InjectMocks
     UserCookieManagerImpl userCookieManager;
+
+    private static Stream<Arguments> should_get_null_value_if_cookie_does_not_exist() {
+
+        return Stream.of(
+                Arguments.of(
+                        null,
+                        ""
+                )
+        );
+    }
 
     @BeforeAll
     void initialize() {
@@ -64,12 +78,13 @@ class UserCookieManagerTest {
 
     }
 
-    @Test
-    void should_get_null_value_if_cookie_does_not_exist() {
+    @MethodSource
+    @ParameterizedTest
+    void should_get_null_value_if_cookie_does_not_exist(String cookieValue) {
         // Arrange
         var request = new MockHttpServletRequest();
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
-                .thenReturn(null);
+                .thenReturn(cookieValue);
 
         // Act
         var actualUserId = userCookieManager.getUser(request);
@@ -77,6 +92,7 @@ class UserCookieManagerTest {
         // Assert
         assertThat(actualUserId).isNotPresent();
     }
+
 
     @Test
     void should_get_null_value_if_cookie_is_expired() throws Exception {
