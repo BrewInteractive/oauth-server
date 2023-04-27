@@ -65,7 +65,7 @@ class UserCookieManagerTest {
     }
 
     @Test
-    void should_get_null_value_if_cookie_does_not_exist() throws Exception {
+    void should_get_null_value_if_cookie_does_not_exist() {
         // Arrange
         var request = new MockHttpServletRequest();
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
@@ -88,6 +88,20 @@ class UserCookieManagerTest {
         var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
+
+        // Act
+        var actualUserId = userCookieManager.getUser(request);
+
+        // Assert
+        assertThat(actualUserId).isNotPresent();
+    }
+
+    @Test
+    void should_get_null_value_if_exception_thrown() {
+        // Arrange
+        var request = new MockHttpServletRequest();
+        when(cookieService.getCookie(request, USER_COOKIE_KEY))
+                .thenReturn("123");
 
         // Act
         var actualUserId = userCookieManager.getUser(request);
