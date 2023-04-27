@@ -4,8 +4,12 @@ import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.*;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -66,5 +70,19 @@ class EncryptionUtilsTest {
         assertThrows(Exception.class, () -> {
             EncryptionUtils.decrypt("invalid-encrypted-data", algorithm, key);
         });
+    }
+
+    @Test
+    void should_not_create_new_instance() throws Exception {
+        // Arrange
+        Constructor<EncryptionUtils> constructor = EncryptionUtils.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+
+        // Act and Assert
+        Throwable actualException = assertThrows(InvocationTargetException.class, () -> {
+            constructor.newInstance();
+        });
+
+        assertTrue(actualException.getCause() instanceof IllegalStateException);
     }
 }
