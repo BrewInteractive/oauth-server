@@ -7,11 +7,12 @@ import com.brew.oauth20.server.utils.EncryptionUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
-
+@Component
 public class UserCookieManagerImpl implements UserCookieManager {
     private static final String USER_COOKIE_KEY = "user";
     @Autowired

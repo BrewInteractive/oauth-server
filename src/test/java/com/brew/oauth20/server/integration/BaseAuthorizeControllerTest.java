@@ -7,11 +7,13 @@ import com.brew.oauth20.server.fixture.*;
 import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
 import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
+import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
@@ -19,10 +21,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +42,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class BaseAuthorizeControllerTest {
     protected final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
+    @Value("${cookie.encryption.secret}")
+    protected String cookieEncryptionSecret;
+    @Value("${cookie.encryption.algorithm}")
+    protected String cookieEncryptionAlgorithm;
     protected String authorizedRedirectUri;
     protected String authorizedAuthCode;
     protected String authorizedClientId;
@@ -150,7 +163,7 @@ abstract class BaseAuthorizeControllerTest {
         grantRepository.deleteAllInBatch();
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String cookieValue) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<Long> userId) throws Exception {
         Map<String, String> requestBodyMap = new HashMap<>();
         requestBodyMap.put("redirect_uri", redirectUri);
         requestBodyMap.put("client_id", clientId);
@@ -159,10 +172,13 @@ abstract class BaseAuthorizeControllerTest {
 
         String requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
 
-        if (cookieValue.isBlank())
+        if (userId.isEmpty())
+
             return this.mockMvc.perform(post("/oauth/authorize")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
+
+        var cookieValue = createCookieValue(userId.get());
         return this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -171,20 +187,26 @@ abstract class BaseAuthorizeControllerTest {
     }
 
     protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", "");
+        return postAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", cookieValue);
+
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, Long userId) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String cookieValue) throws Exception {
-        if (cookieValue.isBlank())
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
+    }
+
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<Long> userId) throws Exception {
+        if (userId.isEmpty())
             return this.mockMvc.perform(get("/oauth/authorize")
                     .queryParam("redirect_uri", redirectUri)
                     .queryParam("client_id", clientId)
                     .queryParam("response_type", responseType)
                     .queryParam("state", state));
+        var cookieValue = createCookieValue(userId.get());
         return this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .queryParam("redirect_uri", redirectUri)
@@ -194,10 +216,20 @@ abstract class BaseAuthorizeControllerTest {
     }
 
     protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", "");
+        return getAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String cookieValue) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", cookieValue);
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, Long userId) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
+    }
+
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
+    }
+
+    private String createCookieValue(Long userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        var expiresAt = OffsetDateTime.now().plusDays(2);
+        var cookieValue = "%s:%d".formatted(userId.toString(), expiresAt.toEpochSecond());
+        return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
     }
 }
