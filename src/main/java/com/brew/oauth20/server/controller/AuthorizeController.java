@@ -24,10 +24,10 @@ import java.nio.charset.StandardCharsets;
 @RestController
 public class AuthorizeController {
     public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
+    private static final String COOKIE_KEY = "user";
     private final CookieService cookieService;
     private final AuthorizationCodeService authorizationCodeService;
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
-    private final String userIdCookieKey;
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
     @Autowired
@@ -39,7 +39,6 @@ public class AuthorizeController {
         this.cookieService = cookieService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.authorizationCodeService = authorizationCodeService;
-        this.userIdCookieKey = "SESSION_ID";
     }
 
     @GetMapping(value = "/oauth/authorize")
@@ -80,7 +79,7 @@ public class AuthorizeController {
 
 
             /* user cookie and authorization code */
-            var userCookie = cookieService.getCookie(request, userIdCookieKey);
+            var userCookie = cookieService.getCookie(request, COOKIE_KEY);
 
             /* not logged-in user redirect login signup */
             if (userCookie == null) {
@@ -109,12 +108,12 @@ public class AuthorizeController {
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
         var queryStringBuilder = new StringBuilder();
-        queryStringBuilder.append("response_type=")
-                .append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8))
-                .append("&redirect_uri=" + URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8))
-                .append("&client_id=" + URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
+        queryStringBuilder
+                .append("response_type=").append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8))
+                .append("&redirect_uri=").append(URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8))
+                .append("&client_id=").append(URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
         if (!authorizeRequest.getState().isBlank())
-            queryStringBuilder.append("&state=" + URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
+            queryStringBuilder.append("&state=").append(URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
         return queryStringBuilder.toString();
     }
 

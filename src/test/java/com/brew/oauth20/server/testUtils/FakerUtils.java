@@ -37,4 +37,8 @@ public class FakerUtils {
     public static String createRandomRedirectUri(@NotNull Faker faker) {
         return faker.internet().url();
     }
+
+    public static String create128BitRandomString(@NotNull Faker faker) {
+        return faker.regexify("[A-Za-z0-9]{16}");
+    }
 }

@@ -9,10 +9,6 @@ import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
-
-
-    //region /oauth/authorize tests
-
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
         // Act
