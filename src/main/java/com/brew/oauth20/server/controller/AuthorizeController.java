@@ -23,23 +23,18 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 public class AuthorizeController {
-    public static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
+    private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private static final String COOKIE_KEY = "user";
-    private final CookieService cookieService;
-    private final AuthorizationCodeService authorizationCodeService;
-    private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
+    @Autowired
+    private CookieService cookieService;
+    @Autowired
+    private AuthorizationCodeService authorizationCodeService;
+    @Autowired
+    private AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
     @Autowired
     private Environment env;
-
-    public AuthorizeController(CookieService cookieService,
-                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
-                               AuthorizationCodeService authorizationCodeService) {
-        this.cookieService = cookieService;
-        this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
-        this.authorizationCodeService = authorizationCodeService;
-    }
 
     @GetMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizeGet(
