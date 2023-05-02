@@ -1,11 +1,11 @@
 package com.brew.oauth20.server.controller;
 
+import com.brew.oauth20.server.component.UserCookieManager;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
-import com.brew.oauth20.server.service.CookieService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,8 @@ import java.nio.charset.StandardCharsets;
 @RestController
 public class AuthorizeController {
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
-    private static final String COOKIE_KEY = "user";
     @Autowired
-    private CookieService cookieService;
+    private UserCookieManager userCookieManager;
     @Autowired
     private AuthorizationCodeService authorizationCodeService;
     @Autowired
@@ -74,10 +73,11 @@ public class AuthorizeController {
 
 
             /* user cookie and authorization code */
-            var userCookie = cookieService.getCookie(request, COOKIE_KEY);
+            var userId = userCookieManager.getUser(request);
+
 
             /* not logged-in user redirect login signup */
-            if (userCookie == null) {
+            if (userId.isEmpty()) {
                 if (loginSignupEndpoint.isBlank())
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
@@ -86,7 +86,7 @@ public class AuthorizeController {
 
             var expiresMs = env.getProperty("oauth.authorization_code_expires_ms", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
 
-            var code = authorizationCodeService.createAuthorizationCode(Long.parseLong(userCookie),
+            var code = authorizationCodeService.createAuthorizationCode(userId.get(),
                     authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
                     authorizeRequest.getClient_id());
