@@ -12,7 +12,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
         // Act
-        ResultActions resultActions = postAuthorize("", "", "", "");
+        ResultActions resultActions = postAuthorize("", "", "");
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -130,7 +130,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Act
         ResultActions resultActions = postAuthorize(notAuthorizedRedirectUri, authorizedClientId, "unsupported_response_type");
 
-
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
@@ -157,7 +156,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_to_login_post_test() throws Exception {
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, "");
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -176,7 +175,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_to_login_get_test() throws Exception {
         // Act
-        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, "");
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -196,8 +195,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         long userId = faker.random().nextLong();
 
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", Long.toString(userId));
-
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", userId);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -220,7 +218,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         long userId = faker.random().nextLong();
 
         // Act
-        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", Long.toString(userId));
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", userId);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
