@@ -18,8 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.net.URLDecoder;
 
 @RestController
 public class AuthorizeController {
@@ -40,7 +39,7 @@ public class AuthorizeController {
             @Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
             BindingResult validationResult,
             HttpServletRequest request) {
-        return authorize(authorizeRequest, validationResult, request, request.getQueryString());
+        return authorize(authorizeRequest, validationResult, request, URLDecoder.decode(request.getQueryString()));
     }
 
     @PostMapping(value = "/oauth/authorize")
@@ -104,11 +103,11 @@ public class AuthorizeController {
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
         var queryStringBuilder = new StringBuilder();
         queryStringBuilder
-                .append("response_type=").append(URLEncoder.encode(authorizeRequest.getResponse_type(), StandardCharsets.UTF_8))
-                .append("&redirect_uri=").append(URLEncoder.encode(authorizeRequest.getRedirect_uri(), StandardCharsets.UTF_8))
-                .append("&client_id=").append(URLEncoder.encode(authorizeRequest.getClient_id(), StandardCharsets.UTF_8));
+                .append("response_type=").append(authorizeRequest.getResponse_type())
+                .append("&redirect_uri=").append(authorizeRequest.getRedirect_uri())
+                .append("&client_id=").append(authorizeRequest.getClient_id());
         if (!authorizeRequest.getState().isBlank())
-            queryStringBuilder.append("&state=").append(URLEncoder.encode(authorizeRequest.getState(), StandardCharsets.UTF_8));
+            queryStringBuilder.append("&state=").append(authorizeRequest.getState());
         return queryStringBuilder.toString();
     }
 

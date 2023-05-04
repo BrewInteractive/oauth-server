@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.net.URLEncoder;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -167,7 +169,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(authorizedState))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState)))
                 .doesNotContain("error");
     }
 
@@ -185,7 +187,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(authorizedState))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState)))
                 .doesNotContain("error");
     }
 
