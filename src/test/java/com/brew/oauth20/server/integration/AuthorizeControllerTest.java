@@ -5,6 +5,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.LOCATION;
@@ -32,7 +33,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
-
 
     @Test
     void should_not_redirect_with_invalid_uri_parameter_invalid_request_post_test() throws Exception {
@@ -62,7 +62,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
-
     @Test
     void should_redirect_unauthorized_client_post_test() throws Exception {
         // Arrange
@@ -70,7 +69,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         // Act
         ResultActions resultActions = postAuthorize(authorizedRedirectUri, unauthorizedClientId, "code");
-
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -80,7 +78,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
-
 
     @Test
     void should_redirect_unauthorized_client_get_test() throws Exception {
@@ -130,7 +127,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_unsupported_response_type_post_test() throws Exception {
         // Act
-        ResultActions resultActions = postAuthorize(notAuthorizedRedirectUri, authorizedClientId, "unsupported_response_type");
+        ResultActions resultActions = postAuthorize(notAuthorizedRedirectUri, authorizedClientId,
+                "unsupported_response_type");
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -144,7 +142,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_unsupported_response_type_get_test() throws Exception {
         // Act
-        ResultActions resultActions = getAuthorize(notAuthorizedRedirectUri, authorizedClientId, "unsupported_response_type");
+        ResultActions resultActions = getAuthorize(notAuthorizedRedirectUri, authorizedClientId,
+                "unsupported_response_type");
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -157,6 +156,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
     @Test
     void should_redirect_to_login_post_test() throws Exception {
+        authorizedState = "Théoden";
         // Act
         ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
 
@@ -169,10 +169,9 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(URLEncoder.encode(authorizedState)))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .doesNotContain("error");
     }
-
 
     @Test
     void should_redirect_to_login_get_test() throws Exception {
@@ -187,7 +186,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
-                .contains("state=%s".formatted(URLEncoder.encode(authorizedState)))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .doesNotContain("error");
     }
 
@@ -237,5 +236,5 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(locationHeader).contains("code=" + codeEntity.getCode());
     }
 
-    //endregion tests
+    // endregion tests
 }
