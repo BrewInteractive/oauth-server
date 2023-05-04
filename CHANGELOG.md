@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/BrewInteractive/oauth-server/compare/v1.2.2...v1.3.0) (2023-05-04)
+
+
+### Features
+
+* **TMID-162:** add EncryptionUtils class. ([740279b](https://github.com/BrewInteractive/oauth-server/commit/740279b5aa4d670b6a0b937f4cc70f2ca978dd36))
+* **TMID-162:** convert cookie key to "user". ([9ad17f7](https://github.com/BrewInteractive/oauth-server/commit/9ad17f79e76d34f6b59b2f359b5946a89315c5d3))
+* **TMID-162:** implement user cookie manager. ([2feae75](https://github.com/BrewInteractive/oauth-server/commit/2feae75aa9433be313a7069f9001066f1db0637e))
+* **TMID-162:** refactored redirecting to login. ([f7f131c](https://github.com/BrewInteractive/oauth-server/commit/f7f131cdeb754a5e27906ece78ae50eeea3aa9f7))
+* **TMID-162:** refactored redirecting to login. ([1745fb6](https://github.com/BrewInteractive/oauth-server/commit/1745fb64de0619462840e8f54ffc66909db56ad9))
+
+
+### Bug Fixes
+
+* fixed invalid environment variable. ([e73ddf8](https://github.com/BrewInteractive/oauth-server/commit/e73ddf8b8c16736ba44b7517320a1de17ce2fa44))
+
 ### [1.2.2](https://github.com/BrewInteractive/oauth-server/compare/v1.2.1...v1.2.2) (2023-04-18)
 
 
