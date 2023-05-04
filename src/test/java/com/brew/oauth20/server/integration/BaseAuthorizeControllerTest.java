@@ -24,8 +24,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
@@ -148,7 +146,7 @@ abstract class BaseAuthorizeControllerTest {
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
         authorizedLoginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT", "https://test.com/login");
-        authorizedState = URLEncoder.encode(faker.lordOfTheRings().character().replace(" ", ""), StandardCharsets.UTF_8);
+        authorizedState = faker.lordOfTheRings().character().replace(" ", "");
 
     }
 
