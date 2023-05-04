@@ -42,6 +42,15 @@ spec:
                   name: oauth-server-secrets-test
             - name: AUTHORIZATION_CODE_EXPIRES_MS
               value: "300000"
+            - name: COOKIE_ENCRYPTION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: cookie-encryption-secret
+                  name: oauth-server-secrets-test
+            - name: COOKIE_ENCRYPTION_ALGORITHM
+              value: "AES"
+            - name: LOGIN_SIGNUP_ENDPOINT
+              value: "https://test.com/login"
           imagePullPolicy: Always
           resources: {}
           ports:
