@@ -21,7 +21,7 @@
         </sonar.coverage.jacoco.xmlReportPaths>
         <sonar.coverage.exclusions>**/data/**</sonar.coverage.exclusions>
         <sonar.exclusions>**/data/**, node_modules/**</sonar.exclusions>
-        <sonar.test.exclusions>src/test/java/**, src/main/java/com.brew.oauth20.server/data/**</sonar.test.exclusions>
+        <sonar.test.exclusions>src/test/java/**, **/data/**</sonar.test.exclusions>
         <sonar.tests>src/test/java</sonar.tests>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.java.binaries>target/classes</sonar.java.binaries>
