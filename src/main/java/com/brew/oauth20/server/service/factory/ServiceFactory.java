@@ -15,16 +15,16 @@ public abstract class ServiceFactory<E extends Enum<E>, T> {
     @Autowired
     private ApplicationContext context;
 
-    public T getService(E providerType) throws MissingServiceException, UnsupportedServiceTypeException {
+    public T getService(E serviceType) throws MissingServiceException, UnsupportedServiceTypeException {
 
-        if (providerType == null)
+        if (serviceType == null)
             throw new UnsupportedServiceTypeException();
 
-        Type type = getRegisteredServiceTypes().getOrDefault(providerType, null);
+        Type type = getRegisteredServiceTypes().getOrDefault(serviceType, null);
         Class<?> classType = (Class<?>) type;
 
         if (classType == null)
-            throw new UnsupportedServiceTypeException(providerType.toString());
+            throw new UnsupportedServiceTypeException(serviceType.toString());
 
         try {
             return (T) context.getBean(classType);
