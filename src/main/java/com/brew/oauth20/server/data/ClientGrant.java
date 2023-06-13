@@ -40,9 +40,6 @@ public class ClientGrant {
     @ToString.Exclude
     private Grant grant;
 
-    @Column(name = "audience", length = Integer.MAX_VALUE)
-    private String audience;
-
 
     @Override
     public boolean equals(Object o) {
