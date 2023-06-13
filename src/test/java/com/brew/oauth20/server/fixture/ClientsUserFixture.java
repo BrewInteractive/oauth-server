@@ -7,6 +7,7 @@ import org.instancio.Model;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
+import java.util.UUID;
 
 import static org.instancio.Select.field;
 
@@ -25,6 +26,7 @@ public class ClientsUserFixture extends Fixture<ClientUser> {
 
     private Model<ClientUser> clientsUser() {
         return Instancio.of(ClientUser.class)
+                .supply(field(ClientUser::getId), UUID::randomUUID)
                 .supply(field(ClientUser::getClient), () -> clientFixture.createRandomOne(false))
                 .supply(field(ClientUser::getUserId), () -> faker.random().nextLong())
                 .supply(field(ClientUser::getRefreshTokens), () -> new LinkedHashSet<>())

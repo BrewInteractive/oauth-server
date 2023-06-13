@@ -90,12 +90,11 @@ public class AuthorizeController {
 
             var userId = userIdOptional.get();
 
-            clientUserService.create(authorizeRequest.getClient_id(), userId);
+            var clientUser = clientUserService.create(authorizeRequest.getClient_id(), userId);
 
-            var code = authorizationCodeService.createAuthorizationCode(userId,
-                    authorizeRequest.getRedirect_uri(),
+            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
-                    authorizeRequest.getClient_id());
+                    clientUser);
 
             /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters);

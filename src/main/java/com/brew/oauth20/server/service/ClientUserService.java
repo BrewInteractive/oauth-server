@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.service;
 
-import java.util.UUID;
+import com.brew.oauth20.server.data.ClientUser;
 
 public interface ClientUserService {
-    UUID create(String clientId, Long userId);
+    ClientUser create(String clientId, Long userId);
 }
