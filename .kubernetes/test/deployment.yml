@@ -50,7 +50,7 @@ spec:
             - name: COOKIE_ENCRYPTION_ALGORITHM
               value: "AES"
             - name: LOGIN_SIGNUP_ENDPOINT
-              value: "https://test.com/login"
+              value: "https://auth.test.id.realityos.one/signin"
           imagePullPolicy: Always
           resources: {}
           ports:
