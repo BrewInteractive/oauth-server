@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit;
 import static org.instancio.Select.field;
 
 public class AuthorizationCodeFixture extends Fixture<AuthorizationCode> {
-    private final ClientFixture clientFixture;
+    private final ClientsUserFixture clientsUserFixture;
 
     public AuthorizationCodeFixture() {
         super();
-        this.clientFixture = new ClientFixture();
+        this.clientsUserFixture = new ClientsUserFixture();
     }
 
 
@@ -41,8 +41,7 @@ public class AuthorizationCodeFixture extends Fixture<AuthorizationCode> {
                 .supply(field(AuthorizationCode::getExpiresAt), () ->
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
                 .supply(field(AuthorizationCode::getRedirectUri), () -> url)
-                .supply(field(AuthorizationCode::getUserId), () -> faker.random().nextLong())
-                .supply(field(AuthorizationCode::getClient), () -> clientFixture.createRandomOne(false))
+                .supply(field(AuthorizationCode::getClientUser), () -> clientsUserFixture.createRandomOne())
                 .toModel();
     }
 }

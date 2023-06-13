@@ -5,7 +5,7 @@ import com.brew.oauth20.server.fixture.ActiveAuthorizationCodeFixture;
 import com.brew.oauth20.server.fixture.AuthorizationCodeFixture;
 import com.brew.oauth20.server.repository.ActiveAuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
-import com.brew.oauth20.server.repository.ClientRepository;
+import com.brew.oauth20.server.repository.ClientsUserRepository;
 import com.brew.oauth20.server.service.impl.AuthorizationCodeServiceImpl;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -31,7 +31,7 @@ class AuthorizationCodeServiceTest {
     @Mock
     private AuthorizationCodeRepository authorizationCodeRepository;
     @Mock
-    private ClientRepository clientRepository;
+    private ClientsUserRepository clientsUserRepository;
 
     private AuthorizationCodeFixture authorizationCodeFixture;
     private ActiveAuthorizationCodeFixture activeAuthorizationCodeFixture;
@@ -43,22 +43,22 @@ class AuthorizationCodeServiceTest {
 
         var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne();
 
-        when(clientRepository.findByClientId(activeAuthorizationCode.getClient().getClientId()))
-                .thenReturn(Optional.of(activeAuthorizationCode.getClient()));
+        when(clientsUserRepository.findByClientIdAndUserId(activeAuthorizationCode.getClientUser().getClient().getClientId(), activeAuthorizationCode.getClientUser().getUserId()))
+                .thenReturn(Optional.of(activeAuthorizationCode.getClientUser()));
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientsUserRepository);
 
         var result = authorizationCodeService.createAuthorizationCode(
-                activeAuthorizationCode.getUserId(),
+                activeAuthorizationCode.getClientUser().getUserId(),
                 activeAuthorizationCode.getRedirectUri(),
                 activeAuthorizationCode.getExpiresAt().toInstant().toEpochMilli(),
-                activeAuthorizationCode.getClient().getClientId()
+                activeAuthorizationCode.getClientUser().getClient().getClientId()
         );
         assertThat(result).isNotEmpty().isNotBlank();
         verify(authorizationCodeRepository, times(1)).save(argThat(x ->
-                x.getUserId().equals(activeAuthorizationCode.getUserId())
+                x.getClientUser().getUserId().equals(activeAuthorizationCode.getClientUser().getUserId())
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
-                        && x.getClient().equals(activeAuthorizationCode.getClient())
+                        && x.getClientUser().getClient().equals(activeAuthorizationCode.getClientUser().getClient())
                         && x.getExpiresAt().isAfter(OffsetDateTime.now())
         ));
     }
@@ -73,7 +73,7 @@ class AuthorizationCodeServiceTest {
         when(activeAuthorizationCodeRepository.findByCodeAndRedirectUri(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri()))
                 .thenReturn(Optional.of(activeAuthorizationCode));
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientsUserRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri(), false);
 
@@ -88,7 +88,7 @@ class AuthorizationCodeServiceTest {
 
         var authorizationCode = authorizationCodeFixture.createRandomOne();
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientsUserRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
 
@@ -106,15 +106,15 @@ class AuthorizationCodeServiceTest {
         when(activeAuthorizationCodeRepository.findByCodeAndRedirectUri(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri()))
                 .thenReturn(Optional.of(activeAuthorizationCode));
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientsUserRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri(), true);
 
         assertThat(result).isEqualTo(activeAuthorizationCode);
         verify(authorizationCodeRepository).save(argThat(x ->
-                x.getUserId().equals(activeAuthorizationCode.getUserId())
+                x.getClientUser().getUserId().equals(activeAuthorizationCode.getClientUser().getUserId())
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
-                        && x.getClient().equals(activeAuthorizationCode.getClient())
+                        && x.getClientUser().getClient().equals(activeAuthorizationCode.getClientUser().getClient())
                         && x.getExpiresAt().getDayOfYear() == activeAuthorizationCode.getExpiresAt().getDayOfYear()
         ));
     }
@@ -125,17 +125,16 @@ class AuthorizationCodeServiceTest {
 
         var authorizationCode = authorizationCodeFixture.createRandomOne();
 
-        when(clientRepository.findByClientId(authorizationCode.getClient().getClientId()))
+        when(clientsUserRepository.findByClientIdAndUserId(authorizationCode.getClientUser().getClient().getClientId(), authorizationCode.getClientUser().getUserId()))
                 .thenReturn(Optional.empty());
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
-
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientsUserRepository);
 
         Throwable thrown = catchThrowable(() -> authorizationCodeService.createAuthorizationCode(
-                authorizationCode.getUserId(),
+                authorizationCode.getClientUser().getUserId(),
                 authorizationCode.getRedirectUri(),
                 authorizationCode.getExpiresAt().toInstant().toEpochMilli(),
-                authorizationCode.getClient().getClientId()
+                authorizationCode.getClientUser().getClient().getClientId()
         ));
 
         assertThat(thrown)

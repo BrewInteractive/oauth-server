@@ -5,6 +5,7 @@ import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
+import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 
 import static org.instancio.Select.field;
@@ -26,7 +27,9 @@ public class ClientsUserFixture extends Fixture<ClientUser> {
         return Instancio.of(ClientUser.class)
                 .supply(field(ClientUser::getClient), () -> clientFixture.createRandomOne(false))
                 .supply(field(ClientUser::getUserId), () -> faker.random().nextLong())
-                .supply(field(ClientUser::getRefreshTokens),() -> new LinkedHashSet<>())
+                .supply(field(ClientUser::getRefreshTokens), () -> new LinkedHashSet<>())
+                .supply(field(ClientUser::getCreatedAt), () -> OffsetDateTime.now())
+                .supply(field(ClientUser::getUpdatedAt), () -> OffsetDateTime.now())
                 .toModel();
     }
 }

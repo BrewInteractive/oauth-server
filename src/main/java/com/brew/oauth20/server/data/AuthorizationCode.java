@@ -23,16 +23,10 @@ public class AuthorizationCode {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "client_id", nullable = false)
+    @JoinColumn(name = "client_user_id", nullable = false)
     @ToString.Exclude
-    private Client client;
-
-    @Column(name = "client_id", insertable = false, updatable = false)
-    private UUID clientId;
+    private ClientUser clientUser;
 
     @Column(name = "redirect_uri", nullable = false, length = Integer.MAX_VALUE)
     private String redirectUri;

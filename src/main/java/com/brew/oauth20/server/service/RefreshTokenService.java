@@ -9,3 +9,4 @@ public interface RefreshTokenService {
 
     RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException;
 }
+

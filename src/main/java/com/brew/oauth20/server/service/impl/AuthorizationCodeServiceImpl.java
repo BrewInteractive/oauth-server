@@ -6,7 +6,7 @@ import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
 import com.brew.oauth20.server.repository.ActiveAuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
-import com.brew.oauth20.server.repository.ClientRepository;
+import com.brew.oauth20.server.repository.ClientsUserRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
 import org.springframework.stereotype.Service;
@@ -19,27 +19,26 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
 
     private final AuthorizationCodeRepository authorizationCodeRepository;
     private final ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
-    private final ClientRepository clientRepository;
+    private final ClientsUserRepository clientsUserRepository;
 
     public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository,
                                         ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository,
-                                        ClientRepository clientRepository) {
+                                        ClientsUserRepository clientsUserRepository) {
         this.authorizationCodeRepository = authorizationCodeRepository;
         this.activeAuthorizationCodeRepository = activeAuthorizationCodeRepository;
-        this.clientRepository = clientRepository;
+        this.clientsUserRepository = clientsUserRepository;
     }
 
     @Override
     public String createAuthorizationCode(Long userId, String redirectUri, long expiresIn, String clientId) {
-        var optionalClient = clientRepository.findByClientId(clientId);
-        if (optionalClient.isEmpty())
+        var optionalClientUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
+        if (optionalClientUser.isEmpty())
             throw new ClientNotFoundException(clientId);
-        var client = optionalClient.get();
+        var clientUser = optionalClientUser.get();
         OffsetDateTime expiresAt = OffsetDateTime.now().plus(Duration.ofMillis(expiresIn));
         String code = StringUtils.generateSecureRandomString();
         var authorizationCode = AuthorizationCode.builder()
-                .client(client)
-                .userId(userId)
+                .clientUser(clientUser)
                 .code(code)
                 .redirectUri(redirectUri)
                 .expiresAt(expiresAt)
