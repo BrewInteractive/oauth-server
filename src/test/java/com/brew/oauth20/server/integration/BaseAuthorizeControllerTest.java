@@ -112,14 +112,12 @@ abstract class BaseAuthorizeControllerTest {
 
         refreshTokenRepository.save(existingRefreshToken);
 
-        activeAuthorizationCode.setClient(savedClient);
-        activeAuthorizationCode.setUserId(savedClientUser.getUserId());
+        activeAuthorizationCode.setClientUser(savedClientUser);
         activeAuthorizationCodeRepository.save(activeAuthorizationCode);
 
         var authorizationCode = AuthorizationCodeMapper.INSTANCE.toAuthorizationCode(activeAuthorizationCode);
 
-        authorizationCode.setClient(savedClient);
-        authorizationCode.setUserId(savedClientUser.getUserId());
+        authorizationCode.setClientUser(savedClientUser);
         authorizationCodeRepository.save(authorizationCode);
 
         var savedAuthCodeGrant = grantRepository.save(authCodeGrant);

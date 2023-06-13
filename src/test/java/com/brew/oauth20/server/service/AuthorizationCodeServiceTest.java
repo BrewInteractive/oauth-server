@@ -1,11 +1,9 @@
 package com.brew.oauth20.server.service;
 
-import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.ActiveAuthorizationCodeFixture;
 import com.brew.oauth20.server.fixture.AuthorizationCodeFixture;
 import com.brew.oauth20.server.repository.ActiveAuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
-import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.impl.AuthorizationCodeServiceImpl;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -19,7 +17,6 @@ import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -30,10 +27,7 @@ class AuthorizationCodeServiceTest {
     private ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
     @Mock
     private AuthorizationCodeRepository authorizationCodeRepository;
-    @Mock
-    private ClientRepository clientRepository;
 
-    private AuthorizationCodeFixture authorizationCodeFixture;
     private ActiveAuthorizationCodeFixture activeAuthorizationCodeFixture;
 
     @Test
@@ -43,22 +37,18 @@ class AuthorizationCodeServiceTest {
 
         var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne();
 
-        when(clientRepository.findByClientId(activeAuthorizationCode.getClient().getClientId()))
-                .thenReturn(Optional.of(activeAuthorizationCode.getClient()));
-
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository);
 
         var result = authorizationCodeService.createAuthorizationCode(
-                activeAuthorizationCode.getUserId(),
                 activeAuthorizationCode.getRedirectUri(),
                 activeAuthorizationCode.getExpiresAt().toInstant().toEpochMilli(),
-                activeAuthorizationCode.getClient().getClientId()
+                activeAuthorizationCode.getClientUser()
         );
         assertThat(result).isNotEmpty().isNotBlank();
         verify(authorizationCodeRepository, times(1)).save(argThat(x ->
-                x.getUserId().equals(activeAuthorizationCode.getUserId())
+                x.getClientUser().getUserId().equals(activeAuthorizationCode.getClientUser().getUserId())
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
-                        && x.getClient().equals(activeAuthorizationCode.getClient())
+                        && x.getClientUser().getClient().equals(activeAuthorizationCode.getClientUser().getClient())
                         && x.getExpiresAt().isAfter(OffsetDateTime.now())
         ));
     }
@@ -73,7 +63,7 @@ class AuthorizationCodeServiceTest {
         when(activeAuthorizationCodeRepository.findByCodeAndRedirectUri(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri()))
                 .thenReturn(Optional.of(activeAuthorizationCode));
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri(), false);
 
@@ -84,11 +74,11 @@ class AuthorizationCodeServiceTest {
     @Test
     void should_not_find_authorization_code_by_code_and_redirect_uri() {
 
-        authorizationCodeFixture = new AuthorizationCodeFixture();
+        AuthorizationCodeFixture authorizationCodeFixture = new AuthorizationCodeFixture();
 
         var authorizationCode = authorizationCodeFixture.createRandomOne();
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(authorizationCode.getCode(), authorizationCode.getRedirectUri(), false);
 
@@ -106,39 +96,16 @@ class AuthorizationCodeServiceTest {
         when(activeAuthorizationCodeRepository.findByCodeAndRedirectUri(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri()))
                 .thenReturn(Optional.of(activeAuthorizationCode));
 
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
+        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository);
 
         var result = authorizationCodeService.getAuthorizationCode(activeAuthorizationCode.getCode(), activeAuthorizationCode.getRedirectUri(), true);
 
         assertThat(result).isEqualTo(activeAuthorizationCode);
         verify(authorizationCodeRepository).save(argThat(x ->
-                x.getUserId().equals(activeAuthorizationCode.getUserId())
+                x.getClientUser().getUserId().equals(activeAuthorizationCode.getClientUser().getUserId())
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
-                        && x.getClient().equals(activeAuthorizationCode.getClient())
+                        && x.getClientUser().getClient().equals(activeAuthorizationCode.getClientUser().getClient())
                         && x.getExpiresAt().getDayOfYear() == activeAuthorizationCode.getExpiresAt().getDayOfYear()
         ));
-    }
-
-    @Test
-    void should_create_authorization_code_throw_client_not_found_exception() {
-        authorizationCodeFixture = new AuthorizationCodeFixture();
-
-        var authorizationCode = authorizationCodeFixture.createRandomOne();
-
-        when(clientRepository.findByClientId(authorizationCode.getClient().getClientId()))
-                .thenReturn(Optional.empty());
-
-        var authorizationCodeService = new AuthorizationCodeServiceImpl(authorizationCodeRepository, activeAuthorizationCodeRepository, clientRepository);
-
-
-        Throwable thrown = catchThrowable(() -> authorizationCodeService.createAuthorizationCode(
-                authorizationCode.getUserId(),
-                authorizationCode.getRedirectUri(),
-                authorizationCode.getExpiresAt().toInstant().toEpochMilli(),
-                authorizationCode.getClient().getClientId()
-        ));
-
-        assertThat(thrown)
-                .isInstanceOf(ClientNotFoundException.class);
     }
 }

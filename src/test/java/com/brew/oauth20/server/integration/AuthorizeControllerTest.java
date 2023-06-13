@@ -205,11 +205,17 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
+        var clientUsersList = clientsUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
-        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
+        var clientUser = clientUsersList.stream().filter(x -> x.getClient().getClientId().equals(authorizedClientId) && x.getUserId().equals(userId)).findFirst().get();
+
+        assertThat(clientUser).isNotNull();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny().get();
 
         assertThat(codeEntity).isNotNull();
+
         assertThat(locationHeader).contains("code=" + codeEntity.getCode());
     }
 
@@ -228,11 +234,17 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
+        var clientUsersList = clientsUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
-        var codeEntity = codeEntityList.stream().filter(x -> x.getUserId() == userId).findAny().get();
+        var clientUser = clientUsersList.stream().filter(x -> x.getClient().getClientId().equals(authorizedClientId) && x.getUserId().equals(userId)).findFirst().get();
+
+        assertThat(clientUser).isNotNull();
+
+        var codeEntity = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny().get();
 
         assertThat(codeEntity).isNotNull();
+
         assertThat(locationHeader).contains("code=" + codeEntity.getCode());
     }
 

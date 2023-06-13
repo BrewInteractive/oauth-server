@@ -6,6 +6,7 @@ import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
+import com.brew.oauth20.server.service.ClientUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,8 @@ public class AuthorizeController {
     private AuthorizationCodeService authorizationCodeService;
     @Autowired
     private AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
+    @Autowired
+    private ClientUserService clientUserService;
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
     @Autowired
@@ -46,15 +49,15 @@ public class AuthorizeController {
 
     @PostMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request) {
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request, convertToParameters(authorizeRequest));
     }
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request,
-            String parameters) {
+                                             BindingResult validationResult,
+                                             HttpServletRequest request,
+                                             String parameters) {
         try {
             /* request parameters validation */
             if (validationResult.hasErrors())
@@ -72,10 +75,10 @@ public class AuthorizeController {
                         authorizeRequest.getRedirect_uri());
 
             /* user cookie and authorization code */
-            var userId = userCookieManager.getUser(request);
+            var userIdOptional = userCookieManager.getUser(request);
 
             /* not logged-in user redirect login signup */
-            if (userId.isEmpty()) {
+            if (userIdOptional.isEmpty()) {
                 if (loginSignupEndpoint.isBlank())
                     throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
 
@@ -85,10 +88,13 @@ public class AuthorizeController {
             var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
                     DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
 
-            var code = authorizationCodeService.createAuthorizationCode(userId.get(),
-                    authorizeRequest.getRedirect_uri(),
+            var userId = userIdOptional.get();
+
+            var clientUser = clientUserService.create(authorizeRequest.getClient_id(), userId);
+
+            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
-                    authorizeRequest.getClient_id());
+                    clientUser);
 
             /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters);
