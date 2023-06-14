@@ -8,12 +8,14 @@ import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFacto
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +44,8 @@ public class AuthorizeController {
     public ResponseEntity<String> authorizeGet(
             @Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
             BindingResult validationResult,
-            HttpServletRequest request) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
         return authorize(authorizeRequest, validationResult, request,
                 URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8));
     }
@@ -125,6 +128,7 @@ public class AuthorizeController {
                     .queryParam("error", error)
                     .build()
                     .toUri();
+            headers.setContentType(MediaType.TEXT_HTML);
             headers.setLocation(location);
         }
         return new ResponseEntity<>(error, headers, HttpStatus.FOUND);
@@ -136,6 +140,7 @@ public class AuthorizeController {
                 .build()
                 .toUri();
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_HTML);
         headers.setLocation(location);
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
@@ -147,6 +152,7 @@ public class AuthorizeController {
                 .build()
                 .toUri();
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_HTML);
         headers.setLocation(location);
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
