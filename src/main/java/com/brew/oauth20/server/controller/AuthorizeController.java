@@ -131,7 +131,7 @@ public class AuthorizeController {
             headers.setContentType(MediaType.TEXT_HTML);
             headers.setLocation(location);
         }
-        return new ResponseEntity<>(error, headers, HttpStatus.SEE_OTHER);
+        return new ResponseEntity<>(error, headers, HttpStatus.FOUND);
     }
 
     private ResponseEntity<String> generateLoginResponse(String loginSignupEndpoint, String parameters) {
@@ -142,7 +142,7 @@ public class AuthorizeController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_HTML);
         headers.setLocation(location);
-        return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
     private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters) {
@@ -154,7 +154,6 @@ public class AuthorizeController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_HTML);
         headers.setLocation(location);
-        return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER);
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
-
 }

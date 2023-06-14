@@ -19,7 +19,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
@@ -30,7 +30,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
@@ -44,7 +44,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
@@ -58,7 +58,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(response.getContentAsString()).isEqualTo("invalid_request");
     }
 
@@ -73,7 +73,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
@@ -90,7 +90,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
@@ -104,7 +104,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
@@ -118,7 +118,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
@@ -133,7 +133,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
@@ -148,13 +148,13 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(notAuthorizedRedirectUri)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
 
-    /*@Test
+    @Test
     void should_redirect_to_login_post_test() throws Exception {
         authorizedState = "Théoden";
         // Act
@@ -163,7 +163,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
 
         assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
                 .contains("response_type=code")
@@ -171,9 +171,9 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
                 .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .doesNotContain("error");
-    }*/
+    }
 
-    /*@Test
+    @Test
     void should_redirect_to_login_get_test() throws Exception {
         // Act
         ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
@@ -181,14 +181,14 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
                 .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .doesNotContain("error");
-    }*/
+    }
 
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
@@ -201,7 +201,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
@@ -230,7 +230,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
-        resultActions.andExpect(status().isSeeOther());
+        resultActions.andExpect(status().isFound());
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 

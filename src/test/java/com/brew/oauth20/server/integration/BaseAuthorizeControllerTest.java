@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -42,6 +41,8 @@ abstract class BaseAuthorizeControllerTest {
     protected final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
     @Value("${cookie.encryption.secret}")
     protected String cookieEncryptionSecret;
+    @Value("${oauth.login_signup_endpoint}")
+    protected String authorizedLoginSignupEndpoint;
     @Value("${cookie.encryption.algorithm}")
     protected String cookieEncryptionAlgorithm;
     protected String authorizedRedirectUri;
@@ -49,7 +50,6 @@ abstract class BaseAuthorizeControllerTest {
     protected String authorizedClientId;
     protected String authorizedClientSecret;
     protected String authorizedRefreshToken;
-    protected String authorizedLoginSignupEndpoint;
     protected String authorizedState;
     protected Faker faker;
     @Autowired
@@ -70,8 +70,6 @@ abstract class BaseAuthorizeControllerTest {
     protected ActiveRefreshTokenRepository activeRefreshTokenRepository;
     @Autowired
     protected RefreshTokenRepository refreshTokenRepository;
-    @Autowired
-    protected Environment env;
     @Autowired
     private MockMvc mockMvc;
 
@@ -143,7 +141,6 @@ abstract class BaseAuthorizeControllerTest {
         authorizedClientSecret = client.getClientSecret();
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
-        authorizedLoginSignupEndpoint = env.getProperty("LOGIN_SIGNUP_ENDPOINT", "https://test.com/login");
         authorizedState = faker.lordOfTheRings().character().replace(" ", "");
 
     }
