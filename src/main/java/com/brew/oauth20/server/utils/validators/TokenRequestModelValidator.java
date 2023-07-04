@@ -10,7 +10,7 @@ public class TokenRequestModelValidator implements ConstraintValidator<ValidateT
 
     @Override
     public boolean isValid(TokenRequestModel value, ConstraintValidatorContext context) {
-        if (value != null && value.grant_type != null) {
+        if (value != null) {
             var grantType = GrantType.fromValue(value.grant_type);
             if (grantType != null && grantType.equals(GrantType.authorization_code)) {
                 return value.getRedirect_uri() != null && !value.getRedirect_uri().isEmpty();
