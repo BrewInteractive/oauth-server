@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/BrewInteractive/oauth-server/compare/v1.3.9...v1.4.0) (2023-07-04)
+
+
+### Features
+
+* **TMID-282:** add validator for conditional redirect uri requirement ([9874e70](https://github.com/BrewInteractive/oauth-server/commit/9874e704067105a0308f581d4533706b2a2454a1))
+
+
+### Bug Fixes
+
+* **TMID-282:** add coverage for token request model validator ([7b113e0](https://github.com/BrewInteractive/oauth-server/commit/7b113e07d1680943c4f10d0b01a72e8c10d65a43))
+
 ### [1.3.9](https://github.com/BrewInteractive/oauth-server/compare/v1.3.8...v1.3.9) (2023-06-14)
 
 ### [1.3.8](https://github.com/BrewInteractive/oauth-server/compare/v1.3.7...v1.3.8) (2023-06-14)
