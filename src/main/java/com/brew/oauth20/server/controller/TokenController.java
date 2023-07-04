@@ -20,7 +20,7 @@ public class TokenController {
     private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
     @Autowired
     private TokenGrantProviderFactory tokenGrantProviderFactory;
-    
+
     @PostMapping(value = "/oauth/token")
     public ResponseEntity<Object> tokenPost(@Valid @RequestBody TokenRequestModel tokenRequestModel,
                                             BindingResult validationResult,
