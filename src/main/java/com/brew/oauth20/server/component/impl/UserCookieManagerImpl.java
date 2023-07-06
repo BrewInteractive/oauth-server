@@ -30,10 +30,10 @@ public class UserCookieManagerImpl implements UserCookieManager {
 
             var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
             var userCookieModel = UserCookieModel.parse(decryptedCookieValue);
-            if (userCookieModel.expiresAt().isBefore(OffsetDateTime.now()))
+            if (userCookieModel.expires_at().isBefore(OffsetDateTime.now()))
                 return Optional.empty();
 
-            return Optional.of(userCookieModel.userId());
+            return Optional.of(userCookieModel.user_id());
         } catch (Exception e) {
             return Optional.empty();
         }

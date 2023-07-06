@@ -4,7 +4,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class UserCookieModelTest {
 
     private static Stream<Arguments> should_parse_from_string() {
-
+        var date =  OffsetDateTime.ofInstant(Instant.ofEpochSecond(1681809664), ZoneOffset.UTC);
         return Stream.of(
                 Arguments.of(
-                        "12345:1681809664",
-                        new UserCookieModel(12345L, OffsetDateTime.parse("2023-04-18T09:21:04Z"))
+                        "user_id=12345:email=email@test.com:country_code=0090:phone_number=12345667:expires_at=1681809664",
+                        new UserCookieModel(12345L, date,"email@test.com","0090","12345667")
                 )
         );
     }
@@ -49,8 +51,6 @@ class UserCookieModelTest {
     void should_throw_exception_for_invalid_value_format(String value) {
 
         // Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            UserCookieModel.parse(value);
-        });
+        assertThrows(IllegalArgumentException.class, () -> UserCookieModel.parse(value));
     }
 }

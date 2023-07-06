@@ -1,6 +1,8 @@
 package com.brew.oauth20.server.utils;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StringUtils {
 
@@ -32,5 +34,20 @@ public class StringUtils {
         return secureRandom.ints(length, 0, chars.length())
                 .mapToObj(chars::charAt)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+    }
+
+    public static Map<String, String> parseCookieString(String cookieString) {
+        Map<String, String> cookieMap = new HashMap<>();
+        String[] keyValuePairs = cookieString.split(":");
+        for (String pair : keyValuePairs) {
+            String[] parts = pair.split("=");
+            if (parts.length == 2) {
+                String key = parts[0].trim();
+                String value = parts[1].trim();
+                cookieMap.put(key, value);
+            } else
+                throw new IllegalArgumentException("Invalid value format: " + pair);
+        }
+        return cookieMap;
     }
 }
