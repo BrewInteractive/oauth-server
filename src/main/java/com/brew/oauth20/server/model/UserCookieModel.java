@@ -3,13 +3,28 @@ package com.brew.oauth20.server.model;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 
-public record UserCookieModel(Long userId, OffsetDateTime expiresAt) {
-    public static UserCookieModel parse(String value) throws IllegalArgumentException {
-        var splitValues = value.split(":");
-        if (splitValues.length < 2) {
-            throw new IllegalArgumentException("Invalid value format: " + value);
-        }
-        return new UserCookieModel(Long.parseLong(splitValues[0]), OffsetDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(splitValues[1])), ZoneOffset.UTC));
+import static com.brew.oauth20.server.utils.StringUtils.parseCookieString;
+
+public record UserCookieModel(
+        Long user_id,
+        OffsetDateTime expires_at,
+        String email,
+        String countryCode,
+        String phoneNumber
+) {
+    public static UserCookieModel parse(String cookieString) {
+        Map<String, String> cookieMap = parseCookieString(cookieString);
+
+        long epochSeconds = Long.parseLong(cookieMap.get("expires_at"));
+        var expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
+
+        return new UserCookieModel(
+                Long.parseLong(cookieMap.get("user_id")),
+                expiresAt,
+                cookieMap.get("email"),
+                cookieMap.get("country_code"),
+                cookieMap.get("phone_number"));
     }
 }

@@ -33,6 +33,7 @@ import java.util.Optional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+@SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "SameParameterValue"})
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -221,8 +222,11 @@ abstract class BaseAuthorizeControllerTest {
     }
 
     private String createCookieValue(Long userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+
         var expiresAt = OffsetDateTime.now().plusDays(2);
-        var cookieValue = "%s:%d".formatted(userId.toString(), expiresAt.toEpochSecond());
+        var cookieValue = String.format("user_id=%d:email=%s:country_code=%s:phone_number=%s:expires_at=%d",
+                userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toEpochSecond());
+
         return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
     }
 }
