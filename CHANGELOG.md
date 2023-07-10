@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/BrewInteractive/oauth-server/compare/v1.4.0...v1.5.0) (2023-07-10)
+
+
+### Features
+
+* **TMID-297:** refactor user cookie format ([ea8c4d3](https://github.com/BrewInteractive/oauth-server/commit/ea8c4d33c78d7a869c22942aaf1e04b55e12020d))
+
 ## [1.4.0](https://github.com/BrewInteractive/oauth-server/compare/v1.3.9...v1.4.0) (2023-07-04)
 
 
