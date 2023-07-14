@@ -3,6 +3,7 @@ package com.brew.oauth20.server.provider.authorizetype;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.MissingServiceException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
+import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
