@@ -5,4 +5,3 @@ import lombok.Builder;
 @Builder
 public record UpdateClientLogoResponseModel(String client_id, String client_logo_url) {
 }
-
