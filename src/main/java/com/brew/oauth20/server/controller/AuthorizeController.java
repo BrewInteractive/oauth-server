@@ -4,7 +4,7 @@ import com.brew.oauth20.server.component.UserCookieManager;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.provider.authorizetype.AuthorizeTypeProviderFactory;
+import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import jakarta.servlet.http.HttpServletRequest;
