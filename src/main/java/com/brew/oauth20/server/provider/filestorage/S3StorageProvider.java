@@ -9,9 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Date;
 
 @Component
@@ -35,9 +33,6 @@ public class S3StorageProvider extends BaseFileStorageProvider {
         if (filePath == null || filePath.isEmpty()) {
             throw new IllegalArgumentException("File path is missing or empty.");
         }
-
-        File tempFile = File.createTempFile("temp", null);
-        Files.write(tempFile.toPath(), fileBytes);
 
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(fileBytes)) {
             ObjectMetadata metadata = new ObjectMetadata();
