@@ -15,10 +15,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -32,6 +29,11 @@ public class ClientServiceImpl implements ClientService {
     private FileStorageProviderFactory fileStorageProviderFactory;
     @Autowired
     private ClientMapper clientMapper;
+
+    @Override
+    public boolean existsByClientId(String clientId) {
+        return clientRepository.existsByClientId(clientId);
+    }
 
     @Override
     public ClientModel getClient(String clientId) {

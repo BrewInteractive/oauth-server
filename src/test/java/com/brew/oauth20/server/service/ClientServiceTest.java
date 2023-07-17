@@ -115,7 +115,8 @@ class ClientServiceTest {
         ReflectionTestUtils.setField(clientService, "fileStorageProviderValue", fileStorageProviderValue);
 
         String clientId = "testClient";
-        String logoFile = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+
+        String logoFile = ClientFixture.getClientLogo();
 
         String expectedUrl = String.format("logo-%s.jpg", clientId);
 

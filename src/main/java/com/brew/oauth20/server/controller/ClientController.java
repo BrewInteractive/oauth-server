@@ -1,6 +1,5 @@
 package com.brew.oauth20.server.controller;
 
-import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.UpdateClientLogoRequestModel;
 import com.brew.oauth20.server.model.UpdateClientLogoResponseModel;
 import com.brew.oauth20.server.service.ClientService;
@@ -14,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-
 
 @RestController
 public class ClientController {
@@ -28,19 +25,19 @@ public class ClientController {
                                                    @Valid @RequestBody UpdateClientLogoRequestModel requestModel,
                                                    BindingResult validationResult) {
         try {
-            if (validationResult.hasErrors()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("invalid_request");
+            if (validationResult.hasErrors() || clientId.isEmpty() || clientId.isBlank()) {
+                return new ResponseEntity<>("invalid_request", HttpStatus.BAD_REQUEST);
             }
 
-            ClientModel client = clientService.getClient(clientId);
-            if (client == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("client_not_found");
+            if (!clientService.existsByClientId(clientId)) {
+                return new ResponseEntity<>("client_not_found", HttpStatus.NOT_FOUND);
             }
 
             String logoUrl = clientService.setClientLogo(clientId, requestModel.logoFile());
-            return ResponseEntity.ok(UpdateClientLogoResponseModel.builder().client_logo_url(logoUrl).client_id(clientId).build());
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("server_error");
+            var response = UpdateClientLogoResponseModel.builder().client_logo_url(logoUrl).client_id(clientId).build();
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("server_error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
