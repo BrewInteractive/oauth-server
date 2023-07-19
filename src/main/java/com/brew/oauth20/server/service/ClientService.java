@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 public interface ClientService {
+    boolean existsByClientId(String clientId);
+
     ClientModel getClient(String clientId);
 
     ClientModel getClient(String clientId, String clientSecret);

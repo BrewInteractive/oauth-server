@@ -4,25 +4,25 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.brew.oauth20.server.data.enums.FileStorageProvider;
+import com.brew.oauth20.server.utils.UriUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Date;
 
 @Component
 public class S3StorageProvider extends BaseFileStorageProvider {
-
-    public S3StorageProvider(){
-        fileStorageProvider = FileStorageProvider.s3;
-    }
 
     @Value("${s3.service.aws.bucket}")
     String awsS3ServiceBucket;
     @Autowired
     private AmazonS3 amazonS3;
+
+    public S3StorageProvider() {
+        fileStorageProvider = FileStorageProvider.s3;
+    }
 
     @Override
     public String store(byte[] fileBytes, String filePath) throws IOException {
@@ -43,7 +43,8 @@ public class S3StorageProvider extends BaseFileStorageProvider {
             throw new IOException("Failed to upload file to S3: " + e.getMessage(), e);
         }
 
-        Date expiration = new Date(System.currentTimeMillis() + 60000);
-        return amazonS3.generatePresignedUrl(awsS3ServiceBucket, filePath, expiration).toString();
+        var uploadedFileUrl = amazonS3.generatePresignedUrl(awsS3ServiceBucket, filePath, null);
+
+        return UriUtils.getWithoutQueryParams(uploadedFileUrl);
     }
 }

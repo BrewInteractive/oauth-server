@@ -65,14 +65,14 @@ class FileStorageProviderS3Test {
 
         PutObjectResult putObjectResult = mock(PutObjectResult.class);
         when(amazonS3.putObject(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), any(), any())).thenReturn(putObjectResult);
-        when(amazonS3.generatePresignedUrl(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), any())).thenReturn(new URL(expectedUrl));
+        when(amazonS3.generatePresignedUrl(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), isNull())).thenReturn(new URL(expectedUrl));
 
         // Act
         String result = s3StorageProvider.store(fileBytes, filePath);
 
         // Assert
         verify(amazonS3).putObject(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), any(), any());
-        verify(amazonS3).generatePresignedUrl(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), any());
+        verify(amazonS3).generatePresignedUrl(eq(s3StorageProvider.awsS3ServiceBucket), eq(filePath), isNull());
         Assertions.assertEquals(expectedUrl, result);
     }
 

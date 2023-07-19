@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ClientRepository extends JpaRepository<Client, UUID> {
+    boolean existsByClientId(String clientId);
+
     @EntityGraph(attributePaths = {"clientGrants.grant", "redirectUris"})
     Optional<Client> findByClientId(String clientId);
 
