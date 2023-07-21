@@ -21,7 +21,7 @@ public class ClientFixture extends Fixture<Client> {
     private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code,
             ResponseType.token};
     private final GrantType[] defaultGrantTypeOptions = new GrantType[]{GrantType.authorization_code,
-            GrantType.client_credentials,GrantType.refresh_token};
+            GrantType.client_credentials, GrantType.refresh_token};
     private final ClientGrantFixture clientGrantFixture;
     private final RedirectUriFixture redirectUriModelFixture;
     private final Integer defaultClientGrantSize = 1;
@@ -33,12 +33,16 @@ public class ClientFixture extends Fixture<Client> {
         this.redirectUriModelFixture = new RedirectUriFixture();
     }
 
+    public static String getClientLogo() {
+        return "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
+    }
+
     public Client createRandomOne(Boolean withChildren) {
         return createRandomOne(defaultResponseTypeOptions, defaultGrantTypeOptions, withChildren);
     }
 
     public Client createRandomOne(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptionsOptions) {
-        return createRandomOne(responseTypeOptions, grantTypeOptionsOptions,true);
+        return createRandomOne(responseTypeOptions, grantTypeOptionsOptions, true);
     }
 
     private Client createRandomOne(ResponseType[] responseTypeOptions, GrantType[] grantTypeOptionsOptions, Boolean withChildren) {

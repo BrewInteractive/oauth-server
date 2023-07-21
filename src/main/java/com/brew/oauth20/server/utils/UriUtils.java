@@ -2,10 +2,12 @@ package com.brew.oauth20.server.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 public class UriUtils {
 
-    private UriUtils(){}
+    private UriUtils() {
+    }
 
     public static boolean isValidUrl(String url) {
         try {
@@ -31,5 +33,9 @@ public class UriUtils {
         } catch (URISyntaxException e) {
             return false;
         }
+    }
+
+    public static String getWithoutQueryParams(URL url) {
+        return url.getProtocol() + "://" + url.getHost() + url.getPath();
     }
 }

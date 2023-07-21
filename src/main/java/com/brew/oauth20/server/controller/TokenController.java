@@ -4,7 +4,7 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
-import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderFactory;
+import com.brew.oauth20.server.service.factory.TokenGrantProviderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

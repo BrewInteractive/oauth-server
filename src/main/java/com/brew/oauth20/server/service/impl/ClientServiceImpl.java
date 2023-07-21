@@ -1,31 +1,39 @@
 package com.brew.oauth20.server.service.impl;
 
 import com.brew.oauth20.server.data.Client;
+import com.brew.oauth20.server.data.enums.FileStorageProvider;
 import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.service.ClientService;
+import com.brew.oauth20.server.service.factory.FileStorageProviderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 public class ClientServiceImpl implements ClientService {
 
-    @Autowired
-    private  ClientRepository clientRepository;
-    @Autowired
-    private  ClientMapper clientMapper;
+    @Value("${file.storage.provider}")
+    String fileStorageProviderValue;
     Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
+    @Autowired
+    private ClientRepository clientRepository;
+    @Autowired
+    private FileStorageProviderFactory fileStorageProviderFactory;
+    @Autowired
+    private ClientMapper clientMapper;
 
-
+    @Override
+    public boolean existsByClientId(String clientId) {
+        return clientRepository.existsByClientId(clientId);
+    }
 
     @Override
     public ClientModel getClient(String clientId) {
@@ -52,5 +60,14 @@ public class ClientServiceImpl implements ClientService {
             logger.error(e.getMessage(), e);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public String setClientLogo(String clientId, String logoFile) throws IOException {
+        var fileStorageProvider = fileStorageProviderFactory.getService(FileStorageProvider.fromValue(fileStorageProviderValue));
+
+        var byteArray = Base64.getDecoder().decode(logoFile);
+
+        return fileStorageProvider.store(byteArray, String.format("logo-%s.jpg", clientId));
     }
 }

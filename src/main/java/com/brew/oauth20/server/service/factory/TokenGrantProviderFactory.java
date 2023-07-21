@@ -1,7 +1,10 @@
-package com.brew.oauth20.server.provider.tokengrant;
+package com.brew.oauth20.server.service.factory;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.service.factory.ServiceFactory;
+import com.brew.oauth20.server.provider.tokengrant.BaseTokenGrantProvider;
+import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderAuthorizationCode;
+import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderClientCredentials;
+import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderRefreshToken;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
