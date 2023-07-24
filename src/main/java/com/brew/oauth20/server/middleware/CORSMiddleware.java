@@ -86,7 +86,7 @@ public class CORSMiddleware extends OncePerRequestFilter {
             // This custom middleware is going to first pull the client_id from the request
             // and verify that the client is allowing cors origins
             var clientId = readClientId(request);
-            if (clientId == null)
+            if (clientId == null || clientId.isBlank())
                 throw new IllegalStateException("Can't find CORS Configuration");
             else {
                 var webOrigins = clientService.getWebOrigins(clientId);
