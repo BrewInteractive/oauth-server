@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.middleware;
 
+import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -88,9 +89,11 @@ public class CORSMiddleware extends OncePerRequestFilter {
             if (clientId == null)
                 throw new IllegalStateException("Can't find CORS Configuration");
             else {
-                var webOrigins = List.of("http://example.com", "http://example2.com");
+                var webOrigins = clientService.getWebOrigins(clientId);
 
-                addCorsConfiguration(request, response, webOrigins);
+                addCorsConfiguration(request, response, webOrigins.stream()
+                        .map(WebOriginModel::webOrigin)
+                        .toList());
             }
         }
         filterChain.doFilter(request, response);
