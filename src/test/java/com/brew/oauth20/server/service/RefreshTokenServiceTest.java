@@ -86,7 +86,7 @@ class RefreshTokenServiceTest {
 
         // Act && Assert
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
-        assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", 0L, "", 0));
+        assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", "", "", 0));
     }
 
     @Test

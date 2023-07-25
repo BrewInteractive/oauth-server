@@ -41,7 +41,7 @@ public class ClientUser {
     @ToString.Exclude
     private Client client;
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private String userId;
 
     @Override
     public boolean equals(Object o) {

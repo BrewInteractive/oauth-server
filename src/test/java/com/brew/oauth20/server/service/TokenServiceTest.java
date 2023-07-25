@@ -74,7 +74,7 @@ class TokenServiceTest {
         return Stream.of(
                 Arguments.of(
                         clientModelFixture.createRandomOne(false),
-                        faker.random().nextLong(Long.MAX_VALUE),
+                        faker.letterify("?").repeat(20),
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
                         faker.random().nextLong(Long.MAX_VALUE),
@@ -89,7 +89,7 @@ class TokenServiceTest {
         return Stream.of(
                 Arguments.of(
                         clientModelFixture.createRandomOne(true),
-                        faker.random().nextLong(Long.MAX_VALUE),
+                        faker.letterify("?").repeat(20),
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
                         faker.random().nextLong(Long.MAX_VALUE),
@@ -147,7 +147,7 @@ class TokenServiceTest {
     @ParameterizedTest
     @MethodSource
     void should_generate_token_without_refresh_token(ClientModel client,
-                                                     Long userId,
+                                                     String userId,
                                                      String state,
                                                      String accessToken,
                                                      long expiresIn,
@@ -187,7 +187,7 @@ class TokenServiceTest {
     @ParameterizedTest
     @MethodSource
     void should_generate_token_with_refresh_token(ClientModel client,
-                                                  Long userId,
+                                                  String userId,
                                                   String state,
                                                   String accessToken,
                                                   long expiresIn,

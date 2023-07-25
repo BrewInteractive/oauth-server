@@ -12,6 +12,9 @@ import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
+
+    private final String userIdPrefix = "did:tmrwid:";
+
     @Test
     void should_not_redirect_with_no_parameter_invalid_request_post_test() throws Exception {
         // Act
@@ -193,10 +196,10 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_with_authorization_code_post_test() throws Exception {
         // Arrange
-        long userId = faker.random().nextLong();
+        String userId = userIdPrefix + faker.random().nextLong(10);
 
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", userId);
+        ResultActions resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", userId);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -222,10 +225,10 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_with_authorization_code_get_test() throws Exception {
         // Arrange
-        long userId = faker.random().nextLong();
+        String userId = userIdPrefix + faker.random().nextLong(10);
 
         // Act
-        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", userId);
+        ResultActions resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", userId);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();

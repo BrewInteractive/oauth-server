@@ -22,7 +22,7 @@ public class TokenServiceImpl implements TokenService {
     private RefreshTokenService refreshTokenService;
 
     @Override
-    public TokenModel generateToken(ClientModel client, Long userId, String state) {
+    public TokenModel generateToken(ClientModel client, String userId, String state) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
             var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(REFRESH_TOKEN_LENGTH), client.refreshTokenExpiresInDays());
             return generateToken(client, userId, state, refreshToken.getToken());
@@ -33,7 +33,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public TokenModel generateToken(ClientModel client, Long userId, String state, String refreshToken) {
+    public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken) {
         var signTokenOptions = createSignTokenOptions(client, userId, state);
         return jwtService.signToken(signTokenOptions, refreshToken);
     }
@@ -48,7 +48,7 @@ public class TokenServiceImpl implements TokenService {
         return Map.of("clientId", client.clientId());
     }
 
-    private SignTokenOptions createSignTokenOptions(ClientModel client, Long userId, String state) {
-        return new SignTokenOptions(userId == null ? null : userId.toString(), client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
+    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String state) {
+        return new SignTokenOptions(userId == null ? null : userId, client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
     }
 }
