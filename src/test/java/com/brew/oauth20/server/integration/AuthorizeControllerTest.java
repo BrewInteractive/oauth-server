@@ -216,7 +216,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         assertThat(codeEntity).isNotNull();
 
-        assertThat(locationHeader).contains("code=" + codeEntity.getCode());
+        assertThat(locationHeader).contains("code=" + codeEntity.getCode()).contains("user_id=" + userId);
     }
 
     @Test
@@ -245,7 +245,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         assertThat(codeEntity).isNotNull();
 
-        assertThat(locationHeader).contains("code=" + codeEntity.getCode());
+        assertThat(locationHeader).contains("code=" + codeEntity.getCode()).contains("user_id=" + userId);
     }
 
     // endregion tests

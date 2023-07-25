@@ -100,7 +100,7 @@ public class AuthorizeController {
                     clientUser);
 
             /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters);
+            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);
         } catch (UnsupportedServiceTypeException e) {
             return generateErrorResponse("unsupported_response_type", parameters,
                     authorizeRequest.redirect_uri);
@@ -145,10 +145,11 @@ public class AuthorizeController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters) {
+    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, Long userId) {
         var location = UriComponentsBuilder.fromUriString(redirectUri)
                 .query(parameters)
                 .queryParam("code", code)
+                .queryParam("user_id", userId)
                 .build()
                 .toUri();
         HttpHeaders headers = new HttpHeaders();
