@@ -51,4 +51,4 @@ public class TokenServiceImpl implements TokenService {
     private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String state) {
         return new SignTokenOptions(userId == null ? null : userId, client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
     }
-}D
+}
