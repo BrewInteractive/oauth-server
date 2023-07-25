@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/BrewInteractive/oauth-server/compare/v1.5.0...v1.6.0) (2023-07-25)
+
+
+### Features
+
+* **TMID-296:** add set client logo post endpoint ([b0bc876](https://github.com/BrewInteractive/oauth-server/commit/b0bc876112ac276bb7ab6b0f6024946b69dfd0c5))
+* **TMID-296:** add set client logo post endpoint ([a3bde7d](https://github.com/BrewInteractive/oauth-server/commit/a3bde7dc3ff3ee56ec921edd0ff77e50fa620b60))
+* **TMID-351:** add S3StorageProvider, move factories to service/factory ([5f9c2b7](https://github.com/BrewInteractive/oauth-server/commit/5f9c2b791568e146b15b074404c8990acfbefef4))
+* **TMID-352:** add BaseFileStorageProvider, FileStorageProvider, FileStorageProviderFactory ([4c7c4ec](https://github.com/BrewInteractive/oauth-server/commit/4c7c4ec3bf83b674f0f1413217ed1530af3d8918))
+* **TMID-357:** changed user id related fields from long to string. ([7188584](https://github.com/BrewInteractive/oauth-server/commit/71885840f98708527cfc3b4e6b154955c0fec1c0))
+* **TMID-360:** add user_id to redirected query params in authorize ([406efa8](https://github.com/BrewInteractive/oauth-server/commit/406efa893fcb3dc00594631ddb4f849a9d23cb46))
+* **TMID-370:** add TokenCookieManager.setTokens ([576572f](https://github.com/BrewInteractive/oauth-server/commit/576572f42941bf97fbd4e65aad0b028c2ff8a23c))
+
+
+### Bug Fixes
+
+* **TMID-350:** create setClientLogo service method on ClientService ([1d3d700](https://github.com/BrewInteractive/oauth-server/commit/1d3d70035be87b0d1566fc77649df7b0a14da90f))
+* **TMID-351:** add new illegal argument cases ([5dd1690](https://github.com/BrewInteractive/oauth-server/commit/5dd16902346322c1a9afe631907d8e2f46722317))
+* **TMID-351:** cleanup ([02ccc6c](https://github.com/BrewInteractive/oauth-server/commit/02ccc6ce34beb0edee50da81fa04e33996c532ba))
+* **TMID-357:** fixed conflicted. ([47ef15c](https://github.com/BrewInteractive/oauth-server/commit/47ef15c6f35438fdb96ccb50c955d778614a5bfa))
+* **TMID-357:** fixed user id format in test cases. ([9db60ab](https://github.com/BrewInteractive/oauth-server/commit/9db60ab76e21bb65658ea418a0109d3146765dcb))
+* **TMID-357:** removed typo. ([63348c2](https://github.com/BrewInteractive/oauth-server/commit/63348c2a9a67b192aef3f12c2e33bc161496a251))
+* **TMID-357:** resolved minor conflict. ([1639386](https://github.com/BrewInteractive/oauth-server/commit/1639386bb4b99e4155a5f4b753a80c64bba9fd14))
+
 ## [1.5.0](https://github.com/BrewInteractive/oauth-server/compare/v1.4.0...v1.5.0) (2023-07-10)
 
 
