@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.DelegatingServletInputStream;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -25,8 +26,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CORSMiddlewareTest {
@@ -48,7 +48,7 @@ class CORSMiddlewareTest {
     }
 
     @Test
-    void testDoFilterInternal_WithValidClientId_AddsCorsConfiguration() throws ServletException, IOException {
+    void should_add_cors_configuration_with_valid_client_id() throws ServletException, IOException {
         // Arrange
         // Mocking the request and response objects
         var clientId = "testClient";
@@ -96,7 +96,7 @@ class CORSMiddlewareTest {
     }
 
     @Test
-    void testReadClientIdFromBody_ValidRequestBody_ReturnsClientId() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    void should_read_client_id_from_valid_request_body() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         // Arrange
         var clientId = "testClientId";
         var requestBody = "{\"client_id\": \"" + clientId + "\"}";
@@ -117,9 +117,31 @@ class CORSMiddlewareTest {
         assertEquals(clientId, result, "The extracted clientId should match the expected value");
     }
 
+    @Test
+    void should_set_response_status_to_200_for_options_request() throws ServletException, IOException {
+        // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        // Setting up the request to have "OPTIONS" method
+        when(request.getMethod()).thenReturn("OPTIONS");
+
+        // Act
+        corsMiddleware.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        // Verify that the response status is set to SC_OK (200)
+        assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        // Verify that no other method is called on the response object
+        assertNull(response.getContentType());
+
+        // Verify that the filterChain is called
+        verify(filterChain).doFilter(request, response);
+    }
 
     @Test
-    void testDoFilterInternal_NoOriginHeader_DoesNotAddCorsConfiguration() throws ServletException, IOException {
+    void should_not_add_cors_configuration_when_no_origin_header_is_present() throws ServletException, IOException {
         // Mocking the request and response objects
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -137,7 +159,7 @@ class CORSMiddlewareTest {
     }
 
     @Test
-    void testDoFilterInternal_InvalidClientId_ThrowsIllegalStateException() throws ServletException, IOException {
+    void should_throw_illegal_state_exception_for_invalid_client_id() throws ServletException, IOException {
         // Mocking the request and response objects
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);

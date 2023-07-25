@@ -44,7 +44,7 @@ public class CORSMiddleware extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
-        if ("OPTIONS".equals(request.getMethod())) {
+        if (request.getMethod().equals("OPTIONS")) {
             // For OPTIONS requests, do not write a response body
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
