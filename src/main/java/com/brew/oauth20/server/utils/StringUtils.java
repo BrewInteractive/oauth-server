@@ -38,7 +38,7 @@ public class StringUtils {
 
     public static Map<String, String> parseCookieString(String cookieString) {
         Map<String, String> cookieMap = new HashMap<>();
-        String[] keyValuePairs = cookieString.split(":");
+        String[] keyValuePairs = cookieString.split(";");
         for (String pair : keyValuePairs) {
             String[] parts = pair.split("=");
             if (parts.length == 2) {

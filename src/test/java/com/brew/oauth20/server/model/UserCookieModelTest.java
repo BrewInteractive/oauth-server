@@ -19,7 +19,7 @@ class UserCookieModelTest {
         var date =  OffsetDateTime.ofInstant(Instant.ofEpochSecond(1681809664), ZoneOffset.UTC);
         return Stream.of(
                 Arguments.of(
-                        "user_id=12345:email=email@test.com:country_code=0090:phone_number=12345667:expires_at=1681809664",
+                        "user_id=12345;email=email@test.com;country_code=0090;phone_number=12345667;expires_at=1681809664",
                         new UserCookieModel(12345L, date,"email@test.com","0090","12345667")
                 )
         );
