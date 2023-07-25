@@ -104,6 +104,4 @@ public class CORSMiddleware extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-
-
 }

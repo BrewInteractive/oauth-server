@@ -5,6 +5,7 @@ import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,13 +14,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mock.web.DelegatingServletInputStream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -88,6 +94,29 @@ class CORSMiddlewareTest {
         // Verify if the CorsConfiguration was set on the response
         verify(filterChain).doFilter(request, response);
     }
+
+    @Test
+    void testReadClientIdFromBody_ValidRequestBody_ReturnsClientId() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        // Arrange
+        var clientId = "testClientId";
+        var requestBody = "{\"client_id\": \"" + clientId + "\"}";
+        byte[] inputStreamBytes = requestBody.getBytes();
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        ServletInputStream servletInputStream = new DelegatingServletInputStream(new ByteArrayInputStream(inputStreamBytes));
+        when(request.getInputStream()).thenReturn(servletInputStream);
+
+        // Access the private method readClientIdFromBody using reflection
+        Method readClientIdFromBodyMethod = CORSMiddleware.class.getDeclaredMethod("readClientIdFromBody", HttpServletRequest.class);
+        readClientIdFromBodyMethod.setAccessible(true);
+
+        // Act
+        String result = (String) readClientIdFromBodyMethod.invoke(corsMiddleware, request);
+
+        // Assert
+        assertEquals(clientId, result, "The extracted clientId should match the expected value");
+    }
+
 
     @Test
     void testDoFilterInternal_NoOriginHeader_DoesNotAddCorsConfiguration() throws ServletException, IOException {
