@@ -44,20 +44,26 @@ public class CORSMiddleware extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
-        var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(webOrigins);
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD"));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(List.of("Authorization"));
+        if ("OPTIONS".equals(request.getMethod())) {
+            // For OPTIONS requests, do not write a response body
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            var configuration = new CorsConfiguration();
+            configuration.setAllowedOrigins(webOrigins);
+            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD"));
+            configuration.setAllowCredentials(true);
+            configuration.setAllowedHeaders(List.of("Authorization"));
 
-        var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+            var source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", configuration);
 
-        // Use the built-in CorsProcessor provided by Spring to handle CORS and apply headers to the response
-        var corsProcessor = new DefaultCorsProcessor();
+            // Use the built-in CorsProcessor provided by Spring to handle CORS and apply headers to the response
+            var corsProcessor = new DefaultCorsProcessor();
 
-        corsProcessor.processRequest(configuration, request, response);
+            corsProcessor.processRequest(configuration, request, response);
+        }
     }
+
 
     @Nullable
     private String readClientId(HttpServletRequest request) {
