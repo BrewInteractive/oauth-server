@@ -8,7 +8,7 @@ import java.util.Map;
 import static com.brew.oauth20.server.utils.StringUtils.parseCookieString;
 
 public record UserCookieModel(
-        Long user_id,
+        String user_id,
         OffsetDateTime expires_at,
         String email,
         String countryCode,
@@ -21,7 +21,7 @@ public record UserCookieModel(
         var expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
 
         return new UserCookieModel(
-                Long.parseLong(cookieMap.get("user_id")),
+                cookieMap.get("user_id"),
                 expiresAt,
                 cookieMap.get("email"),
                 cookieMap.get("country_code"),

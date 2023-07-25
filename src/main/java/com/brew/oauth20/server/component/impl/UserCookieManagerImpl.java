@@ -22,7 +22,7 @@ public class UserCookieManagerImpl implements UserCookieManager {
     @Value("${cookie.encryption.algorithm}")
     String cookieEncryptionAlgorithm;
 
-    public Optional<Long> getUser(HttpServletRequest request) {
+    public Optional<String> getUser(HttpServletRequest request) {
         try {
             var cookieValue = cookieService.getCookie(request, USER_COOKIE_KEY);
             if (cookieValue == null || cookieValue.isBlank())

@@ -17,7 +17,7 @@ public class ClientUserServiceImpl implements ClientUserService {
     private ClientRepository clientRepository;
 
     @Override
-    public ClientUser create(String clientId, Long userId) {
+    public ClientUser create(String clientId, String userId) {
         var existingClientUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (existingClientUser.isPresent())
