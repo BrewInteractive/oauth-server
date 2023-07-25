@@ -224,7 +224,7 @@ abstract class BaseAuthorizeControllerTest {
     private String createCookieValue(String userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 
         var expiresAt = OffsetDateTime.now().plusDays(2);
-        var cookieValue = String.format("user_id=%d;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
+        var cookieValue = String.format("user_id=%s;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
                 userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toEpochSecond());
 
         return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
