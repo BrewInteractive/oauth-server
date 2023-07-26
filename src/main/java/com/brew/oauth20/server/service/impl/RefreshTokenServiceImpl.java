@@ -33,7 +33,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
 
     @Override
-    public RefreshToken createRefreshToken(String clientId, Long userId, String token, int expirationTimeInDays) throws ClientsUserNotFoundException {
+    public RefreshToken createRefreshToken(String clientId, String userId, String token, int expirationTimeInDays) throws ClientsUserNotFoundException {
 
         Optional<ClientUser> clientsUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
 

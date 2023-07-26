@@ -157,7 +157,7 @@ abstract class BaseAuthorizeControllerTest {
         grantRepository.deleteAllInBatch();
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<Long> userId) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<String> userId) throws Exception {
         Map<String, String> requestBodyMap = new HashMap<>();
         requestBodyMap.put("redirect_uri", redirectUri);
         requestBodyMap.put("client_id", clientId);
@@ -172,7 +172,7 @@ abstract class BaseAuthorizeControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
-        var cookieValue = createCookieValue(userId.get());
+        var cookieValue = createCookieValue(String.valueOf(userId.get()));
         return this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -185,7 +185,7 @@ abstract class BaseAuthorizeControllerTest {
     }
 
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, Long userId) throws Exception {
+    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
         return postAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
     }
 
@@ -193,14 +193,14 @@ abstract class BaseAuthorizeControllerTest {
         return postAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<Long> userId) throws Exception {
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<String> userId) throws Exception {
         if (userId.isEmpty())
             return this.mockMvc.perform(get("/oauth/authorize")
                     .queryParam("redirect_uri", redirectUri)
                     .queryParam("client_id", clientId)
                     .queryParam("response_type", responseType)
                     .queryParam("state", state));
-        var cookieValue = createCookieValue(userId.get());
+        var cookieValue = createCookieValue(String.valueOf(userId.get()));
         return this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .queryParam("redirect_uri", redirectUri)
@@ -213,7 +213,7 @@ abstract class BaseAuthorizeControllerTest {
         return getAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, Long userId) throws Exception {
+    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
         return getAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
     }
 
@@ -221,10 +221,10 @@ abstract class BaseAuthorizeControllerTest {
         return getAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
     }
 
-    private String createCookieValue(Long userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    private String createCookieValue(String userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 
         var expiresAt = OffsetDateTime.now().plusDays(2);
-        var cookieValue = String.format("user_id=%d:email=%s:country_code=%s:phone_number=%s:expires_at=%d",
+        var cookieValue = String.format("user_id=%s;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
                 userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toEpochSecond());
 
         return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);

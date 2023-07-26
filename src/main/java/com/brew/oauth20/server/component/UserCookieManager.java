@@ -6,5 +6,5 @@ import java.util.Optional;
 
 
 public interface UserCookieManager {
-    Optional<Long> getUser(HttpServletRequest request);
+    Optional<String> getUser(HttpServletRequest request);
 }

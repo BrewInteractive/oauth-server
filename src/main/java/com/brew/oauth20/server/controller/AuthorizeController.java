@@ -145,7 +145,7 @@ public class AuthorizeController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, Long userId) {
+    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
         var location = UriComponentsBuilder.fromUriString(redirectUri)
                 .query(parameters)
                 .queryParam("code", code)
