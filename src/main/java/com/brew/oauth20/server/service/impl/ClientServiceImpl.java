@@ -3,8 +3,11 @@ package com.brew.oauth20.server.service.impl;
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.enums.FileStorageProvider;
 import com.brew.oauth20.server.mapper.ClientMapper;
+import com.brew.oauth20.server.mapper.WebOriginMapper;
 import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.repository.ClientRepository;
+import com.brew.oauth20.server.repository.WebOriginRepository;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.factory.FileStorageProviderFactory;
 import org.slf4j.Logger;
@@ -29,6 +32,10 @@ public class ClientServiceImpl implements ClientService {
     private FileStorageProviderFactory fileStorageProviderFactory;
     @Autowired
     private ClientMapper clientMapper;
+    @Autowired
+    private WebOriginRepository webOriginRepository;
+    @Autowired
+    private WebOriginMapper webOriginMapper;
 
     @Override
     public boolean existsByClientId(String clientId) {
@@ -69,5 +76,11 @@ public class ClientServiceImpl implements ClientService {
         var byteArray = Base64.getDecoder().decode(logoFile);
 
         return fileStorageProvider.store(byteArray, String.format("logo-%s.jpg", clientId));
+    }
+
+    @Override
+    public List<WebOriginModel> getWebOrigins(String clientId) {
+        var webOrigins = webOriginRepository.findByClientId(clientId);
+        return webOriginMapper.toModelList(webOrigins);
     }
 }
