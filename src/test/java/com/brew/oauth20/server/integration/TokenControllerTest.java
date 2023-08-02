@@ -34,8 +34,6 @@ class TokenControllerTest {
     private String authorizedClientId;
     private String authorizedClientSecret;
     private String authorizedRefreshToken;
-
-
     @Autowired
     private MockMvc mockMvc;
 

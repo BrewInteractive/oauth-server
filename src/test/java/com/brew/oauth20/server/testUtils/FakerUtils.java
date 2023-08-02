@@ -38,6 +38,20 @@ public class FakerUtils {
         return faker.internet().url();
     }
 
+    public static String createRandomWebOrigin(@NotNull Faker faker) {
+        String randomUrl = faker.internet().url();
+        randomUrl = addProtocol(randomUrl);
+        return randomUrl;
+    }
+
+    @NotNull
+    private static String addProtocol(String randomUrl) {
+        if (!randomUrl.startsWith("http://") && !randomUrl.startsWith("https://")) {
+            randomUrl = "http://" + randomUrl;
+        }
+        return randomUrl;
+    }
+
     public static String create128BitRandomString(@NotNull Faker faker) {
         return faker.regexify("[A-Za-z0-9]{16}");
     }

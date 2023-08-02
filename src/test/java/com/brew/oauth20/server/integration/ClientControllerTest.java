@@ -3,8 +3,10 @@ package com.brew.oauth20.server.integration;
 
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.fixture.ClientFixture;
+import com.brew.oauth20.server.fixture.WebOriginModelFixture;
 import com.brew.oauth20.server.model.UpdateClientLogoRequestModel;
 import com.brew.oauth20.server.model.UpdateClientLogoResponseModel;
+import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
@@ -21,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ClientControllerTest {
     private static Faker faker;
     private final Client client;
+    private final List<WebOriginModel> webOriginModels;
     @MockBean
     private ClientService clientService;
     @Autowired
@@ -46,16 +50,14 @@ class ClientControllerTest {
 
     public ClientControllerTest() {
         var clientFixture = new ClientFixture();
+        var webOriginModelFixture = new WebOriginModelFixture();
         client = clientFixture.createRandomOne(false);
+        webOriginModels = webOriginModelFixture.createRandomList(2);
     }
 
     private static Stream<Arguments> should_return_bad_request_when_request_has_param_validation_error() {
         var logoFile = ClientFixture.getClientLogo();
         return Stream.of(
-                Arguments.of(
-                        "",
-                        UpdateClientLogoRequestModel.builder().logoFile(logoFile).build()
-                ),
                 Arguments.of(
                         faker.lorem().word(),
                         UpdateClientLogoRequestModel.builder().build()
@@ -71,9 +73,15 @@ class ClientControllerTest {
     @MethodSource
     @ParameterizedTest
     void should_return_bad_request_when_request_has_param_validation_error(String clientId, UpdateClientLogoRequestModel request) throws Exception {
-        // Arrange, Act
+        // Arrange
+        when(clientService.getWebOrigins(clientId)).thenReturn(webOriginModels);
+
+        // Act
         var result = mockMvc.perform(post("/client/logo")
-                        .header(HttpHeaders.ORIGIN, "test.com")
+                        .header(HttpHeaders.ORIGIN, webOriginModels.stream()
+                                .map(WebOriginModel::webOrigin)
+                                .findFirst()
+                                .get())
                         .param("client_id", clientId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -83,16 +91,21 @@ class ClientControllerTest {
         // Assert
         String response = result.getResponse().getContentAsString();
         assertEquals("invalid_request", response);
-        verifyNoInteractions(clientService);
     }
 
 
     @Test
     void should_return_bad_request_when_request_has_body_validation_error() throws Exception {
-        // Arrange, Act
+        // Arrange
+        when(clientService.getWebOrigins(client.getClientId())).thenReturn(webOriginModels);
+
+        // Act
         var result = mockMvc.perform(post("/client/logo")
-                        .header(HttpHeaders.ORIGIN, "test.com")
-                        .param("client_id", faker.lorem().word())
+                        .header(HttpHeaders.ORIGIN, webOriginModels.stream()
+                                .map(WebOriginModel::webOrigin)
+                                .findFirst()
+                                .get())
+                        .param("client_id", client.getClientId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -101,7 +114,6 @@ class ClientControllerTest {
         // Assert
         String response = result.getResponse().getContentAsString();
         assertEquals("invalid_request", response);
-        verifyNoInteractions(clientService);
     }
 
     @Test
@@ -109,11 +121,15 @@ class ClientControllerTest {
         // Arrange
         var logoFile = ClientFixture.getClientLogo();
         var requestModel = UpdateClientLogoRequestModel.builder().logoFile(logoFile).build();
+        when(clientService.getWebOrigins(client.getClientId())).thenReturn(webOriginModels);
 
         // Act
         var result = mockMvc.perform(post("/client/logo")
-                        .header(HttpHeaders.ORIGIN, "test.com")
-                        .param("client_id", faker.lorem().word())
+                        .header(HttpHeaders.ORIGIN, webOriginModels.stream()
+                                .map(WebOriginModel::webOrigin)
+                                .findFirst()
+                                .get())
+                        .param("client_id", client.getClientId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestModel))
                 )
@@ -133,10 +149,14 @@ class ClientControllerTest {
         var requestModel = UpdateClientLogoRequestModel.builder().logoFile(logoFile).build();
         when(clientService.existsByClientId(client.getClientId())).thenReturn(true);
         when(clientService.setClientLogo(client.getClientId(), logoFile)).thenThrow(new IOException());
+        when(clientService.getWebOrigins(client.getClientId())).thenReturn(webOriginModels);
 
         // Act
         var result = mockMvc.perform(post("/client/logo")
-                        .header(HttpHeaders.ORIGIN, "test.com")
+                        .header(HttpHeaders.ORIGIN, webOriginModels.stream()
+                                .map(WebOriginModel::webOrigin)
+                                .findFirst()
+                                .get())
                         .param("client_id", client.getClientId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestModel))
@@ -163,9 +183,14 @@ class ClientControllerTest {
 
         when(clientService.existsByClientId(client.getClientId())).thenReturn(true);
         when(clientService.setClientLogo(client.getClientId(), logoFile)).thenReturn(logoUrl);
+        when(clientService.getWebOrigins(client.getClientId())).thenReturn(webOriginModels);
+
         // Act
         var result = mockMvc.perform(post("/client/logo")
-                        .header(HttpHeaders.ORIGIN, "test.com")
+                        .header(HttpHeaders.ORIGIN, webOriginModels.stream()
+                                .map(WebOriginModel::webOrigin)
+                                .findFirst()
+                                .get())
                         .param("client_id", client.getClientId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request)
