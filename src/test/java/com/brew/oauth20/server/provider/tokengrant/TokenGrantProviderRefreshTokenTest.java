@@ -202,7 +202,7 @@ class TokenGrantProviderRefreshTokenTest {
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
         when(refreshTokenService.revokeRefreshToken(eq(tokenRequest.client_id), eq(tokenRequest.refresh_token), eq(clientModel.refreshTokenExpiresInDays()), anyString()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken()))
+        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken(), tokenRequest.additional_claims))
                 .thenReturn(tokenResultModel.getResult());
 
         // Act

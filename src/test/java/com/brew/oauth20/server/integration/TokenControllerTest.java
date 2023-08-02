@@ -155,6 +155,7 @@ class TokenControllerTest {
                         ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                         ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                         ",\"code\":\"" + authorizedAuthCode + "\"" +
+                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                         "}"));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();

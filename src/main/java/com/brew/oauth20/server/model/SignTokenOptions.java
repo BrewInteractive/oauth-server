@@ -8,7 +8,6 @@ public record SignTokenOptions(
         String issuerUri,
         String state,
         Integer tokenExpiresInMinutes,
-        String signingKey,
         Map<String, Object> additionalClaims
 ) {
 }

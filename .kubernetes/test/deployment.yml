@@ -63,6 +63,11 @@ spec:
                   name: oauth-server-secrets-test
             - name: S3_SERVICE_REGION
               value: "eu-central-1"
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  key: jwt-secret-key
+                  name: oauth-server-secrets-test
           imagePullPolicy: Always
           resources: {}
           ports:

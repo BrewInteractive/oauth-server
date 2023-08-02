@@ -211,7 +211,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true))
                 .thenReturn(authorizationCode);
         if(authorizationCode != null){
-            when(tokenService.generateToken(clientModel, authorizationCode.getClientUser().getUserId(), tokenRequest.state))
+            when(tokenService.generateToken(clientModel, authorizationCode.getClientUser().getUserId(), tokenRequest.state, tokenRequest.additional_claims))
                     .thenReturn(tokenResultModel.getResult());
         }
         // Act
