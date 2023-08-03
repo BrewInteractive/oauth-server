@@ -46,7 +46,7 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
             var userId = refreshToken.getClientUser().getUserId();
 
-            var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, refreshToken.getToken(), tokenRequest.additional_claims);
+            var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, refreshToken.getToken(), client.refreshTokenExpiresInDays() * 24 * 60 * 60, tokenRequest.additional_claims);
 
             return new TokenResultModel(tokenModel, null);
         } catch (ClientsUserNotFoundException e) {

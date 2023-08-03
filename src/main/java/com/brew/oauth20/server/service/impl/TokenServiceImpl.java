@@ -25,7 +25,7 @@ public class TokenServiceImpl implements TokenService {
     public TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
             var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(REFRESH_TOKEN_LENGTH), client.refreshTokenExpiresInDays());
-            return generateToken(client, userId, state, refreshToken.getToken(), additionalClaims);
+            return generateToken(client, userId, state, refreshToken.getToken(), client.refreshTokenExpiresInDays() * 24 * 60 * 60, additionalClaims);
         }
 
         var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
@@ -33,9 +33,11 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, Map<String, Object> additionalClaims) {
+    public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, int refreshTokenExpiresIn, Map<String, Object> additionalClaims) {
         var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
-        return jwtService.signToken(signTokenOptions, refreshToken);
+        var tokenModel = jwtService.signToken(signTokenOptions, refreshToken);
+        tokenModel.setRefreshTokenExpiresIn(refreshTokenExpiresIn);
+        return tokenModel;
     }
 
     @Override
