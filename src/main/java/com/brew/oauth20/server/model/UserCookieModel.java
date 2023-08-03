@@ -22,9 +22,9 @@ public record UserCookieModel(
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(cookieString);
             String userId = jsonNode.get("user_id").asText();
-            String email = jsonNode.get("email").asText();
-            String countryCode = jsonNode.get("country_code").asText();
-            String phoneNumber = jsonNode.get("phone_number").asText();
+            String email = jsonNode.has("email") ? jsonNode.get("email").asText() : null;
+            String countryCode = jsonNode.has("country_code") ? jsonNode.get("country_code").asText() : null;
+            String phoneNumber = jsonNode.has("phone_number") ? jsonNode.get("phone_number").asText() : null;
             long expiresAtEpoch = jsonNode.get("expires_at").asLong();
             OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(expiresAtEpoch), ZoneOffset.UTC);
             return new UserCookieModel(userId, expiresAt, email, countryCode, phoneNumber);

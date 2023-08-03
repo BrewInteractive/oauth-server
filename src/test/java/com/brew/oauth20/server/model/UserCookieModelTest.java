@@ -18,9 +18,22 @@ class UserCookieModelTest {
     private static Stream<Arguments> should_parse_from_string() {
         var date = OffsetDateTime.ofInstant(Instant.ofEpochSecond(1681809664), ZoneOffset.UTC);
         var model = new UserCookieModel("12345", date, "email@test.com", "0090", "12345667");
+        var model2 = new UserCookieModel("54321", date, null, "0080", "7654321");
+        var model3 = new UserCookieModel("54321", date, "test@email.com", null, null);
         var string = UserCookieModel.toString(model);
         return Stream.of(
-                Arguments.of(string, model)
+                Arguments.of(string, model),
+                Arguments.of("{"
+                        + "\"user_id\": \"" + model2.user_id() + "\","
+                        + "\"country_code\": \"" + model2.countryCode() + "\","
+                        + "\"phone_number\": \"" + model2.phoneNumber() + "\","
+                        + "\"expires_at\": " + date.toEpochSecond()
+                        + "}", model2),
+                Arguments.of("{"
+                        + "\"user_id\": \"" + model3.user_id() + "\","
+                        + "\"email\": \"" + model3.email() + "\","
+                        + "\"expires_at\": " + date.toEpochSecond()
+                        + "}", model3)
         );
     }
 
