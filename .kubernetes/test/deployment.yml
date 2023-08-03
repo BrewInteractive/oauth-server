@@ -51,6 +51,8 @@ spec:
               value: "AES"
             - name: LOGIN_SIGNUP_ENDPOINT
               value: "https://auth.test.id.realityos.one/signin"
+            - name: S3_SERVICE_AWS_BUCKET
+              value: "tmrw-id-test"
             - name: S3_SERVICE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
