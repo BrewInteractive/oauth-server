@@ -17,7 +17,7 @@ public record UserCookieModel(
 ) {
     public static UserCookieModel parse(String cookieString) {
         try {
-            if (cookieString == null)
+            if (cookieString == null || cookieString.isBlank())
                 return null;
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(cookieString);
@@ -32,6 +32,7 @@ public record UserCookieModel(
             throw new IllegalArgumentException();
         }
     }
+
     public static String toString(UserCookieModel model) {
         return "{"
                 + "\"user_id\": \"" + model.user_id + "\","

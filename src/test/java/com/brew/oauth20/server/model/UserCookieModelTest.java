@@ -33,7 +33,9 @@ class UserCookieModelTest {
                         + "\"user_id\": \"" + model3.user_id() + "\","
                         + "\"email\": \"" + model3.email() + "\","
                         + "\"expires_at\": " + date.toEpochSecond()
-                        + "}", model3)
+                        + "}", model3),
+                Arguments.of("", null),
+                Arguments.of(null, null)
         );
     }
 
