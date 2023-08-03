@@ -1,11 +1,12 @@
 package com.brew.oauth20.server.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.Map;
-
-import static com.brew.oauth20.server.utils.StringUtils.parseCookieString;
 
 public record UserCookieModel(
         String user_id,
@@ -15,16 +16,30 @@ public record UserCookieModel(
         String phoneNumber
 ) {
     public static UserCookieModel parse(String cookieString) {
-        Map<String, String> cookieMap = parseCookieString(cookieString);
+        try {
+            if (cookieString == null || cookieString.isBlank())
+                return null;
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(cookieString);
+            String userId = jsonNode.get("user_id").asText();
+            String email = jsonNode.has("email") ? jsonNode.get("email").asText() : null;
+            String countryCode = jsonNode.has("country_code") ? jsonNode.get("country_code").asText() : null;
+            String phoneNumber = jsonNode.has("phone_number") ? jsonNode.get("phone_number").asText() : null;
+            long expiresAtEpoch = jsonNode.get("expires_at").asLong();
+            OffsetDateTime expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(expiresAtEpoch), ZoneOffset.UTC);
+            return new UserCookieModel(userId, expiresAt, email, countryCode, phoneNumber);
+        } catch (JsonProcessingException | NullPointerException e) {
+            throw new IllegalArgumentException();
+        }
+    }
 
-        long epochSeconds = Long.parseLong(cookieMap.get("expires_at"));
-        var expiresAt = OffsetDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
-
-        return new UserCookieModel(
-                cookieMap.get("user_id"),
-                expiresAt,
-                cookieMap.get("email"),
-                cookieMap.get("country_code"),
-                cookieMap.get("phone_number"));
+    public static String toString(UserCookieModel model) {
+        return "{"
+                + "\"user_id\": \"" + model.user_id + "\","
+                + "\"email\": \"" + model.email + "\","
+                + "\"country_code\": \"" + model.countryCode + "\","
+                + "\"phone_number\": \"" + model.phoneNumber + "\","
+                + "\"expires_at\": " + model.expires_at.toEpochSecond()
+                + "}";
     }
 }

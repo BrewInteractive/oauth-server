@@ -66,8 +66,13 @@ class UserCookieManagerTest {
         var userId = faker.letterify("?").repeat(20);
         var expiresAt = faker.date().future(5, TimeUnit.DAYS);
         var request = new MockHttpServletRequest();
-        var cookieValue = String.format("user_id=%s;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
-                userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toInstant().getEpochSecond());
+        var cookieValue = "{"
+                + "\"user_id\": \"" + userId + "\","
+                + "\"email\": \"" + faker.internet().emailAddress() + "\","
+                + "\"country_code\": \"" + faker.phoneNumber().subscriberNumber() + "\","
+                + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
+                + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
+                + "}";
         var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
@@ -102,8 +107,13 @@ class UserCookieManagerTest {
         var request = new MockHttpServletRequest();
         var userId = faker.random().nextLong();
         var expiresAt = faker.date().past(5, TimeUnit.DAYS);
-        var cookieValue = String.format("user_id=%d;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
-                userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toInstant().getEpochSecond());
+        var cookieValue = "{"
+                + "\"user_id\": \"" + userId + "\","
+                + "\"email\": \"" + faker.internet().emailAddress() + "\","
+                + "\"country_code\": \"" + faker.phoneNumber().subscriberNumber() + "\","
+                + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
+                + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
+                + "}";
         var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);

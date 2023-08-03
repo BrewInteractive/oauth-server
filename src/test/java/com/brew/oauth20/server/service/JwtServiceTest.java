@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.HashMap;
 import java.util.stream.Stream;
@@ -31,7 +32,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         new HashMap<String, Object>() {{
                             put("additional_value", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                         }}
@@ -41,7 +41,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         null
                 )
         );
@@ -55,7 +54,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         new HashMap<String, Object>() {{
                             put("client_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                             put("user_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
@@ -67,7 +65,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         null
                 )
         );
@@ -81,7 +78,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         new HashMap<String, Object>() {{
                             put("client_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                             put("user_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
@@ -94,7 +90,6 @@ class JwtServiceTest {
                         faker.internet().url(),
                         faker.lordOfTheRings().character(),
                         faker.random().nextInt(Integer.MAX_VALUE),
-                        faker.letterify("???????????????????????????????????????????????????"),
                         null,
                         faker.letterify("???????????????????????????????????????????????????")
                 )
@@ -107,11 +102,12 @@ class JwtServiceTest {
                                            String issuerUri,
                                            String state,
                                            Integer tokenExpiresInMinutes,
-                                           String signingKey,
                                            HashMap<String, Object> additionalClaims) {
 
         // Act
-        var result = new JwtServiceImpl().signToken(new SignTokenOptions(null, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims));
+        var jwtService = new JwtServiceImpl();
+        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", faker.letterify("?".repeat(32)));
+        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, state, tokenExpiresInMinutes, additionalClaims));
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
@@ -129,11 +125,12 @@ class JwtServiceTest {
                                                  String issuerUri,
                                                  String state,
                                                  Integer tokenExpiresInMinutes,
-                                                 String signingKey,
                                                  HashMap<String, Object> additionalClaims) {
 
         // Act
-        var result = new JwtServiceImpl().signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims));
+        var jwtService = new JwtServiceImpl();
+        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", faker.letterify("?".repeat(32)));
+        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, additionalClaims));
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
@@ -151,12 +148,13 @@ class JwtServiceTest {
                                               String issuerUri,
                                               String state,
                                               Integer tokenExpiresInMinutes,
-                                              String signingKey,
                                               HashMap<String, Object> additionalClaims,
                                               String refreshToken) {
 
         // Act
-        var result = new JwtServiceImpl().signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, signingKey, additionalClaims), refreshToken);
+        var jwtService = new JwtServiceImpl();
+        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", faker.letterify("?".repeat(32)));
+        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, additionalClaims), refreshToken);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");

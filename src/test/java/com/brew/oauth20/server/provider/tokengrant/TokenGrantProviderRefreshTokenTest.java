@@ -9,6 +9,7 @@ import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -22,7 +23,6 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -202,7 +202,7 @@ class TokenGrantProviderRefreshTokenTest {
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
         when(refreshTokenService.revokeRefreshToken(eq(tokenRequest.client_id), eq(tokenRequest.refresh_token), eq(clientModel.refreshTokenExpiresInDays()), anyString()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken()))
+        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken(), clientModel.refreshTokenExpiresInDays() * 24 * 60 * 60, tokenRequest.additional_claims))
                 .thenReturn(tokenResultModel.getResult());
 
         // Act

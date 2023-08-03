@@ -42,7 +42,7 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
             if (activeAuthorizationCode == null)
                 return new TokenResultModel(null, "invalid_request");
 
-            var tokenModel = tokenService.generateToken(client, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.state);
+            var tokenModel = tokenService.generateToken(client, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.state, tokenRequest.additional_claims);
 
             return new TokenResultModel(tokenModel, null);
         } catch (ClientsUserNotFoundException e) {

@@ -172,7 +172,7 @@ abstract class BaseAuthorizeControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
 
-        var cookieValue = createCookieValue(String.valueOf(userId.get()));
+        var cookieValue = createCookieValue(userId.get());
         return this.mockMvc.perform(post("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -182,11 +182,6 @@ abstract class BaseAuthorizeControllerTest {
 
     protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
         return postAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
-    }
-
-
-    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
     }
 
     protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
@@ -200,7 +195,7 @@ abstract class BaseAuthorizeControllerTest {
                     .queryParam("client_id", clientId)
                     .queryParam("response_type", responseType)
                     .queryParam("state", state));
-        var cookieValue = createCookieValue(String.valueOf(userId.get()));
+        var cookieValue = createCookieValue(userId.get());
         return this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .queryParam("redirect_uri", redirectUri)
@@ -224,9 +219,13 @@ abstract class BaseAuthorizeControllerTest {
     private String createCookieValue(String userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
 
         var expiresAt = OffsetDateTime.now().plusDays(2);
-        var cookieValue = String.format("user_id=%s;email=%s;country_code=%s;phone_number=%s;expires_at=%d",
-                userId, faker.internet().emailAddress(), faker.phoneNumber().subscriberNumber(), faker.phoneNumber().phoneNumber(), expiresAt.toEpochSecond());
-
+        var cookieValue = "{"
+                + "\"user_id\": \"" + userId + "\","
+                + "\"email\": \"" + faker.internet().emailAddress() + "\","
+                + "\"country_code\": \"" + faker.phoneNumber().subscriberNumber() + "\","
+                + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
+                + "\"expires_at\": " + expiresAt.toEpochSecond()
+                + "}";
         return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
     }
 }

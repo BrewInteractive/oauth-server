@@ -22,33 +22,38 @@ public class TokenServiceImpl implements TokenService {
     private RefreshTokenService refreshTokenService;
 
     @Override
-    public TokenModel generateToken(ClientModel client, String userId, String state) {
+    public TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
         if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
             var refreshToken = refreshTokenService.createRefreshToken(client.clientId(), userId, StringUtils.generateSecureRandomString(REFRESH_TOKEN_LENGTH), client.refreshTokenExpiresInDays());
-            return generateToken(client, userId, state, refreshToken.getToken());
+            return generateToken(client, userId, state, refreshToken.getToken(), client.refreshTokenExpiresInDays() * 24 * 60 * 60, additionalClaims);
         }
 
-        var signTokenOptions = createSignTokenOptions(client, userId, state);
+        var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
         return jwtService.signToken(signTokenOptions);
     }
 
     @Override
-    public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken) {
-        var signTokenOptions = createSignTokenOptions(client, userId, state);
-        return jwtService.signToken(signTokenOptions, refreshToken);
+    public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, int refreshTokenExpiresIn, Map<String, Object> additionalClaims) {
+        var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
+        var tokenModel = jwtService.signToken(signTokenOptions, refreshToken);
+        tokenModel.setRefreshTokenExpiresIn(refreshTokenExpiresIn);
+        return tokenModel;
     }
 
     @Override
-    public TokenModel generateToken(ClientModel client, String state) {
-        var signTokenOptions = createSignTokenOptions(client, null, state);
+    public TokenModel generateToken(ClientModel client, String state, Map<String, Object> additionalClaims) {
+        var signTokenOptions = createSignTokenOptions(client, null, state, additionalClaims);
         return jwtService.signToken(signTokenOptions);
     }
 
-    private Map<String, Object> createAdditionalClaims(ClientModel client) {
-        return Map.of("clientId", client.clientId());
-    }
-
-    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String state) {
-        return new SignTokenOptions(userId == null ? null : userId, client.audience(), client.issuerUri(), state, client.tokenExpiresInMinutes(), client.clientSecretDecoded(), createAdditionalClaims(client));
+    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
+        return new SignTokenOptions(
+                userId,
+                client.audience(),
+                client.issuerUri(),
+                state,
+                client.tokenExpiresInMinutes(),
+                additionalClaims
+        );
     }
 }

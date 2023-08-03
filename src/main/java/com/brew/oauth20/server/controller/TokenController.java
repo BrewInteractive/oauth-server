@@ -44,6 +44,8 @@ public class TokenController {
             }
         } catch (UnsupportedServiceTypeException e) {
             return new ResponseEntity<>("invalid_grant", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("system_error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

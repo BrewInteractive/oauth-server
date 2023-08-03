@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -63,8 +64,8 @@ class TokenServiceTest {
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
                         faker.random().nextLong(Long.MAX_VALUE),
-                        "Bearer"
-
+                        "Bearer",
+                        new HashMap<>()
                 )
         );
     }
@@ -78,8 +79,8 @@ class TokenServiceTest {
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
                         faker.random().nextLong(Long.MAX_VALUE),
-                        "Bearer"
-
+                        "Bearer",
+                        new HashMap<>()
                 )
         );
     }
@@ -94,7 +95,8 @@ class TokenServiceTest {
                         faker.regexify("[A-Za-z0-9]{150}"),
                         faker.random().nextLong(Long.MAX_VALUE),
                         refreshTokenFixture.createRandomOne(),
-                        "Bearer"
+                        "Bearer",
+                        new HashMap<>()
                 )
         );
     }
@@ -111,7 +113,8 @@ class TokenServiceTest {
                                                String state,
                                                String accessToken,
                                                long expiresIn,
-                                               String tokenType) {
+                                               String tokenType,
+                                               Map<String, Object> additionalClaims) {
         // Arrange
         var token = TokenModel.builder()
                 .accessToken(accessToken)
@@ -125,14 +128,13 @@ class TokenServiceTest {
                 client.issuerUri(),
                 state,
                 client.tokenExpiresInMinutes(),
-                client.clientSecretDecoded(),
-                Map.of("clientId", client.clientId()));
+                Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
                 thenReturn(token);
 
         // Act
-        var result = tokenService.generateToken(client, state);
+        var result = tokenService.generateToken(client, state, additionalClaims);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
@@ -151,7 +153,8 @@ class TokenServiceTest {
                                                      String state,
                                                      String accessToken,
                                                      long expiresIn,
-                                                     String tokenType) {
+                                                     String tokenType,
+                                                     Map<String, Object> additionalClaims) {
         // Arrange
         var token = TokenModel.builder()
                 .accessToken(accessToken)
@@ -160,19 +163,18 @@ class TokenServiceTest {
                 .tokenType(tokenType)
                 .build();
 
-        var signTokenOptions = new SignTokenOptions(userId.toString(),
+        var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
                 state,
                 client.tokenExpiresInMinutes(),
-                client.clientSecretDecoded(),
-                Map.of("clientId", client.clientId()));
+                Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
                 thenReturn(token);
 
         // Act
-        var result = tokenService.generateToken(client, userId, state);
+        var result = tokenService.generateToken(client, userId, state, additionalClaims);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
@@ -192,7 +194,8 @@ class TokenServiceTest {
                                                   String accessToken,
                                                   long expiresIn,
                                                   RefreshToken refreshToken,
-                                                  String tokenType) {
+                                                  String tokenType,
+                                                  Map<String, Object> additionalClaims) {
         // Arrange
         var token = TokenModel.builder()
                 .accessToken(accessToken)
@@ -202,13 +205,12 @@ class TokenServiceTest {
                 .tokenType(tokenType)
                 .build();
 
-        var signTokenOptions = new SignTokenOptions(userId.toString(),
+        var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
                 state,
                 client.tokenExpiresInMinutes(),
-                client.clientSecretDecoded(),
-                Map.of("clientId", client.clientId()));
+                Map.of());
 
         when(jwtService.signToken(signTokenOptions, refreshToken.getToken())).
                 thenReturn(token);
@@ -218,7 +220,7 @@ class TokenServiceTest {
 
 
         // Act
-        var result = tokenService.generateToken(client, userId, state);
+        var result = tokenService.generateToken(client, userId, state, additionalClaims);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo("Bearer");
