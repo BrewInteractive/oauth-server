@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/BrewInteractive/oauth-server/compare/v1.6.0...v1.7.0) (2023-08-04)
+
+
+### Features
+
+* **TMID-369:** add additional_claims to token endpoint requests model ([1256372](https://github.com/BrewInteractive/oauth-server/commit/1256372b48e93efc0d113ab8859281672622dee3))
+* **TMID-387:** Added CORSMiddleware. ([25d026b](https://github.com/BrewInteractive/oauth-server/commit/25d026b7a00deeecbef5e30fdd8adad46ab88b0f))
+* **TMID-387:** added unit test for clientService. ([5b7e675](https://github.com/BrewInteractive/oauth-server/commit/5b7e67530942f54fa54ccfe4c4a12501c87246d5))
+* **TMID-387:** added unit test for CORSMiddleware. ([265fc30](https://github.com/BrewInteractive/oauth-server/commit/265fc30cd5ada5bdc435c0225e518cea806e4101))
+* **TMID-387:** added unit tests.. ([b56a6c7](https://github.com/BrewInteractive/oauth-server/commit/b56a6c7c6ceb347970a2acce727b4834730a07f2))
+* **TMID-387:** Added WebOrigin entity. ([0625343](https://github.com/BrewInteractive/oauth-server/commit/06253436f689bbceb88051a297c4f11ecf99b777))
+* **TMID-387:** Added WebOriginModel. ([67cffb8](https://github.com/BrewInteractive/oauth-server/commit/67cffb888a7dcd1a26d9095085bc62d94f8880bd))
+* **TMID-387:** fixed integration test. ([635759b](https://github.com/BrewInteractive/oauth-server/commit/635759b2f8b587be5aca312a469367b9421f77ba))
+* **TMID-387:** Implemented CORSMiddleware. ([a1f7358](https://github.com/BrewInteractive/oauth-server/commit/a1f73585a2cf9dcd2bdbe3145060c85351bfdc2b))
+
+
+### Bug Fixes
+
+* fix UserCookieModel parser ([70cad6a](https://github.com/BrewInteractive/oauth-server/commit/70cad6a27a56ee0605b22edb889db0a03ad8ef7d))
+* fix UserCookieModel parser as safe ([24e3951](https://github.com/BrewInteractive/oauth-server/commit/24e395108249ef4e3c9a4e0ea998b72f6f4740ca))
+* **TMID-387:** remove unnecessary dependencies. ([9ec0f06](https://github.com/BrewInteractive/oauth-server/commit/9ec0f06881e86d615bde1f86229eddee908d9e24))
+
 ## [1.6.0](https://github.com/BrewInteractive/oauth-server/compare/v1.5.0...v1.6.0) (2023-07-25)
 
 
