@@ -88,7 +88,7 @@ public class CORSMiddleware extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getHeader("Origin") != null) {
+        if (request.getHeader("Referer") != null) {
             // This custom middleware is going to first pull the client_id from the request
             // and verify that the client is allowing cors origins
             var clientId = readClientId(request);
