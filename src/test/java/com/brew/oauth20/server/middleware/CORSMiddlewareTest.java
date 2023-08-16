@@ -61,13 +61,13 @@ class CORSMiddlewareTest {
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Origin")).thenReturn(expectedOrigin);
+        when(request.getHeader("Referer")).thenReturn(expectedOrigin);
         when(request.getParameter("client_id")).thenReturn(clientId);
         when(request.getMethod()).thenReturn("POST");
 
         // Create a list of header names containing just "Origin"
         List<String> headerNamesList = new ArrayList<>();
-        headerNamesList.add("Origin");
+        headerNamesList.add("Referer");
 
         // Create an Enumeration for header names
         Enumeration<String> headerNamesEnum = Collections.enumeration(headerNamesList);
@@ -81,7 +81,7 @@ class CORSMiddlewareTest {
         when(request.getHeaderNames()).thenReturn(headerNamesEnum);
 
         // Mock the getHeaders(String name) method to return the Enumeration for "Origin" header
-        when(request.getHeaders("Origin")).thenReturn(headerValuesEnum);
+        when(request.getHeaders("Referer")).thenReturn(headerValuesEnum);
 
         // Mocking the clientService behavior
         when(clientService.getWebOrigins(clientId)).thenReturn(webOriginModels);
@@ -148,7 +148,7 @@ class CORSMiddlewareTest {
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Origin")).thenReturn(null);
+        when(request.getHeader("Referer")).thenReturn(null);
 
         // Perform the filter operation
         corsMiddleware.doFilterInternal(request, response, filterChain);
@@ -159,14 +159,14 @@ class CORSMiddlewareTest {
     }
 
     @Test
-    void should_throw_illegal_state_exception_for_invalid_client_id() throws ServletException, IOException {
+    void should_throw_illegal_state_exception_for_invalid_client_id() {
         // Mocking the request and response objects
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Origin")).thenReturn("https://example.com");
+        when(request.getHeader("Referer")).thenReturn("https://example.com");
         when(request.getHeader("Authorization")).thenReturn("Bearer TOKEN");
 
         // Mocking the clientService behavior
