@@ -44,20 +44,19 @@ public class CORSFilter extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
+        var origin = getOrigin(request);
+        var allowedOrigins = webOrigins.stream().map(CORSFilter::trimTrailingSlash).toList();
+
+        if (origin != null && allowedOrigins.contains(origin)) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+            response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+            response.addHeader("Access-Control-Allow-Credentials", "true");
+        }
+
         if (request.getMethod().equals("OPTIONS")) {
             // For OPTIONS requests, do not write a response body
             response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-
-            var origin = getOrigin(request);
-            var allowedOrigins = webOrigins.stream().map(CORSFilter::trimTrailingSlash).toList();
-
-            if (origin != null && allowedOrigins.contains(origin)) {
-                response.setHeader("Access-Control-Allow-Origin", origin);
-                response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
-                response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
-                response.addHeader("Access-Control-Allow-Credentials", "true");
-            }
         }
     }
 
