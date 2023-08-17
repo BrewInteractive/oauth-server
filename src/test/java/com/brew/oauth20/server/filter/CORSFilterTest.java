@@ -61,13 +61,13 @@ class CORSFilterTest {
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Referer")).thenReturn(expectedOrigin);
+        when(request.getHeader("Origin")).thenReturn(expectedOrigin);
         when(request.getParameter("client_id")).thenReturn(clientId);
         when(request.getMethod()).thenReturn("POST");
 
         // Create a list of header names containing just "Origin"
         List<String> headerNamesList = new ArrayList<>();
-        headerNamesList.add("Referer");
+        headerNamesList.add("Origin");
 
         // Create an Enumeration for header names
         Enumeration<String> headerNamesEnum = Collections.enumeration(headerNamesList);
@@ -81,14 +81,14 @@ class CORSFilterTest {
         when(request.getHeaderNames()).thenReturn(headerNamesEnum);
 
         // Mock the getHeaders(String name) method to return the Enumeration for "Origin" header
-        when(request.getHeaders("Referer")).thenReturn(headerValuesEnum);
+        when(request.getHeaders("Origin")).thenReturn(headerValuesEnum);
 
         // Mocking the clientService behavior
         when(clientService.getWebOrigins(clientId)).thenReturn(webOriginModels);
 
         // Act
         // Perform the filter operation
-        corsFilter.doFilter(request, response, filterChain);
+        corsFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
         // Verify if the CorsConfiguration was set on the response
@@ -128,7 +128,7 @@ class CORSFilterTest {
         when(request.getMethod()).thenReturn("OPTIONS");
 
         // Act
-        corsFilter.doFilter(request, response, filterChain);
+        corsFilter.doFilterInternal(request, response, filterChain);
 
         // Assert
         // Verify that the response status is set to SC_OK (200)
@@ -148,10 +148,10 @@ class CORSFilterTest {
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Referer")).thenReturn(null);
+        when(request.getHeader("Origin")).thenReturn(null);
 
         // Perform the filter operation
-        corsFilter.doFilter(request, response, filterChain);
+        corsFilter.doFilterInternal(request, response, filterChain);
 
         // Verify that no CorsConfiguration was added to the response
         verify(response, never()).setHeader(anyString(), anyString());
@@ -166,7 +166,7 @@ class CORSFilterTest {
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up request headers
-        when(request.getHeader("Referer")).thenReturn("https://example.com");
+        when(request.getHeader("Origin")).thenReturn("https://example.com");
         when(request.getHeader("Authorization")).thenReturn("Bearer TOKEN");
 
         // Mocking the clientService behavior
@@ -174,7 +174,7 @@ class CORSFilterTest {
         when(clientService.getWebOrigins(clientId)).thenReturn(Collections.emptyList());
 
         // Perform the filter operation and check for the IllegalStateException
-        assertThrows(IllegalStateException.class, () -> corsFilter.doFilter(request, response, filterChain));
+        assertThrows(IllegalStateException.class, () -> corsFilter.doFilterInternal(request, response, filterChain));
     }
 
 }

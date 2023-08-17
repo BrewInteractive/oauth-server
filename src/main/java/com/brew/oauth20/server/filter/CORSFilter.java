@@ -13,13 +13,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.DefaultCorsProcessor;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 
@@ -47,28 +44,46 @@ public class CORSFilter extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
-        var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(webOrigins);
-
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD"));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(List.of("Authorization"));
-
-
-        var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
         if (request.getMethod().equals("OPTIONS")) {
             // For OPTIONS requests, do not write a response body
             response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+
+            var origin = getOrigin(request);
+            var allowedOrigins = webOrigins.stream().map(CORSFilter::trimTrailingSlash).toList();
+
+            if (origin != null && allowedOrigins.contains(origin)) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+                response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                response.addHeader("Access-Control-Allow-Credentials", "true");
+            }
         }
-        // Use the built-in CorsProcessor provided by Spring to handle CORS and apply headers to the response
-        var corsProcessor = new DefaultCorsProcessor();
-
-        corsProcessor.processRequest(configuration, request, response);
-
-
     }
 
+    private static String getOrigin(HttpServletRequest request) throws MalformedURLException {
+        var origin = request.getHeader("Origin");
+        if (origin == null || origin.isBlank() || origin.isEmpty()) {
+            // Get the Referer header from the request
+            String refererHeader = request.getHeader("Referer");
+
+            if (refererHeader != null) {
+                // Parse the Referer URL
+                java.net.URL refererURL = new java.net.URL(refererHeader);
+
+                // Extract the origin (scheme + host)
+                origin = refererURL.getProtocol() + "://" + refererURL.getHost();
+                if (refererURL.getPort() != -1)
+                    origin += ":" + refererURL.getPort();
+            }
+        }
+
+        return (origin != null ? trimTrailingSlash(origin) : null);
+    }
+
+    private static String trimTrailingSlash(String url) {
+        return (url.endsWith("/") ? url.substring(0, url.length() - 1) : url);
+    }
 
     @Nullable
     private String readClientId(HttpServletRequest request) {
@@ -93,7 +108,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getHeader("Referer") != null) {
+        if (request.getHeader("Origin") != null || request.getHeader("Referer") != null) {
             // This custom middleware is going to first pull the client_id from the request
             // and verify that the client is allowing cors origins
             var clientId = readClientId(request);
