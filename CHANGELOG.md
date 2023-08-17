@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.7](https://github.com/BrewInteractive/oauth-server/compare/v1.7.6...v1.7.7) (2023-08-17)
+
+
+### Bug Fixes
+
+* **TMID-416, TMID-418:** Handle preflight-requests. ([81290a9](https://github.com/BrewInteractive/oauth-server/commit/81290a9bfca0a1446ecdc603cce7d9bf3af442e8))
+
 ### [1.7.6](https://github.com/BrewInteractive/oauth-server/compare/v1.7.5...v1.7.6) (2023-08-17)
 
 
