@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.middleware;
+package com.brew.oauth20.server.filter;
 
 import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class CORSMiddleware extends OncePerRequestFilter {
+@Order(Ordered.HIGHEST_PRECEDENCE)
+public class CORSFilter extends OncePerRequestFilter {
     @Autowired
     ClientService clientService;
 
@@ -44,24 +47,26 @@ public class CORSMiddleware extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
+        var configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(webOrigins);
+
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(List.of("Authorization"));
+
+
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
         if (request.getMethod().equals("OPTIONS")) {
             // For OPTIONS requests, do not write a response body
             response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            var configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(webOrigins);
-            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD"));
-            configuration.setAllowCredentials(true);
-            configuration.setAllowedHeaders(List.of("Authorization"));
-
-            var source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", configuration);
-
-            // Use the built-in CorsProcessor provided by Spring to handle CORS and apply headers to the response
-            var corsProcessor = new DefaultCorsProcessor();
-
-            corsProcessor.processRequest(configuration, request, response);
         }
+        // Use the built-in CorsProcessor provided by Spring to handle CORS and apply headers to the response
+        var corsProcessor = new DefaultCorsProcessor();
+
+        corsProcessor.processRequest(configuration, request, response);
+
+
     }
 
 

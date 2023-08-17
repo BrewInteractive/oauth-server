@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.middleware;
+package com.brew.oauth20.server.filter;
 
 import com.brew.oauth20.server.fixture.WebOriginModelFixture;
 import com.brew.oauth20.server.model.WebOriginModel;
@@ -29,15 +29,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class CORSMiddlewareTest {
+class CORSFilterTest {
 
     private final List<WebOriginModel> webOriginModels;
     @Mock
     private ClientService clientService;
     @InjectMocks
-    private CORSMiddleware corsMiddleware;
+    private CORSFilter corsFilter;
 
-    public CORSMiddlewareTest() {
+    public CORSFilterTest() {
         var webOriginModelFixture = new WebOriginModelFixture();
         webOriginModels = webOriginModelFixture.createRandomList(2);
     }
@@ -88,7 +88,7 @@ class CORSMiddlewareTest {
 
         // Act
         // Perform the filter operation
-        corsMiddleware.doFilterInternal(request, response, filterChain);
+        corsFilter.doFilter(request, response, filterChain);
 
         // Assert
         // Verify if the CorsConfiguration was set on the response
@@ -107,11 +107,11 @@ class CORSMiddlewareTest {
         when(request.getInputStream()).thenReturn(servletInputStream);
 
         // Access the private method readClientIdFromBody using reflection
-        Method readClientIdFromBodyMethod = CORSMiddleware.class.getDeclaredMethod("readClientIdFromBody", HttpServletRequest.class);
+        Method readClientIdFromBodyMethod = CORSFilter.class.getDeclaredMethod("readClientIdFromBody", HttpServletRequest.class);
         readClientIdFromBodyMethod.setAccessible(true);
 
         // Act
-        String result = (String) readClientIdFromBodyMethod.invoke(corsMiddleware, request);
+        String result = (String) readClientIdFromBodyMethod.invoke(corsFilter, request);
 
         // Assert
         assertEquals(clientId, result, "The extracted clientId should match the expected value");
@@ -128,7 +128,7 @@ class CORSMiddlewareTest {
         when(request.getMethod()).thenReturn("OPTIONS");
 
         // Act
-        corsMiddleware.doFilterInternal(request, response, filterChain);
+        corsFilter.doFilter(request, response, filterChain);
 
         // Assert
         // Verify that the response status is set to SC_OK (200)
@@ -151,7 +151,7 @@ class CORSMiddlewareTest {
         when(request.getHeader("Referer")).thenReturn(null);
 
         // Perform the filter operation
-        corsMiddleware.doFilterInternal(request, response, filterChain);
+        corsFilter.doFilter(request, response, filterChain);
 
         // Verify that no CorsConfiguration was added to the response
         verify(response, never()).setHeader(anyString(), anyString());
@@ -174,7 +174,7 @@ class CORSMiddlewareTest {
         when(clientService.getWebOrigins(clientId)).thenReturn(Collections.emptyList());
 
         // Perform the filter operation and check for the IllegalStateException
-        assertThrows(IllegalStateException.class, () -> corsMiddleware.doFilterInternal(request, response, filterChain));
+        assertThrows(IllegalStateException.class, () -> corsFilter.doFilter(request, response, filterChain));
     }
 
 }
