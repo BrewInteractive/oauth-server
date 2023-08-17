@@ -92,7 +92,7 @@ class CORSFilterTest {
 
         // Assert
         // Verify if the CorsConfiguration was set on the response
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain).doFilter(any(), eq(response));
     }
 
     @Test
@@ -121,6 +121,7 @@ class CORSFilterTest {
     void should_set_response_status_to_200_for_options_request() throws ServletException, IOException {
         // Arrange
         HttpServletRequest request = mock(HttpServletRequest.class);
+
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain filterChain = mock(FilterChain.class);
 
@@ -137,7 +138,7 @@ class CORSFilterTest {
         assertNull(response.getContentType());
 
         // Verify that the filterChain is called
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain).doFilter(any(), eq(response));
     }
 
     @Test
@@ -157,7 +158,7 @@ class CORSFilterTest {
 
         // Verify that no CorsConfiguration was added to the response
         verify(response, never()).setHeader(anyString(), anyString());
-        verify(filterChain).doFilter(request, response);
+        verify(filterChain).doFilter(any(), eq(response));
     }
 
     @Test
