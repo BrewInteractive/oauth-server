@@ -44,27 +44,16 @@ public class CORSFilter extends OncePerRequestFilter {
     }
 
     private static void addCorsConfiguration(HttpServletRequest request, HttpServletResponse response, List<String> webOrigins) throws IOException {
+        var origin = getOrigin(request);
 
-        if (request.getMethod().equals("OPTIONS")) {
-            response.setHeader("Access-Control-Allow-Origin", "*");
-            response.addHeader("Access-Control-Allow-Methods", "OPTIONS");
-            response.addHeader("Access-Control-Allow-Credentials", "false");
-            // For OPTIONS requests, do not write a response body
-            response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            var origin = getOrigin(request);
+        var allowedOrigins = webOrigins.stream().map(CORSFilter::trimTrailingSlash).toList();
 
-
-            var allowedOrigins = webOrigins.stream().map(CORSFilter::trimTrailingSlash).toList();
-
-            if (origin != null && allowedOrigins.contains(origin)) {
-                response.setHeader("Access-Control-Allow-Origin", origin);
-                response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
-                response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
-                response.addHeader("Access-Control-Allow-Credentials", "true");
-            }
+        if (origin != null && allowedOrigins.contains(origin)) {
+            response.setHeader("Access-Control-Allow-Origin", origin);
+            response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+            response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+            response.addHeader("Access-Control-Allow-Credentials", "true");
         }
-
     }
 
     private static String getOrigin(HttpServletRequest request) throws MalformedURLException {
@@ -114,18 +103,23 @@ public class CORSFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getHeader("Origin") != null || request.getHeader("Referer") != null) {
-            // This custom middleware is going to first pull the client_id from the request
-            // and verify that the client is allowing cors origins
-            var clientId = readClientId(request);
-            if (clientId == null || clientId.isBlank())
-                throw new IllegalStateException("Can't find CORS Configuration");
-            else {
-                var webOrigins = clientService.getWebOrigins(clientId);
+        if (request.getMethod().equals("OPTIONS")) {
+            // For OPTIONS requests, do not write a response body
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            if (request.getHeader("Origin") != null || request.getHeader("Referer") != null) {
+                // This custom middleware is going to first pull the client_id from the request
+                // and verify that the client is allowing cors origins
+                var clientId = readClientId(request);
+                if (clientId == null || clientId.isBlank())
+                    throw new IllegalStateException("Can't find CORS Configuration");
+                else {
+                    var webOrigins = clientService.getWebOrigins(clientId);
 
-                addCorsConfiguration(request, response, webOrigins.stream()
-                        .map(WebOriginModel::webOrigin)
-                        .toList());
+                    addCorsConfiguration(request, response, webOrigins.stream()
+                            .map(WebOriginModel::webOrigin)
+                            .toList());
+                }
             }
         }
         filterChain.doFilter(request, response);

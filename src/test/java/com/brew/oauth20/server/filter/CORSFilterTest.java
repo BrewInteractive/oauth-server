@@ -149,6 +149,8 @@ class CORSFilterTest {
 
         // Setting up request headers
         when(request.getHeader("Origin")).thenReturn(null);
+        // Setting up the request to have "POST" method
+        when(request.getMethod()).thenReturn("POST");
 
         // Perform the filter operation
         corsFilter.doFilterInternal(request, response, filterChain);
@@ -168,6 +170,7 @@ class CORSFilterTest {
         // Setting up request headers
         when(request.getHeader("Origin")).thenReturn("https://example.com");
         when(request.getHeader("Authorization")).thenReturn("Bearer TOKEN");
+        when(request.getMethod()).thenReturn("POST");
 
         // Mocking the clientService behavior
         String clientId = "nonExistentClient";
