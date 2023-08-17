@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.8](https://github.com/BrewInteractive/oauth-server/compare/v1.7.7...v1.7.8) (2023-08-17)
+
+
+### Bug Fixes
+
+* add override for request.getInputStream in CORSFilter ([515fc92](https://github.com/BrewInteractive/oauth-server/commit/515fc924080755f2506579a33a30422c54f19f52))
+
 ### [1.7.7](https://github.com/BrewInteractive/oauth-server/compare/v1.7.6...v1.7.7) (2023-08-17)
 
 
