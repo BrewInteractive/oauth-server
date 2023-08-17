@@ -103,11 +103,16 @@ public class CORSFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getMethod().equals("OPTIONS")) {
-            // For OPTIONS requests, do not write a response body
-            response.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            if (request.getHeader("Origin") != null || request.getHeader("Referer") != null) {
+        var origin = getOrigin(request);
+        if (origin != null) {
+            if (request.getMethod().equals("OPTIONS")) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+                response.addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+                response.addHeader("Access-Control-Allow-Credentials", "true");
+                // For OPTIONS requests, do not write a response body
+                response.setStatus(HttpServletResponse.SC_OK);
+            } else {
                 // This custom middleware is going to first pull the client_id from the request
                 // and verify that the client is allowing cors origins
                 var clientId = readClientId(request);
@@ -122,6 +127,7 @@ public class CORSFilter extends OncePerRequestFilter {
                 }
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }
