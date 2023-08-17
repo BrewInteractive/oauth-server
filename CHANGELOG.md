@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.2](https://github.com/BrewInteractive/oauth-server/compare/v1.7.1...v1.7.2) (2023-08-17)
+
+
+### Bug Fixes
+
+* **TMID-416, TMID-418:** Modified adding cors configuration. ([e9b13f1](https://github.com/BrewInteractive/oauth-server/commit/e9b13f155da2917159029890be4bbd7b8b1e9cdb))
+
 ### [1.7.1](https://github.com/BrewInteractive/oauth-server/compare/v1.7.0...v1.7.1) (2023-08-16)
 
 
