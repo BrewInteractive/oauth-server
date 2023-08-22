@@ -24,52 +24,52 @@ spec:
               valueFrom:
                 secretKeyRef:
                   key: db-host
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   key: db-name
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   key: db-user
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   key: db-password
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: AUTHORIZATION_CODE_EXPIRES_MS
               value: "300000"
             - name: COOKIE_ENCRYPTION_SECRET
               valueFrom:
                 secretKeyRef:
                   key: cookie-encryption-secret
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: COOKIE_ENCRYPTION_ALGORITHM
               value: "AES"
             - name: LOGIN_SIGNUP_ENDPOINT
-              value: "https://auth.test.id.realityos.one/signin"
+              value: "https://auth.stage.id.realityos.one/signin"
             - name: S3_SERVICE_AWS_BUCKET
-              value: "tmrw-id-test"
+              value: "tmrw-id-stage"
             - name: S3_SERVICE_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   key: s3-access-key
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: S3_SERVICE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   key: s3-secret-key
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
             - name: S3_SERVICE_REGION
               value: "eu-central-1"
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   key: jwt-secret-key
-                  name: oauth-server-secrets-test
+                  name: oauth-server-secrets-stage
           imagePullPolicy: Always
           resources: {}
           ports:

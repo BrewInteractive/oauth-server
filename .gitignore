@@ -122,5 +122,7 @@ nb-configuration.xml
 ##############################
 /.kubernetes/test/kustomization.yml
 /.kubernetes/test/secret.yml
+/.kubernetes/stage/kustomization.yml
+/.kubernetes/stage/secret.yml
 /.kubernetes/production/kustomization.yml
 /.kubernetes/production/secret.yml
