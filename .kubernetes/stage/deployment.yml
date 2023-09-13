@@ -51,20 +51,6 @@ spec:
               value: "AES"
             - name: LOGIN_SIGNUP_ENDPOINT
               value: "https://auth.stage.id.realityos.one/signin"
-            - name: S3_SERVICE_AWS_BUCKET
-              value: "tmrw-id-stage"
-            - name: S3_SERVICE_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: s3-access-key
-                  name: oauth-server-secrets-stage
-            - name: S3_SERVICE_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: s3-secret-key
-                  name: oauth-server-secrets-stage
-            - name: S3_SERVICE_REGION
-              value: "eu-central-1"
             - name: JWT_SECRET_KEY
               valueFrom:
                 secretKeyRef:

@@ -33,10 +33,6 @@ public class ClientFixture extends Fixture<Client> {
         this.redirectUriModelFixture = new RedirectUriFixture();
     }
 
-    public static String getClientLogo() {
-        return "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
-    }
-
     public Client createRandomOne(Boolean withChildren) {
         return createRandomOne(defaultResponseTypeOptions, defaultGrantTypeOptions, withChildren);
     }
