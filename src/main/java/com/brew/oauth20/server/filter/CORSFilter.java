@@ -62,6 +62,12 @@ public class CORSFilter extends OncePerRequestFilter {
         }
     }
 
+    private static boolean isSwaggerUIRequest(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        var result = requestURI != null && (requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs"));
+        return result;
+    }
+
     private static String getOrigin(HttpServletRequest request) throws MalformedURLException {
         var origin = request.getHeader("Origin");
         if (origin == null || origin.isBlank() || origin.isEmpty()) {
@@ -100,7 +106,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
         var origin = getOrigin(request);
 
-        if (origin != null) {
+        if (origin != null && !isSwaggerUIRequest(request)) {
             if (request.getMethod().equals("OPTIONS")) {
                 response.setHeader("Access-Control-Allow-Origin", origin);
                 response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
