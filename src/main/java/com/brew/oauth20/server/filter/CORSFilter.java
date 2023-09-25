@@ -64,8 +64,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
     private static boolean isSwaggerUIRequest(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
-        var result = requestURI != null && (requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs"));
-        return result;
+        return requestURI != null && (requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs"));
     }
 
     private static String getOrigin(HttpServletRequest request) throws MalformedURLException {
