@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ import java.util.Map;
 public class CORSFilter extends OncePerRequestFilter {
     @Autowired
     ClientService clientService;
+    private final List<String> allowedOrigins = Arrays.asList("/swagger-ui", "/v3/api-docs");
 
     private static String readClientIdFromBody(HttpServletRequest request) {
         String clientId;
@@ -62,11 +64,6 @@ public class CORSFilter extends OncePerRequestFilter {
         }
     }
 
-    private static boolean isSwaggerUIRequest(HttpServletRequest request) {
-        String requestURI = request.getRequestURI();
-        return requestURI != null && (requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs"));
-    }
-
     private static String getOrigin(HttpServletRequest request) throws MalformedURLException {
         var origin = request.getHeader("Origin");
         if (origin == null || origin.isBlank() || origin.isEmpty()) {
@@ -79,8 +76,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
                 // Extract the origin (scheme + host)
                 origin = refererURL.getProtocol() + "://" + refererURL.getHost();
-                if (refererURL.getPort() != -1)
-                    origin += ":" + refererURL.getPort();
+                if (refererURL.getPort() != -1) origin += ":" + refererURL.getPort();
             }
         }
 
@@ -105,7 +101,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
         var origin = getOrigin(request);
 
-        if (origin != null && !isSwaggerUIRequest(request)) {
+        if (origin != null && allowedOrigins.contains(origin)) {
             if (request.getMethod().equals("OPTIONS")) {
                 response.setHeader("Access-Control-Allow-Origin", origin);
                 response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
@@ -122,9 +118,7 @@ public class CORSFilter extends OncePerRequestFilter {
                 else {
                     var webOrigins = clientService.getWebOrigins(clientId);
 
-                    addCorsConfiguration(request, response, webOrigins.stream()
-                            .map(WebOriginModel::webOrigin)
-                            .toList());
+                    addCorsConfiguration(request, response, webOrigins.stream().map(WebOriginModel::webOrigin).toList());
 
                 }
             }
@@ -136,10 +130,8 @@ public class CORSFilter extends OncePerRequestFilter {
     @Nullable
     private String readClientId(HttpServletRequest request) {
         var clientId = readClientIdFromAuthorizationHeader(request);
-        if (clientId == null)
-            clientId = readClientIfFromQueryString(request);
-        if (clientId == null)
-            clientId = readClientIdFromBody(request);
+        if (clientId == null) clientId = readClientIfFromQueryString(request);
+        if (clientId == null) clientId = readClientIdFromBody(request);
         return clientId;
     }
 
@@ -148,8 +140,7 @@ public class CORSFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && !authorizationHeader.isEmpty()) {
             var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-            if (clientCredentials.isPresent())
-                clientId = clientCredentials.get().getFirst();
+            if (clientCredentials.isPresent()) clientId = clientCredentials.get().getFirst();
         }
         return clientId;
     }
