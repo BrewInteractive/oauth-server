@@ -74,8 +74,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
                 // Extract the origin (scheme + host)
                 origin = refererURL.getProtocol() + "://" + refererURL.getHost();
-                if (refererURL.getPort() != -1)
-                    origin += ":" + refererURL.getPort();
+                if (refererURL.getPort() != -1) origin += ":" + refererURL.getPort();
             }
         }
 
@@ -117,9 +116,7 @@ public class CORSFilter extends OncePerRequestFilter {
                 else {
                     var webOrigins = clientService.getWebOrigins(clientId);
 
-                    addCorsConfiguration(request, response, webOrigins.stream()
-                            .map(WebOriginModel::webOrigin)
-                            .toList());
+                    addCorsConfiguration(request, response, webOrigins.stream().map(WebOriginModel::webOrigin).toList());
 
                 }
             }
@@ -131,10 +128,8 @@ public class CORSFilter extends OncePerRequestFilter {
     @Nullable
     private String readClientId(HttpServletRequest request) {
         var clientId = readClientIdFromAuthorizationHeader(request);
-        if (clientId == null)
-            clientId = readClientIfFromQueryString(request);
-        if (clientId == null)
-            clientId = readClientIdFromBody(request);
+        if (clientId == null) clientId = readClientIfFromQueryString(request);
+        if (clientId == null) clientId = readClientIdFromBody(request);
         return clientId;
     }
 
@@ -143,8 +138,7 @@ public class CORSFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && !authorizationHeader.isEmpty()) {
             var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-            if (clientCredentials.isPresent())
-                clientId = clientCredentials.get().getFirst();
+            if (clientCredentials.isPresent()) clientId = clientCredentials.get().getFirst();
         }
         return clientId;
     }
