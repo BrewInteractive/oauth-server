@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +30,6 @@ import java.util.Map;
 public class CORSFilter extends OncePerRequestFilter {
     @Autowired
     ClientService clientService;
-    private final List<String> allowedOrigins = Arrays.asList("/swagger-ui", "/v3/api-docs");
 
     private static String readClientIdFromBody(HttpServletRequest request) {
         String clientId;
@@ -101,7 +99,7 @@ public class CORSFilter extends OncePerRequestFilter {
 
         var origin = getOrigin(request);
 
-        if (origin != null && allowedOrigins.contains(origin)) {
+        if (origin != null) {
             if (request.getMethod().equals("OPTIONS")) {
                 response.setHeader("Access-Control-Allow-Origin", origin);
                 response.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
