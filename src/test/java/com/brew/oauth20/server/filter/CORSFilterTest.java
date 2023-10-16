@@ -230,7 +230,7 @@ class CORSFilterTest {
     }
 
     @Test
-    void should_return_false_when_is_not_finished() {
+    void should_isFinisted_return_false_when_is_not_finished() {
         // Arrange
         InputStream inputStream = new ByteArrayInputStream(new byte[1]); // Create an input stream with one byte
         CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(inputStream);
@@ -240,6 +240,22 @@ class CORSFilterTest {
 
         // Assert
         assertFalse(result, "The isFinished method should return false for a non-empty input stream.");
+    }
+
+    @Test
+    void should_isFinisted_return_false_when_IOException_is_thrown() throws IOException {
+        // Arrange
+        InputStream inputStream = Mockito.mock(InputStream.class);
+        // Configure the mock to throw an IOException when available() is called
+        Mockito.when(inputStream.available()).thenThrow(new IOException());
+
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(inputStream);
+
+        // Act
+        boolean result = cachedBodyInputStream.isFinished();
+
+        // Assert
+        assertFalse(result, "The isFinished method should return false and catch an IOException.");
     }
 
     @Test
