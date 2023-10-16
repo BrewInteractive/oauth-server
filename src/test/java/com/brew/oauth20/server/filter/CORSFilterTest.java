@@ -149,6 +149,31 @@ class CORSFilterTest {
         verify(filterChain).doFilter(any(), eq(response));
     }
 
+    @Test
+    void should_extract_origin_from_referer_header() throws ServletException, IOException {
+        // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        FilterChain filterChain = mock(FilterChain.class);
+
+        // Set the "Referer" header in the request
+        String refererHeader = "https://example.com:8080/somepath";
+        when(request.getHeader("Referer")).thenReturn(refererHeader);
+        when(request.getMethod()).thenReturn("OPTIONS");
+
+        // Act
+        corsFilter.doFilterInternal(request, response, filterChain);
+
+        // Assert
+        // Verify that the response has the expected "Access-Control-Allow-Origin" header
+        verify(response).setHeader("Access-Control-Allow-Origin", "https://example.com:8080");
+        // Verify that other headers are set correctly
+        verify(response).addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
+        verify(response).addHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+        verify(response).addHeader("Access-Control-Allow-Credentials", "true");
+        verify(filterChain).doFilter(any(), eq(response));
+    }
+
 
     @Test
     void should_not_add_cors_configuration_when_no_origin_header_is_present() throws ServletException, IOException {
