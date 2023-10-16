@@ -121,11 +121,14 @@ class CORSFilterTest {
     void should_set_response_status_to_200_for_options_request() throws ServletException, IOException {
         // Arrange
         HttpServletRequest request = mock(HttpServletRequest.class);
+        var origin = "https://example.com";
 
+        // Use a real HttpServletResponse instance
         MockHttpServletResponse response = new MockHttpServletResponse();
         FilterChain filterChain = mock(FilterChain.class);
 
         // Setting up the request to have "OPTIONS" method
+        when(request.getHeader("Origin")).thenReturn(origin);
         when(request.getMethod()).thenReturn("OPTIONS");
 
         // Act
@@ -134,12 +137,18 @@ class CORSFilterTest {
         // Assert
         // Verify that the response status is set to SC_OK (200)
         assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        // Verify that the headers are set correctly for an OPTIONS request
+        assertEquals(origin, response.getHeader("Access-Control-Allow-Origin"));
+        assertEquals("GET, POST, OPTIONS, HEAD", response.getHeader("Access-Control-Allow-Methods"));
+        assertEquals("Authorization, Content-Type", response.getHeader("Access-Control-Allow-Headers"));
+        assertEquals("true", response.getHeader("Access-Control-Allow-Credentials"));
         // Verify that no other method is called on the response object
         assertNull(response.getContentType());
 
         // Verify that the filterChain is called
         verify(filterChain).doFilter(any(), eq(response));
     }
+
 
     @Test
     void should_not_add_cors_configuration_when_no_origin_header_is_present() throws ServletException, IOException {
