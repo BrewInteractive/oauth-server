@@ -19,6 +19,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -215,4 +216,66 @@ class CORSFilterTest {
         assertThrows(IllegalStateException.class, () -> corsFilter.doFilterInternal(request, response, filterChain));
     }
 
+    @Test
+    void should_return_true_when_is_finished() {
+        // Arrange
+        InputStream inputStream = new ByteArrayInputStream(new byte[0]); // Create an empty input stream
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(inputStream);
+
+        // Act
+        boolean result = cachedBodyInputStream.isFinished();
+
+        // Assert
+        assertTrue(result, "The isFinished method should return true for an empty input stream.");
+    }
+
+    @Test
+    void should_isFinisted_return_false_when_is_not_finished() {
+        // Arrange
+        InputStream inputStream = new ByteArrayInputStream(new byte[1]); // Create an input stream with one byte
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(inputStream);
+
+        // Act
+        boolean result = cachedBodyInputStream.isFinished();
+
+        // Assert
+        assertFalse(result, "The isFinished method should return false for a non-empty input stream.");
+    }
+
+    @Test
+    void should_isFinisted_return_false_when_IOException_is_thrown() throws IOException {
+        // Arrange
+        InputStream inputStream = Mockito.mock(InputStream.class);
+        // Configure the mock to throw an IOException when available() is called
+        Mockito.when(inputStream.available()).thenThrow(new IOException());
+
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(inputStream);
+
+        // Act
+        boolean result = cachedBodyInputStream.isFinished();
+
+        // Assert
+        assertFalse(result, "The isFinished method should return false and catch an IOException.");
+    }
+
+    @Test
+    void should_isReady_always_return_true() {
+        // Arrange
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(new ByteArrayInputStream(new byte[0]));
+
+        // Act
+        boolean result = cachedBodyInputStream.isReady();
+
+        // Assert
+        assertTrue(result, "The isReady method should always return true.");
+    }
+
+    @Test
+    void setReadListener_should_not_throw_exceptions() {
+        // Arrange
+        CORSFilter.CachedBodyServletInputStream cachedBodyInputStream = new CORSFilter.CachedBodyServletInputStream(new ByteArrayInputStream(new byte[0]));
+
+        // Act and Assert
+        assertDoesNotThrow(() -> cachedBodyInputStream.setReadListener(null), "The setReadListener method should not throw exceptions.");
+    }
 }
