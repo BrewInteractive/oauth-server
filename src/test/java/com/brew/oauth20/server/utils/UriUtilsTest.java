@@ -4,8 +4,11 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,5 +46,16 @@ class UriUtilsTest {
     @ParameterizedTest
     void should_validate_uri_list(String uri, boolean expected) {
         assertEquals(expected, UriUtils.isValidUrl(uri));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "https://www.example.com/test/page.html?param=value, https://www.example.com/test/page.html",
+            "https://www.example.com/test/page.html, https://www.example.com/test/page.html",
+            "https://www.example.com, https://www.example.com"
+    })
+    void should_validate_uri(String uri, String expected) throws MalformedURLException {
+        URL url = new URL(uri);
+        assertEquals(expected, UriUtils.getWithoutQueryParams(url));
     }
 }
