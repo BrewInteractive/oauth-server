@@ -130,5 +130,21 @@ class ClientServiceTest {
                 .hasSize(expectedWebOriginModels.size())
                 .containsExactlyElementsOf(expectedWebOriginModels);
     }
+
+    @Test
+    void should_check_if_client_exists_by_client_id() {
+        // Arrange
+        String clientId = "testClientId";
+
+        // Mock the behavior of clientRepository.existsByClientId
+        when(clientRepository.existsByClientId(clientId)).thenReturn(true);
+
+        // Act
+        boolean result = clientService.existsByClientId(clientId);
+
+        // Assert
+        assertThat(result).isTrue();
+    }
+
 }
 
