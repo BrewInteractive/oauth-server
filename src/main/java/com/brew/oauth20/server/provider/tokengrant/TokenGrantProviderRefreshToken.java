@@ -40,9 +40,9 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
             if (Boolean.FALSE.equals(validationResult.getResult()))
                 return new TokenResultModel(null, validationResult.getError());
 
-            var newRefreshTokenCode = StringUtils.generateSecureRandomString(54);
+            var newRefreshToken = StringUtils.generateSecureRandomString(54);
 
-            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshTokenCode);
+            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays(), newRefreshToken);
 
             var userId = refreshToken.getClientUser().getUserId();
 
