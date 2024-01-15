@@ -57,7 +57,7 @@ spec:
                   key: jwt-secret-key
                   name: oauth-server-secrets-test
             - name: ENABLE_SWAGGER
-              value: true
+              value: "true"
           imagePullPolicy: Always
           resources: {}
           ports:
