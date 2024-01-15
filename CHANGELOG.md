@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/BrewInteractive/oauth-server/compare/v1.7.8...v1.8.0) (2024-01-15)
+
+
+### Features
+
+* **TMID-555:** swagger endpoint created ([1b9ace0](https://github.com/BrewInteractive/oauth-server/commit/1b9ace0da7c92d54ac972701acfce68fdf760b27))
+
+
+### Bug Fixes
+
+* **TMID-537:** remove unnecessary client upload endpoint, aws, s3 dependency, file upload providers ([a0a6ef2](https://github.com/BrewInteractive/oauth-server/commit/a0a6ef2aa4c971a51d116391f1823adc0cf2b20e))
+* **TMID-537:** remove unnecessary client upload endpoint, aws, s3 dependency, file upload providers ([976cc0b](https://github.com/BrewInteractive/oauth-server/commit/976cc0b46897f882e68fbc67a4c44cc0fb1ee552))
+* **TMID-555:** removed isSwaggerUIRequest method in CORSFilter.java and add urlPattern in FilterConfig.java ([a7d2daa](https://github.com/BrewInteractive/oauth-server/commit/a7d2daa5ebf7f5d695bf308f554b87826dcacb8c))
+* **TMID-555:** Updated isSwaggerUIRequest method in CORSFilter.java ([0787166](https://github.com/BrewInteractive/oauth-server/commit/0787166a1791528b99b9d63f45c8db5476fe0e71))
+
 ### [1.7.8](https://github.com/BrewInteractive/oauth-server/compare/v1.7.7...v1.7.8) (2023-08-17)
 
 
