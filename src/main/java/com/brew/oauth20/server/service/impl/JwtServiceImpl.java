@@ -18,6 +18,7 @@ import java.util.Date;
 public class JwtServiceImpl implements JwtService {
     @Value("${jwt.secret.key}")
     String jwtSecretKey;
+
     @Override
     public TokenModel signToken(SignTokenOptions signTokenOptions) {
         var expiresInSeconds = signTokenOptions.tokenExpiresInMinutes() * 60L;
@@ -50,13 +51,6 @@ public class JwtServiceImpl implements JwtService {
                 .expiresIn(expiresInSeconds)
                 .state(signTokenOptions.state())
                 .build();
-    }
-
-    @Override
-    public TokenModel signToken(SignTokenOptions signTokenOptions, String refreshToken) {
-        var token = signToken(signTokenOptions);
-        token.setRefreshToken(refreshToken);
-        return token;
     }
 
     private Key getSigningKey(String signingKey) {

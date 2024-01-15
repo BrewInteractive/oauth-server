@@ -35,7 +35,8 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, int refreshTokenExpiresIn, Map<String, Object> additionalClaims) {
         var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
-        var tokenModel = jwtService.signToken(signTokenOptions, refreshToken);
+        var tokenModel = jwtService.signToken(signTokenOptions);
+        tokenModel.setRefreshToken(refreshToken);
         tokenModel.setRefreshTokenExpiresIn(refreshTokenExpiresIn);
         return tokenModel;
     }

@@ -25,7 +25,7 @@ class JwtServiceTest {
         faker = new Faker();
     }
 
-    private static Stream<Arguments> should_sign_token_without_user_id() {
+    private static Stream<Arguments> should_sign_token_without_subject() {
         return Stream.of(
                 Arguments.of(
                         faker.internet().url(),
@@ -46,7 +46,7 @@ class JwtServiceTest {
         );
     }
 
-    private static Stream<Arguments> should_sign_token_without_refresh_token() {
+    private static Stream<Arguments> should_sign_token_with_subject() {
         return Stream.of(
                 Arguments.of(
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
@@ -70,35 +70,9 @@ class JwtServiceTest {
         );
     }
 
-    private static Stream<Arguments> should_sign_token_with_refresh_token() {
-        return Stream.of(
-                Arguments.of(
-                        String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
-                        faker.internet().url(),
-                        faker.internet().url(),
-                        faker.lordOfTheRings().character(),
-                        faker.random().nextInt(Integer.MAX_VALUE),
-                        new HashMap<String, Object>() {{
-                            put("client_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
-                            put("user_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
-                        }},
-                        faker.letterify("???????????????????????????????????????????????????")
-                ),
-                Arguments.of(
-                        String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
-                        faker.internet().url(),
-                        faker.internet().url(),
-                        faker.lordOfTheRings().character(),
-                        faker.random().nextInt(Integer.MAX_VALUE),
-                        null,
-                        faker.letterify("???????????????????????????????????????????????????")
-                )
-        );
-    }
-
     @ParameterizedTest
     @MethodSource
-    void should_sign_token_without_user_id(String audience,
+    void should_sign_token_without_subject(String audience,
                                            String issuerUri,
                                            String state,
                                            Integer tokenExpiresInMinutes,
@@ -120,12 +94,12 @@ class JwtServiceTest {
 
     @ParameterizedTest
     @MethodSource
-    void should_sign_token_without_refresh_token(String subject,
-                                                 String audience,
-                                                 String issuerUri,
-                                                 String state,
-                                                 Integer tokenExpiresInMinutes,
-                                                 HashMap<String, Object> additionalClaims) {
+    void should_sign_token_with_subject(String subject,
+                                        String audience,
+                                        String issuerUri,
+                                        String state,
+                                        Integer tokenExpiresInMinutes,
+                                        HashMap<String, Object> additionalClaims) {
 
         // Act
         var jwtService = new JwtServiceImpl();
@@ -139,29 +113,5 @@ class JwtServiceTest {
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
         assertThat(result.getExpiresIn()).isPositive();
         assertThat(result.getRefreshToken()).isBlank();
-    }
-
-    @ParameterizedTest
-    @MethodSource
-    void should_sign_token_with_refresh_token(String subject,
-                                              String audience,
-                                              String issuerUri,
-                                              String state,
-                                              Integer tokenExpiresInMinutes,
-                                              HashMap<String, Object> additionalClaims,
-                                              String refreshToken) {
-
-        // Act
-        var jwtService = new JwtServiceImpl();
-        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", faker.letterify("?".repeat(32)));
-        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, state, tokenExpiresInMinutes, additionalClaims), refreshToken);
-
-        // Assert
-        assertThat(result.getTokenType()).isEqualTo("Bearer");
-        assertThat(result.getState()).isEqualTo(state);
-        assertThat(result.getAccessToken()).isNotBlank();
-        assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isPositive();
-        assertThat(result.getRefreshToken()).isEqualTo(refreshToken);
     }
 }

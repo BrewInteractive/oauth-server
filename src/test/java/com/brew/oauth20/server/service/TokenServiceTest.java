@@ -212,7 +212,7 @@ class TokenServiceTest {
                 client.tokenExpiresInMinutes(),
                 Map.of());
 
-        when(jwtService.signToken(signTokenOptions, refreshToken.getToken())).
+        when(jwtService.signToken(signTokenOptions)).
                 thenReturn(token);
 
         when(refreshTokenService.createRefreshToken(eq(client.clientId()), eq(userId), anyString(), eq(client.refreshTokenExpiresInDays()))).
