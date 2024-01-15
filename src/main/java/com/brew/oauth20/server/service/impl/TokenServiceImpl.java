@@ -16,10 +16,16 @@ import java.util.Map;
 public class TokenServiceImpl implements TokenService {
 
     private static final int REFRESH_TOKEN_LENGTH = 64;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+
     @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private RefreshTokenService refreshTokenService;
+    public TokenServiceImpl(JwtService jwtService,
+                            RefreshTokenService refreshTokenService) {
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+
+    }
 
     @Override
     public TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
