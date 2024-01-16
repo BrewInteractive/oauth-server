@@ -6,8 +6,7 @@ public record SignTokenOptions(
         String subject,
         String audience,
         String issuerUri,
-        String state,
-        Integer tokenExpiresInMinutes,
+        Integer expiresInSeconds,
         Map<String, Object> additionalClaims
 ) {
 }

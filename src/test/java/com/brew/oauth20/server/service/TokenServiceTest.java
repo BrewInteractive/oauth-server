@@ -5,7 +5,6 @@ import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.RefreshTokenFixture;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.SignTokenOptions;
-import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.service.impl.TokenServiceImpl;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -63,7 +62,6 @@ class TokenServiceTest {
                         clientModelFixture.createRandomOne(false),
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
-                        faker.random().nextLong(Long.MAX_VALUE),
                         "Bearer",
                         new HashMap<>()
                 )
@@ -78,7 +76,6 @@ class TokenServiceTest {
                         faker.letterify("?").repeat(20),
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
-                        faker.random().nextLong(Long.MAX_VALUE),
                         "Bearer",
                         new HashMap<>()
                 )
@@ -93,7 +90,6 @@ class TokenServiceTest {
                         faker.letterify("?").repeat(20),
                         faker.lordOfTheRings().location(),
                         faker.regexify("[A-Za-z0-9]{150}"),
-                        faker.random().nextLong(Long.MAX_VALUE),
                         refreshTokenFixture.createRandomOne(),
                         "Bearer",
                         new HashMap<>()
@@ -112,32 +108,23 @@ class TokenServiceTest {
     void should_generate_token_without_user_id(ClientModel client,
                                                String state,
                                                String accessToken,
-                                               long expiresIn,
                                                String tokenType,
                                                Map<String, Object> additionalClaims) {
         // Arrange
-        var token = TokenModel.builder()
-                .accessToken(accessToken)
-                .expiresIn(expiresIn)
-                .state(state)
-                .tokenType(tokenType)
-                .build();
-
         var signTokenOptions = new SignTokenOptions(null,
                 client.audience(),
                 client.issuerUri(),
-                state,
-                client.tokenExpiresInMinutes(),
+                client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
-                thenReturn(token);
+                thenReturn(accessToken);
 
         // Act
         var result = tokenService.generateToken(client, state, additionalClaims);
 
         // Assert
-        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getTokenType()).isEqualTo(tokenType);
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
@@ -152,32 +139,23 @@ class TokenServiceTest {
                                                      String userId,
                                                      String state,
                                                      String accessToken,
-                                                     long expiresIn,
                                                      String tokenType,
                                                      Map<String, Object> additionalClaims) {
         // Arrange
-        var token = TokenModel.builder()
-                .accessToken(accessToken)
-                .expiresIn(expiresIn)
-                .state(state)
-                .tokenType(tokenType)
-                .build();
-
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
-                state,
-                client.tokenExpiresInMinutes(),
+                client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
-                thenReturn(token);
+                thenReturn(accessToken);
 
         // Act
         var result = tokenService.generateToken(client, userId, state, additionalClaims);
 
         // Assert
-        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getTokenType()).isEqualTo(tokenType);
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
@@ -192,28 +170,18 @@ class TokenServiceTest {
                                                   String userId,
                                                   String state,
                                                   String accessToken,
-                                                  long expiresIn,
                                                   RefreshToken refreshToken,
                                                   String tokenType,
                                                   Map<String, Object> additionalClaims) {
         // Arrange
-        var token = TokenModel.builder()
-                .accessToken(accessToken)
-                .expiresIn(expiresIn)
-                .refreshToken(refreshToken.getToken())
-                .state(state)
-                .tokenType(tokenType)
-                .build();
-
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
-                state,
-                client.tokenExpiresInMinutes(),
+                client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
-                thenReturn(token);
+                thenReturn(accessToken);
 
         when(refreshTokenService.createRefreshToken(eq(client.clientId()), eq(userId), anyString(), eq(client.refreshTokenExpiresInDays()))).
                 thenReturn(refreshToken);
@@ -223,7 +191,7 @@ class TokenServiceTest {
         var result = tokenService.generateToken(client, userId, state, additionalClaims);
 
         // Assert
-        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getTokenType()).isEqualTo(tokenType);
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
