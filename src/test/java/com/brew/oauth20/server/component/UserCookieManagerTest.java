@@ -69,8 +69,6 @@ class UserCookieManagerTest {
         var cookieValue = "{"
                 + "\"user_id\": \"" + userId + "\","
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
-                + "\"country_code\": \"" + faker.phoneNumber().subscriberNumber() + "\","
-                + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
         var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
@@ -110,8 +108,6 @@ class UserCookieManagerTest {
         var cookieValue = "{"
                 + "\"user_id\": \"" + userId + "\","
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
-                + "\"country_code\": \"" + faker.phoneNumber().subscriberNumber() + "\","
-                + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
         var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
