@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: oauth-server
-  strategy: {}
+  strategy: { }
   template:
     metadata:
       labels:
@@ -51,18 +51,13 @@ spec:
               value: "AES"
             - name: LOGIN_SIGNUP_ENDPOINT
               value: "https://auth.stage.id.realityos.one/signin"
-            - name: JWT_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  key: jwt-secret-key
-                  name: oauth-server-secrets-stage
             - name: ENABLE_SWAGGER
               value: "false"
           imagePullPolicy: Always
-          resources: {}
+          resources: { }
           ports:
             - containerPort: 8080
               protocol: TCP
       imagePullSecrets:
         - name: acr-secret
-status: {}
+status: { }

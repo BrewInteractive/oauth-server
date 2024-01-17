@@ -18,11 +18,10 @@ services:
       S3_SERVICE_SECRET_KEY: ${S3_SERVICE_SECRET_KEY}
       S3_SERVICE_REGION: ${S3_SERVICE_REGION}
       S3_SERVICE_AWS_BUCKET: ${S3_SERVICE_AWS_BUCKET}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       - oauth-server-postgres
 
-  oauth-server-postgres :
-      image: postgres:15
-      environment:
-        POSTGRES_PASSWORD: postgrespassword
+  oauth-server-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
