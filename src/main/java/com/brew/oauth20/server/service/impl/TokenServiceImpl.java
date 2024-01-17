@@ -26,7 +26,6 @@ public class TokenServiceImpl implements TokenService {
                             RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
-
     }
 
     @Override
@@ -78,6 +77,7 @@ public class TokenServiceImpl implements TokenService {
                 userId,
                 client.audience(),
                 client.issuerUri(),
+                client.clientSecretDecoded(),
                 client.tokenExpiresInMinutes() * 60,
                 additionalClaims
         );

@@ -36,7 +36,7 @@ public class JwtServiceImpl implements JwtService {
         // sign JWT token
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(getSigningKey(jwtSecretKey))
+                .signWith(getSigningKey(signTokenOptions.signingKey()))
                 .compact();
 
     }
