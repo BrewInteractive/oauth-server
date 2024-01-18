@@ -11,8 +11,13 @@ import org.springframework.stereotype.Component;
 public class TokenCookieManagerImpl implements TokenCookieManager {
     private static final String ACCESS_TOKEN_COOKIE_KEY = "access_token";
     private static final String REFRESH_TOKEN_COOKIE_KEY = "refresh_token";
+
+    private final CookieService cookieService;
+
     @Autowired
-    CookieService cookieService;
+    public TokenCookieManagerImpl(CookieService cookieService) {
+        this.cookieService = cookieService;
+    }
 
     @Override
     public void setTokens(HttpServletResponse response, TokenCookieModel tokenCookieModel) {

@@ -11,10 +11,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class ClientUserServiceImpl implements ClientUserService {
 
+    private final ClientsUserRepository clientsUserRepository;
+    private final ClientRepository clientRepository;
+
     @Autowired
-    private ClientsUserRepository clientsUserRepository;
-    @Autowired
-    private ClientRepository clientRepository;
+    public ClientUserServiceImpl(ClientsUserRepository clientsUserRepository,
+                                 ClientRepository clientRepository) {
+        this.clientsUserRepository = clientsUserRepository;
+        this.clientRepository = clientRepository;
+    }
 
     @Override
     public ClientUser create(String clientId, String userId) {

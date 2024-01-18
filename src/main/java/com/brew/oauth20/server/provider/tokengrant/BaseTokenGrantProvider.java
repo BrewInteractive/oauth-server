@@ -6,15 +6,23 @@ import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
+import com.brew.oauth20.server.service.TokenService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseTokenGrantProvider {
+    private final ClientService clientService;
     protected GrantType grantType;
     protected ClientModel client;
+    protected TokenService tokenService;
+
     @Autowired
-    ClientService clientService;
+
+    protected BaseTokenGrantProvider(ClientService clientService, TokenService tokenService) {
+        this.clientService = clientService;
+        this.tokenService = tokenService;
+    }
 
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
         String clientId;

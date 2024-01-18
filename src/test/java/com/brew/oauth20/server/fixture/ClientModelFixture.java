@@ -20,7 +20,6 @@ public class ClientModelFixture extends Fixture<ClientModel> {
     private final ResponseType[] defaultResponseTypeOptions = ResponseType.values();
     private final GrantType[] defaultGrantTypeOptions = GrantType.values();
     private final Integer defaultRedirectUriSize = 2;
-
     private final GrantModelFixture grantModelFixture;
     private final RedirectUriModelFixture redirectUriModelFixture;
 
@@ -35,6 +34,11 @@ public class ClientModelFixture extends Fixture<ClientModel> {
 
     public ClientModel createRandomOne(Boolean issueRefreshTokens) {
         return Instancio.of(clientModel(this.defaultGrantSize, issueRefreshTokens, this.defaultResponseTypeOptions, this.defaultGrantTypeOptions))
+                .create();
+    }
+
+    public ClientModel createRandomOne(Integer grantSize, Boolean issueRefreshTokens, GrantType[] grantTypeOptions) {
+        return Instancio.of(clientModel(grantSize, issueRefreshTokens, this.defaultResponseTypeOptions, grantTypeOptions))
                 .create();
     }
 

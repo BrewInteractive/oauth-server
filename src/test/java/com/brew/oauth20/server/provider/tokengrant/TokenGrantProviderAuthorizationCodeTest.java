@@ -1,13 +1,16 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.ActiveAuthorizationCode;
+import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.fixture.ActiveAuthorizationCodeFixture;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
+import com.brew.oauth20.server.fixture.RefreshTokenFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientService;
+import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +44,8 @@ class TokenGrantProviderAuthorizationCodeTest {
     TokenService tokenService;
     @Mock
     ClientService clientService;
+    @Mock
+    RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private TokenGrantProviderAuthorizationCode tokenGrantProviderAuthorizationCode;
@@ -48,73 +53,80 @@ class TokenGrantProviderAuthorizationCodeTest {
     private static Stream<Arguments> should_validate_authorization_code_provider() {
 
         var clientModelFixture = new ClientModelFixture();
-        var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
+        var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.authorization_code});
         var tokenRequestFixture = new TokenRequestModelFixture();
 
-        var validTokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
+        var validTokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
         validTokenRequest.setClient_id(client.clientId());
         validTokenRequest.setClient_secret(client.clientSecret());
 
-        var tokenRequestWithoutCode = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
+        var tokenRequestWithoutCode = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
         tokenRequestWithoutCode.setClient_id(client.clientId());
         tokenRequestWithoutCode.setClient_secret(client.clientSecret());
         tokenRequestWithoutCode.setCode("");
 
-        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
+        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
         tokenRequestWithoutClient.setClient_id("");
         tokenRequestWithoutClient.setClient_secret("");
 
         String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
 
-        var pair = Pair.of(client.clientId(), client.clientSecret());
+        var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
 
         return Stream.of(
                 //valid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         "",
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         null,
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
                 //invalid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        null),
+                        null,
+                        new ValidationResultModel(false, "unauthorized_client")
+                ),
                 //no auth code provided case
                 Arguments.of(client,
                         authorizationHeader,
                         tokenRequestWithoutCode,
-                        new ValidationResultModel(false, "invalid_request"),
-                        pair),
+                        clientCredentialsPair,
+                        new ValidationResultModel(false, "invalid_request")
+                ),
                 //no client credentials provided case
                 Arguments.of(client,
                         "",
                         tokenRequestWithoutClient,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        pair),
+                        clientCredentialsPair,
+                        new ValidationResultModel(false, "unauthorized_client")
+                ),
                 //client not found case
                 Arguments.of(null,
                         authorizationHeader,
                         validTokenRequest,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        pair)
+                        clientCredentialsPair,
+                        new ValidationResultModel(false, "unauthorized_client")
+                )
         );
     }
 
-    private static Stream<Arguments> should_generate_token_from_valid_request() {
+    private static Stream<Arguments> should_generate_token_from_valid_request_with_client_doesnt_issue_refresh_tokens() {
 
         var clientModelFixture = new ClientModelFixture();
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.authorization_code});
@@ -134,7 +146,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         tokenRequestWithoutClient.setClient_secret("");
 
         String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
-        var pair = Pair.of(client.clientId(), client.clientSecret());
+        var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
 
         var tokenModel = TokenModel.builder().build();
 
@@ -148,20 +160,66 @@ class TokenGrantProviderAuthorizationCodeTest {
                         authorizationHeader,
                         validTokenRequest,
                         activeAuthorizationCode,
-                        new TokenResultModel(tokenModel, null),
-                        pair),
+                        clientCredentialsPair,
+                        new TokenResultModel(tokenModel, null)),
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
                         null,
-                        new TokenResultModel(null, "invalid_request"),
-                        pair),
+                        clientCredentialsPair,
+                        new TokenResultModel(null, "invalid_request"))
+
+        );
+    }
+
+    private static Stream<Arguments> should_generate_token_from_valid_request_with_client_issues_refresh_tokens() {
+
+        var clientModelFixture = new ClientModelFixture();
+        var client = clientModelFixture.createRandomOne(1, true, new GrantType[]{GrantType.authorization_code});
+        var tokenRequestFixture = new TokenRequestModelFixture();
+
+        var validTokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
+        validTokenRequest.setClient_id(client.clientId());
+        validTokenRequest.setClient_secret(client.clientSecret());
+
+        var tokenRequestWithoutRefreshToken = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
+        tokenRequestWithoutRefreshToken.setClient_id(client.clientId());
+        tokenRequestWithoutRefreshToken.setClient_secret(client.clientSecret());
+        tokenRequestWithoutRefreshToken.setCode("");
+
+        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.authorization_code});
+        tokenRequestWithoutClient.setClient_id("");
+        tokenRequestWithoutClient.setClient_secret("");
+
+        String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+        var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
+
+        var tokenModel = TokenModel.builder().build();
+
+        var authorizationCodeFixture = new ActiveAuthorizationCodeFixture();
+        var activeAuthorizationCode = authorizationCodeFixture.createRandomOne();
+        activeAuthorizationCode.setCode(validTokenRequest.code);
+        activeAuthorizationCode.setRedirectUri(validTokenRequest.redirect_uri);
+
+        var refreshTokenFixture = new RefreshTokenFixture();
+        var refreshToken = refreshTokenFixture.createRandomOne();
+
+        return Stream.of(
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
                         activeAuthorizationCode,
-                        new TokenResultModel(null, "unauthorized_client"),
-                        null)
+                        refreshToken,
+                        clientCredentialsPair,
+                        new TokenResultModel(tokenModel, null)),
+                Arguments.of(client,
+                        authorizationHeader,
+                        validTokenRequest,
+                        null,
+                        refreshToken,
+                        clientCredentialsPair,
+                        new TokenResultModel(null, "invalid_request"))
+
         );
     }
 
@@ -175,10 +233,11 @@ class TokenGrantProviderAuthorizationCodeTest {
     @MethodSource
     @ParameterizedTest
     void should_validate_authorization_code_provider(ClientModel clientModel,
-                                                String authorizationHeader,
-                                                TokenRequestModel tokenRequest,
-                                                ValidationResultModel expectedResult,
-                                                Pair<String, String> clientCredentialsPair) {
+                                                     String authorizationHeader,
+                                                     TokenRequestModel tokenRequest,
+                                                     Pair<String, String> clientCredentialsPair,
+                                                     ValidationResultModel expectedResult
+    ) {
         // Arrange
         if (!tokenRequest.client_id.isEmpty() && !tokenRequest.client_secret.isEmpty())
             when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
@@ -196,22 +255,70 @@ class TokenGrantProviderAuthorizationCodeTest {
 
     @MethodSource
     @ParameterizedTest
-    void should_generate_token_from_valid_request(ClientModel clientModel,
-                                                  String authorizationHeader,
-                                                  TokenRequestModel tokenRequest,
-                                                  ActiveAuthorizationCode authorizationCode,
-                                                  TokenResultModel tokenResultModel,
-                                                  Pair<String, String> clientCredentialsPair) {
+    void should_generate_token_from_valid_request_with_client_doesnt_issue_refresh_tokens(ClientModel clientModel,
+                                                                                          String authorizationHeader,
+                                                                                          TokenRequestModel tokenRequest,
+                                                                                          ActiveAuthorizationCode authorizationCode,
+                                                                                          Pair<String, String> clientCredentialsPair,
+                                                                                          TokenResultModel tokenResultModel
+    ) {
 
         // Arrange
         when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
                 .thenReturn(clientModel);
+
         when(clientService.decodeClientCredentials(authorizationHeader))
-                .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
+                .thenReturn(Optional.of(clientCredentialsPair));
+
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true))
                 .thenReturn(authorizationCode);
-        if(authorizationCode != null){
-            when(tokenService.generateToken(clientModel, authorizationCode.getClientUser().getUserId(), tokenRequest.state, tokenRequest.additional_claims))
+
+        if (authorizationCode != null) {
+            when(tokenService.generateToken(clientModel,
+                    authorizationCode.getClientUser().getUserId(),
+                    tokenRequest.state,
+                    tokenRequest.additional_claims,
+                    null))
+                    .thenReturn(tokenResultModel.getResult());
+
+        }
+        // Act
+        var result = tokenGrantProviderAuthorizationCode.generateToken(authorizationHeader, tokenRequest);
+
+        // Assert
+        assertThat(result).isEqualTo(tokenResultModel);
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void should_generate_token_from_valid_request_with_client_issues_refresh_tokens(ClientModel clientModel,
+                                                                                    String authorizationHeader,
+                                                                                    TokenRequestModel tokenRequest,
+                                                                                    ActiveAuthorizationCode authorizationCode,
+                                                                                    RefreshToken refreshToken,
+                                                                                    Pair<String, String> clientCredentialsPair,
+                                                                                    TokenResultModel tokenResultModel
+    ) {
+
+        // Arrange
+        when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
+                .thenReturn(clientModel);
+
+        when(clientService.decodeClientCredentials(authorizationHeader))
+                .thenReturn(Optional.of(clientCredentialsPair));
+
+        when(authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true))
+                .thenReturn(authorizationCode);
+
+        if (authorizationCode != null) {
+            when(refreshTokenService.createRefreshToken(tokenRequest.client_id, authorizationCode.getClientUser().getUserId(), clientModel.refreshTokenExpiresInDays()))
+                    .thenReturn(refreshToken);
+
+            when(tokenService.generateToken(clientModel,
+                    authorizationCode.getClientUser().getUserId(),
+                    tokenRequest.state,
+                    tokenRequest.additional_claims,
+                    refreshToken.getToken()))
                     .thenReturn(tokenResultModel.getResult());
         }
         // Act

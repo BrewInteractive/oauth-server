@@ -29,8 +29,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -200,9 +198,9 @@ class TokenGrantProviderRefreshTokenTest {
                 .thenReturn(clientModel);
         when(clientService.decodeClientCredentials(authorizationCode))
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
-        when(refreshTokenService.revokeRefreshToken(eq(tokenRequest.client_id), eq(tokenRequest.refresh_token), eq(clientModel.refreshTokenExpiresInDays()), anyString()))
+        when(refreshTokenService.revokeRefreshToken(tokenRequest.client_id, tokenRequest.refresh_token, clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, refreshToken.getToken(), clientModel.refreshTokenExpiresInDays() * 24 * 60 * 60, tokenRequest.additional_claims))
+        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.state, tokenRequest.additional_claims, refreshToken.getToken()))
                 .thenReturn(tokenResultModel.getResult());
 
         // Act

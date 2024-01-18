@@ -18,15 +18,23 @@ import java.util.*;
 
 @Service
 public class ClientServiceImpl implements ClientService {
+    private final ClientRepository clientRepository;
+    private final ClientMapper clientMapper;
+    private final WebOriginRepository webOriginRepository;
+    private final WebOriginMapper webOriginMapper;
     Logger logger = LoggerFactory.getLogger(ClientServiceImpl.class);
+
     @Autowired
-    private ClientRepository clientRepository;
-    @Autowired
-    private ClientMapper clientMapper;
-    @Autowired
-    private WebOriginRepository webOriginRepository;
-    @Autowired
-    private WebOriginMapper webOriginMapper;
+    public ClientServiceImpl(ClientRepository clientRepository,
+                             WebOriginRepository webOriginRepository,
+                             ClientMapper clientMapper,
+                             WebOriginMapper webOriginMapper) {
+        this.clientRepository = clientRepository;
+        this.webOriginRepository = webOriginRepository;
+        this.clientMapper = clientMapper;
+        this.webOriginMapper = webOriginMapper;
+
+    }
 
     @Override
     public boolean existsByClientId(String clientId) {
@@ -59,7 +67,6 @@ public class ClientServiceImpl implements ClientService {
             return Optional.empty();
         }
     }
-
 
 
     @Override
