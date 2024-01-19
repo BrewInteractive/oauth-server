@@ -4,9 +4,9 @@ import com.brew.oauth20.server.component.UserCookieManager;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
+import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,18 +27,27 @@ import java.nio.charset.StandardCharsets;
 @RestController
 public class AuthorizeController {
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
-    @Autowired
-    private UserCookieManager userCookieManager;
-    @Autowired
-    private AuthorizationCodeService authorizationCodeService;
-    @Autowired
-    private AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
-    @Autowired
-    private ClientUserService clientUserService;
+    private final UserCookieManager userCookieManager;
+    private final AuthorizationCodeService authorizationCodeService;
+    private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
+    private final ClientUserService clientUserService;
+    private final Environment env;
+
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
+
     @Autowired
-    private Environment env;
+    public AuthorizeController(UserCookieManager userCookieManager,
+                               AuthorizationCodeService authorizationCodeService,
+                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
+                               ClientUserService clientUserService,
+                               Environment env) {
+        this.userCookieManager = userCookieManager;
+        this.authorizationCodeService = authorizationCodeService;
+        this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
+        this.clientUserService = clientUserService;
+        this.env = env;
+    }
 
     @GetMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizeGet(

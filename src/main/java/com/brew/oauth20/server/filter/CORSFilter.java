@@ -10,6 +10,7 @@ import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
@@ -86,13 +87,13 @@ public class CORSFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest initialRequest, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest initialRequest, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         byte[] requestBodyBytes = StreamUtils.copyToByteArray(initialRequest.getInputStream());
 
         HttpServletRequest request = new HttpServletRequestWrapper(initialRequest) {
             @Override
-            public ServletInputStream getInputStream() throws IOException {
+            public ServletInputStream getInputStream() {
                 return new CachedBodyServletInputStream(new ByteArrayInputStream(requestBodyBytes));
             }
         };

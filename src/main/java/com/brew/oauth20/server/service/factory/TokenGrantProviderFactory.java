@@ -5,6 +5,8 @@ import com.brew.oauth20.server.provider.tokengrant.BaseTokenGrantProvider;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderAuthorizationCode;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderClientCredentials;
 import com.brew.oauth20.server.provider.tokengrant.TokenGrantProviderRefreshToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Type;
@@ -12,7 +14,9 @@ import java.util.Map;
 
 @Component
 public class TokenGrantProviderFactory extends ServiceFactory<GrantType, BaseTokenGrantProvider> {
-    public TokenGrantProviderFactory() {
+    @Autowired
+    public TokenGrantProviderFactory(ApplicationContext context) {
+        super(context);
         Map<GrantType, Type> map = Map.of(
                 GrantType.refresh_token, TokenGrantProviderRefreshToken.class,
                 GrantType.authorization_code, TokenGrantProviderAuthorizationCode.class,
