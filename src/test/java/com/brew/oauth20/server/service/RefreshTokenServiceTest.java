@@ -8,8 +8,7 @@ import com.brew.oauth20.server.repository.ActiveRefreshTokenRepository;
 import com.brew.oauth20.server.repository.ClientsUserRepository;
 import com.brew.oauth20.server.repository.RefreshTokenRepository;
 import com.brew.oauth20.server.service.impl.RefreshTokenServiceImpl;
-import com.github.javafaker.Faker;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -32,9 +31,8 @@ import static org.mockito.Mockito.*;
 @DataJpaTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class RefreshTokenServiceTest {
-    private static Faker faker;
-    private static ClientsUserFixture clientsUserFixture;
-    private static ActiveRefreshTokenFixture activeRefreshTokenFixture;
+    private ClientsUserFixture clientsUserFixture;
+    private ActiveRefreshTokenFixture activeRefreshTokenFixture;
     @Mock
     private ClientsUserRepository clientsUserRepository;
     @Mock
@@ -42,36 +40,35 @@ class RefreshTokenServiceTest {
     @Mock
     private ActiveRefreshTokenRepository activeRefreshTokenRepository;
 
-    @BeforeAll
-    public static void init() {
-        faker = new Faker();
+    @BeforeEach
+    public void init() {
         clientsUserFixture = new ClientsUserFixture();
         activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
+        Mockito.reset(clientsUserRepository);
+        Mockito.reset(refreshTokenRepository);
+        Mockito.reset(activeRefreshTokenRepository);
     }
 
     @Test
     void should_create_and_return_refresh_token() throws ClientsUserNotFoundException {
         // Arrange
-        Mockito.reset(clientsUserRepository);
-        Mockito.reset(refreshTokenRepository);
         var clientUser = clientsUserFixture.createRandomOne();
         when(clientsUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.of(clientUser));
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(clientUser.getClient().getRefreshTokenExpiresInDays());
-        var token = faker.random().nextLong() + "";
 
         // Act
-        var refreshToken = service.createRefreshToken(clientUser.getClient().getClientId(), clientUser.getUserId(), token, clientUser.getClient().getRefreshTokenExpiresInDays());
+        var refreshToken = service.createRefreshToken(clientUser.getClient().getClientId(), clientUser.getUserId(), clientUser.getClient().getRefreshTokenExpiresInDays());
 
         // Assert
-        assertThat(refreshToken.getToken()).isEqualTo(token);
+        assertThat(refreshToken.getToken()).isNotBlank();
         assertThat(refreshToken.getClientUser()).isEqualTo(clientUser);
         assertThat(refreshToken.getExpiresAt().getDayOfYear()).isEqualTo(expirationDate.getDayOfYear());
         verify(refreshTokenRepository, times(1)).save(argThat(x ->
                 x.getClientUser().equals(clientUser)
-                        && x.getToken().equals(token)
+                        && !x.getToken().isBlank()
                         && x.getExpiresAt().getDayOfYear() == expirationDate.getDayOfYear()
         ));
     }
@@ -79,26 +76,21 @@ class RefreshTokenServiceTest {
     @Test
     void should_throws_clients_user_not_found_exception() {
         // Arrange
-        Mockito.reset(clientsUserRepository);
-        Mockito.reset(activeRefreshTokenRepository);
         when(clientsUserRepository.findByClientIdAndUserId(any(), any()))
                 .thenReturn(Optional.empty());
 
         // Act && Assert
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
-        assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", "", "", 0));
+        assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", "", 0));
     }
 
     @Test
     void should_revoke_refresh_token() throws RefreshTokenNotFoundException {
         // Arrange
-        Mockito.reset(clientsUserRepository);
-        Mockito.reset(refreshTokenRepository);
-        Mockito.reset(activeRefreshTokenRepository);
         var activeRefreshToken = activeRefreshTokenFixture.createRandomOne();
         var clientUser = clientsUserFixture.createRandomOne();
         activeRefreshToken.setClientUser(clientUser);
-        var newToken = faker.random().nextLong() + "";
+
         when(clientsUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.of(clientUser));
         when(activeRefreshTokenRepository.findByToken(activeRefreshToken.getToken()))
@@ -112,15 +104,14 @@ class RefreshTokenServiceTest {
                 clientsUserRepository).revokeRefreshToken(
                 clientUser.getClient().getClientId(),
                 activeRefreshToken.getToken(),
-                clientUser.getClient().getRefreshTokenExpiresInDays(),
-                newToken
+                clientUser.getClient().getRefreshTokenExpiresInDays()
         );
 
         // Assert
-        assertThat(refreshToken.getToken()).isEqualTo(newToken);
+        assertThat(refreshToken.getToken()).isNotBlank();
         verify(refreshTokenRepository, times(1)).save(argThat(x ->
                 x.getClientUser().equals(clientUser)
-                        && x.getToken().equals(newToken)
+                        && !x.getToken().isBlank()
                         && x.getExpiresAt().getDayOfYear() == expirationDate.getDayOfYear()
         ));
         verify(refreshTokenRepository, times(1)).save(argThat(x ->
@@ -134,11 +125,11 @@ class RefreshTokenServiceTest {
     @Test
     void should_throws_refresh_token_not_found_exception() {
         // Arrange
-        Mockito.reset(clientsUserRepository);
-        Mockito.reset(refreshTokenRepository);
         when(activeRefreshTokenRepository.findByToken(any()))
                 .thenReturn(Optional.empty());
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);        // Act && Assert
-        assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", "", 0, ""));
+        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientsUserRepository);
+
+        // Act && Assert
+        assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", "", 0));
     }
 }

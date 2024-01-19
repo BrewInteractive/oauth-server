@@ -8,8 +8,8 @@ import java.util.Map;
 public interface TokenService {
     TokenModel generateToken(ClientModel client, String state, Map<String, Object> additionalClaims);
 
-    TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims);
+    TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims, String refreshToken);
 
-    TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, int refreshTokenExpiresIn, Map<String, Object> additionalClaims);
+
 }
 

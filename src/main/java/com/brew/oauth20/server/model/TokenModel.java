@@ -18,8 +18,6 @@ public class TokenModel {
 
     @JsonProperty("expires_in")
     private long expiresIn;
-    @JsonProperty("refresh_token_expires_in")
-    private long refreshTokenExpiresIn;
 
     @JsonProperty("refresh_token")
     private String refreshToken;

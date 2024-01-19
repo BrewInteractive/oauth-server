@@ -5,8 +5,8 @@ import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.exception.RefreshTokenNotFoundException;
 
 public interface RefreshTokenService {
-    RefreshToken createRefreshToken(String clientId, String userId, String token, int expirationTimeInDays) throws ClientsUserNotFoundException;
+    RefreshToken createRefreshToken(String clientId, String userId, int expirationTimeInDays) throws ClientsUserNotFoundException;
 
-    RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException;
+    RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays) throws RefreshTokenNotFoundException;
 }
 

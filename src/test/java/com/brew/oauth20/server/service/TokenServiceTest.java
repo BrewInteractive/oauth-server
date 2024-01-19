@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -111,11 +109,12 @@ class TokenServiceTest {
                                                String tokenType,
                                                Map<String, Object> additionalClaims) {
         // Arrange
+        var expiresIn = client.tokenExpiresInMinutes() * 60;
         var signTokenOptions = new SignTokenOptions(null,
                 client.audience(),
                 client.issuerUri(),
+                expiresIn,
                 client.clientSecretDecoded(),
-                client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
         when(jwtService.signToken(signTokenOptions)).
@@ -129,7 +128,7 @@ class TokenServiceTest {
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isPositive();
+        assertThat(result.getExpiresIn()).isEqualTo(expiresIn);
         assertThat(result.getRefreshToken()).isBlank();
 
     }
@@ -143,25 +142,26 @@ class TokenServiceTest {
                                                      String tokenType,
                                                      Map<String, Object> additionalClaims) {
         // Arrange
+        var expiresIn = client.tokenExpiresInMinutes() * 60;
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
+                expiresIn,
                 client.clientSecretDecoded(),
-                client.tokenExpiresInMinutes() * 60,
-                Map.of());
+                additionalClaims);
 
         when(jwtService.signToken(signTokenOptions)).
                 thenReturn(accessToken);
 
         // Act
-        var result = tokenService.generateToken(client, userId, state, additionalClaims);
+        var result = tokenService.generateToken(client, userId, state, additionalClaims, null);
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo(tokenType);
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isPositive();
+        assertThat(result.getExpiresIn()).isEqualTo(expiresIn);
         assertThat(result.getRefreshToken()).isBlank();
 
     }
@@ -176,29 +176,27 @@ class TokenServiceTest {
                                                   String tokenType,
                                                   Map<String, Object> additionalClaims) {
         // Arrange
+        var expiresIn = client.tokenExpiresInMinutes() * 60;
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
+                expiresIn,
                 client.clientSecretDecoded(),
-                client.tokenExpiresInMinutes() * 60,
-                Map.of());
+                additionalClaims);
 
         when(jwtService.signToken(signTokenOptions)).
                 thenReturn(accessToken);
 
-        when(refreshTokenService.createRefreshToken(eq(client.clientId()), eq(userId), anyString(), eq(client.refreshTokenExpiresInDays()))).
-                thenReturn(refreshToken);
-
 
         // Act
-        var result = tokenService.generateToken(client, userId, state, additionalClaims);
+        var result = tokenService.generateToken(client, userId, state, additionalClaims, refreshToken.getToken());
 
         // Assert
         assertThat(result.getTokenType()).isEqualTo(tokenType);
         assertThat(result.getState()).isEqualTo(state);
         assertThat(result.getAccessToken()).isNotBlank();
         assertThat(result.getAccessToken().length()).isBetween(100, 1000);
-        assertThat(result.getExpiresIn()).isPositive();
+        assertThat(result.getExpiresIn()).isEqualTo(expiresIn);
         assertThat(result.getRefreshToken()).isEqualTo(refreshToken.getToken());
     }
 }

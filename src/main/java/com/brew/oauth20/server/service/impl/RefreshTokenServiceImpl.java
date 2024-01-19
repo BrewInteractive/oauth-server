@@ -9,6 +9,8 @@ import com.brew.oauth20.server.repository.ActiveRefreshTokenRepository;
 import com.brew.oauth20.server.repository.ClientsUserRepository;
 import com.brew.oauth20.server.repository.RefreshTokenRepository;
 import com.brew.oauth20.server.service.RefreshTokenService;
+import com.brew.oauth20.server.utils.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -18,11 +20,12 @@ import java.util.Optional;
 @Service
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
+    private static final int REFRESH_TOKEN_LENGTH = 64;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ActiveRefreshTokenRepository activeRefreshTokenRepository;
     private final ClientsUserRepository clientsUserRepository;
 
-
+    @Autowired
     public RefreshTokenServiceImpl(RefreshTokenRepository refreshTokenRepository,
                                    ActiveRefreshTokenRepository activeRefreshTokenRepository,
                                    ClientsUserRepository clientsUserRepository) {
@@ -31,24 +34,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         this.clientsUserRepository = clientsUserRepository;
     }
 
-
     @Override
-    public RefreshToken createRefreshToken(String clientId, String userId, String token, int expirationTimeInDays) throws ClientsUserNotFoundException {
-
+    public RefreshToken createRefreshToken(String clientId, String userId, int expirationTimeInDays) throws ClientsUserNotFoundException {
         Optional<ClientUser> clientsUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (clientsUser.isEmpty())
             throw new ClientsUserNotFoundException(clientId, userId);
 
-        OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
-        OffsetDateTime expirationDate = currentDate.plusDays(expirationTimeInDays);
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        OffsetDateTime expiresAt = now.plusDays(expirationTimeInDays);
+
+        String token = StringUtils.generateSecureRandomString(REFRESH_TOKEN_LENGTH);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .clientUser(clientsUser.get())
                 .token(token)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
-                .expiresAt(expirationDate)
+                .expiresAt(expiresAt)
                 .build();
 
         refreshTokenRepository.save(refreshToken);
@@ -57,7 +60,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    public RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays, String newToken) throws RefreshTokenNotFoundException {
+    public RefreshToken revokeRefreshToken(String clientId, String token, int expirationTimeInDays) throws RefreshTokenNotFoundException {
         var activeRefreshToken = activeRefreshTokenRepository.findByToken(token);
 
         if (activeRefreshToken.isEmpty())
@@ -67,7 +70,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         var userId = activeRefreshToken.get().getClientUser().getUserId();
 
-        var newRefreshToken = createRefreshToken(clientId, userId, newToken, expirationTimeInDays);
+        var newRefreshToken = createRefreshToken(clientId, userId, expirationTimeInDays);
 
         existingRefreshToken.setReplacedByToken(newRefreshToken);
         existingRefreshToken.setRevokedAt(OffsetDateTime.now());

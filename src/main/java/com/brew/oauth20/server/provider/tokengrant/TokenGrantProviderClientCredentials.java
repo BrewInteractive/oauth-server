@@ -4,17 +4,14 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
+import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider {
-    @Autowired
-    TokenService tokenService;
-
-    protected TokenGrantProviderClientCredentials() {
-        super();
+    protected TokenGrantProviderClientCredentials(ClientService clientService, TokenService tokenService) {
+        super(clientService, tokenService);
         this.grantType = GrantType.client_credentials;
     }
 

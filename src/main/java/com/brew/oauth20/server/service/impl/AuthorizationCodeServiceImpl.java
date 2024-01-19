@@ -8,6 +8,7 @@ import com.brew.oauth20.server.repository.ActiveAuthorizationCodeRepository;
 import com.brew.oauth20.server.repository.AuthorizationCodeRepository;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.utils.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -19,6 +20,7 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     private final AuthorizationCodeRepository authorizationCodeRepository;
     private final ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository;
 
+    @Autowired
     public AuthorizationCodeServiceImpl(AuthorizationCodeRepository authorizationCodeRepository,
                                         ActiveAuthorizationCodeRepository activeAuthorizationCodeRepository) {
         this.authorizationCodeRepository = authorizationCodeRepository;

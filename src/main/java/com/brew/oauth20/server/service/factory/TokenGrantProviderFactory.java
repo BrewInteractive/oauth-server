@@ -13,7 +13,6 @@ import java.util.Map;
 @Component
 public class TokenGrantProviderFactory extends ServiceFactory<GrantType, BaseTokenGrantProvider> {
     public TokenGrantProviderFactory() {
-
         Map<GrantType, Type> map = Map.of(
                 GrantType.refresh_token, TokenGrantProviderRefreshToken.class,
                 GrantType.authorization_code, TokenGrantProviderAuthorizationCode.class,

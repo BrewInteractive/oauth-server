@@ -84,7 +84,7 @@ class JwtServiceTest {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, signingKey, expiresInSeconds, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
 
         // Assert
         var claims = parseClaims(result, signingKey);
@@ -111,7 +111,7 @@ class JwtServiceTest {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, signingKey, expiresInSeconds, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
 
         // Assert
         var claims = parseClaims(result, signingKey);
