@@ -10,10 +10,13 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 public abstract class ServiceFactory<E extends Enum<E>, T> {
+    private final ApplicationContext context;
     private Map<E, Type> registeredServiceTypes;
 
     @Autowired
-    private ApplicationContext context;
+    protected ServiceFactory(ApplicationContext context) {
+        this.context = context;
+    }
 
     public T getService(E serviceType) throws MissingServiceException, UnsupportedServiceTypeException {
 
