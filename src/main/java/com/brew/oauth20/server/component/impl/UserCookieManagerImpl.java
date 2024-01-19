@@ -15,12 +15,17 @@ import java.util.Optional;
 @Component
 public class UserCookieManagerImpl implements UserCookieManager {
     private static final String USER_COOKIE_KEY = "user";
-    @Autowired
-    CookieService cookieService;
+
+    private final CookieService cookieService;
     @Value("${cookie.encryption.secret}")
     String cookieEncryptionSecret;
     @Value("${cookie.encryption.algorithm}")
     String cookieEncryptionAlgorithm;
+
+    @Autowired
+    public UserCookieManagerImpl(CookieService cookieService) {
+        this.cookieService = cookieService;
+    }
 
     public Optional<String> getUser(HttpServletRequest request) {
         try {
@@ -30,10 +35,13 @@ public class UserCookieManagerImpl implements UserCookieManager {
 
             var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
             var userCookieModel = UserCookieModel.parse(decryptedCookieValue);
-            if (userCookieModel.expires_at().isBefore(OffsetDateTime.now()))
-                return Optional.empty();
+            if (userCookieModel != null) {
+                if (userCookieModel.expires_at().isBefore(OffsetDateTime.now()))
+                    return Optional.empty();
 
-            return Optional.of(userCookieModel.user_id());
+                return Optional.of(userCookieModel.user_id());
+            }
+            return Optional.empty();
         } catch (Exception e) {
             return Optional.empty();
         }

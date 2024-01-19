@@ -9,7 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,7 +32,6 @@ class UserCookieManagerTest {
     private static Faker faker;
     @Mock
     CookieService cookieService;
-    @InjectMocks
     UserCookieManagerImpl userCookieManager;
 
     private static Stream<Arguments> should_get_null_value_if_cookie_does_not_exist() {
@@ -47,15 +45,12 @@ class UserCookieManagerTest {
         );
     }
 
-    @BeforeAll
-    void initialize() {
-        faker = new Faker();
-
-    }
 
     @BeforeEach
     void Setup() {
+        faker = new Faker();
         Mockito.reset(cookieService);
+        userCookieManager = new UserCookieManagerImpl(cookieService);
         ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionSecret", ENCRYPTION_SECRET);
         ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionAlgorithm", ENCRYPTION_ALGORITHM);
     }
