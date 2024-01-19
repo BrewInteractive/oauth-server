@@ -16,10 +16,18 @@ import java.util.Map;
 public class TokenServiceImpl implements TokenService {
 
     private static final int REFRESH_TOKEN_LENGTH = 64;
+    private static final String BEARER_TOKEN_TYPE = "Bearer";
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+
+
     @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private RefreshTokenService refreshTokenService;
+    public TokenServiceImpl(JwtService jwtService,
+                            RefreshTokenService refreshTokenService) {
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+
+    }
 
     @Override
     public TokenModel generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
@@ -28,31 +36,49 @@ public class TokenServiceImpl implements TokenService {
             return generateToken(client, userId, state, refreshToken.getToken(), client.refreshTokenExpiresInDays() * 24 * 60 * 60, additionalClaims);
         }
 
-        var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
-        return jwtService.signToken(signTokenOptions);
+        var signTokenOptions = createSignTokenOptions(client, userId, additionalClaims);
+        var accessToken = jwtService.signToken(signTokenOptions);
+        return TokenModel.builder()
+                .accessToken(accessToken)
+                .tokenType(BEARER_TOKEN_TYPE)
+                .expiresIn(signTokenOptions.expiresInSeconds())
+                .state(state)
+                .build();
     }
 
     @Override
     public TokenModel generateToken(ClientModel client, String userId, String state, String refreshToken, int refreshTokenExpiresIn, Map<String, Object> additionalClaims) {
-        var signTokenOptions = createSignTokenOptions(client, userId, state, additionalClaims);
-        var tokenModel = jwtService.signToken(signTokenOptions, refreshToken);
+        var signTokenOptions = createSignTokenOptions(client, userId, additionalClaims);
+        var accessToken = jwtService.signToken(signTokenOptions);
+        var tokenModel = TokenModel.builder()
+                .accessToken(accessToken)
+                .tokenType(BEARER_TOKEN_TYPE)
+                .expiresIn(signTokenOptions.expiresInSeconds())
+                .state(state)
+                .build();
+        tokenModel.setRefreshToken(refreshToken);
         tokenModel.setRefreshTokenExpiresIn(refreshTokenExpiresIn);
         return tokenModel;
     }
 
     @Override
     public TokenModel generateToken(ClientModel client, String state, Map<String, Object> additionalClaims) {
-        var signTokenOptions = createSignTokenOptions(client, null, state, additionalClaims);
-        return jwtService.signToken(signTokenOptions);
+        var signTokenOptions = createSignTokenOptions(client, null, additionalClaims);
+        var accessToken = jwtService.signToken(signTokenOptions);
+        return TokenModel.builder()
+                .accessToken(accessToken)
+                .tokenType(BEARER_TOKEN_TYPE)
+                .expiresIn(signTokenOptions.expiresInSeconds())
+                .state(state)
+                .build();
     }
 
-    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
+    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, Map<String, Object> additionalClaims) {
         return new SignTokenOptions(
                 userId,
                 client.audience(),
                 client.issuerUri(),
-                state,
-                client.tokenExpiresInMinutes(),
+                client.tokenExpiresInMinutes() * 60,
                 additionalClaims
         );
     }
