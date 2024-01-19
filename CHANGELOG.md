@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/BrewInteractive/oauth-server/compare/v1.8.0...v1.9.0) (2024-01-19)
+
+
+### Features
+
+* **TMID-930:** removed jwt.secret.key env. ([77bb887](https://github.com/BrewInteractive/oauth-server/commit/77bb887475bc7bd4287cde3814102a5e5eff235b))
+* **TMID-930:** sign tokens with client secret instead of jwt.secret.key env. ([9e254fe](https://github.com/BrewInteractive/oauth-server/commit/9e254fee0d428691f859d18757e1748ba363490a))
+
+
+### Bug Fixes
+
+* **TMID-853:** remove phone related properties from UserCookieModel,UserCookieModelTest,UserCookieManagerTest ([d3e7a18](https://github.com/BrewInteractive/oauth-server/commit/d3e7a1876a470f7a2baf091b6b252d736fa110f8))
+
 ## [1.8.0](https://github.com/BrewInteractive/oauth-server/compare/v1.7.8...v1.8.0) (2024-01-15)
 
 
