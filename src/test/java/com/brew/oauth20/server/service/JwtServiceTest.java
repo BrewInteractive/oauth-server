@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
@@ -35,18 +34,18 @@ class JwtServiceTest {
                 Arguments.of(
                         faker.internet().url(),
                         faker.internet().url(),
+                        faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
                         new HashMap<String, Object>() {{
                             put("additional_value", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
-                        }},
-                        faker.letterify("?".repeat(32))
+                        }}
                 ),
                 Arguments.of(
                         faker.internet().url(),
                         faker.internet().url(),
+                        faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
-                        null,
-                        faker.letterify("?".repeat(32))
+                        null
                 )
         );
     }
@@ -57,20 +56,20 @@ class JwtServiceTest {
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
                         faker.internet().url(),
                         faker.internet().url(),
+                        faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
                         new HashMap<String, Object>() {{
                             put("client_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
                             put("user_id", String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)));
-                        }},
-                        faker.letterify("?".repeat(32))
+                        }}
                 ),
                 Arguments.of(
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
                         faker.internet().url(),
                         faker.internet().url(),
+                        faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
-                        null,
-                        faker.letterify("?".repeat(32))
+                        null
                 )
         );
     }
@@ -79,17 +78,16 @@ class JwtServiceTest {
     @MethodSource
     void should_sign_token_without_subject(String audience,
                                            String issuerUri,
+                                           String signingKey,
                                            Integer expiresInSeconds,
-                                           HashMap<String, Object> additionalClaims,
-                                           String secret) {
+                                           HashMap<String, Object> additionalClaims) {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", secret);
-        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, expiresInSeconds, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, signingKey, expiresInSeconds, additionalClaims));
 
         // Assert
-        var claims = parseClaims(result, secret);
+        var claims = parseClaims(result, signingKey);
         assertThat(result).isNotBlank();
         assertThat(result.length()).isBetween(100, 1000);
         assertThat(claims.getAudience()).isEqualTo(audience);
@@ -107,17 +105,16 @@ class JwtServiceTest {
     void should_sign_token_with_subject(String subject,
                                         String audience,
                                         String issuerUri,
+                                        String signingKey,
                                         Integer expiresInSeconds,
-                                        HashMap<String, Object> additionalClaims,
-                                        String secret) {
+                                        HashMap<String, Object> additionalClaims) {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        ReflectionTestUtils.setField(jwtService, "jwtSecretKey", secret);
-        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, expiresInSeconds, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, signingKey, expiresInSeconds, additionalClaims));
 
         // Assert
-        var claims = parseClaims(result, secret);
+        var claims = parseClaims(result, signingKey);
         assertThat(result).isNotBlank();
         assertThat(result.length()).isBetween(100, 1000);
         assertThat(claims.getSubject()).isEqualTo(subject);
@@ -131,13 +128,13 @@ class JwtServiceTest {
     }
 
 
-    private Claims parseClaims(String token, String secret) {
-        var parser = Jwts.parserBuilder().setSigningKey(getSigningKey(secret)).build();
+    private Claims parseClaims(String token, String signingKey) {
+        var parser = Jwts.parserBuilder().setSigningKey(getSigningKey(signingKey)).build();
         return parser.parseClaimsJws(token).getBody();
     }
 
-    private Key getSigningKey(String secretKey) {
-        byte[] keyBytes = secretKey.getBytes();
+    private Key getSigningKey(String signingKey) {
+        byte[] keyBytes = signingKey.getBytes();
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
     }
 }

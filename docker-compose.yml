@@ -11,18 +11,13 @@ services:
       DB_NAME: postgres
       COOKIE_ENCRYPTION_ALGORITHM: ${COOKIE_ENCRYPTION_ALGORITHM}
       COOKIE_ENCRYPTION_SECRET: ${COOKIE_ENCRYPTION_SECRET}
-      COOKIE_EXPIRATION_DAYS: ${COOKIE_EXPIRATION_DAYS}
       LOGIN_SIGNUP_ENDPOINT: ${LOGIN_SIGNUP_ENDPOINT}
       AUTHORIZATION_CODE_EXPIRES_MS: ${AUTHORIZATION_CODE_EXPIRES_MS}
-      S3_SERVICE_ACCESS_KEY: ${S3_SERVICE_ACCESS_KEY}
-      S3_SERVICE_SECRET_KEY: ${S3_SERVICE_SECRET_KEY}
-      S3_SERVICE_REGION: ${S3_SERVICE_REGION}
-      S3_SERVICE_AWS_BUCKET: ${S3_SERVICE_AWS_BUCKET}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ENABLE_SWAGGER: ${ENABLE_SWAGGER}
     depends_on:
       - oauth-server-postgres
 
-  oauth-server-postgres :
-      image: postgres:15
-      environment:
-        POSTGRES_PASSWORD: postgrespassword
+  oauth-server-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgrespassword

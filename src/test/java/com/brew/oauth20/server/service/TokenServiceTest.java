@@ -114,6 +114,7 @@ class TokenServiceTest {
         var signTokenOptions = new SignTokenOptions(null,
                 client.audience(),
                 client.issuerUri(),
+                client.clientSecretDecoded(),
                 client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
@@ -145,6 +146,7 @@ class TokenServiceTest {
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
+                client.clientSecretDecoded(),
                 client.tokenExpiresInMinutes() * 60,
                 Map.of());
 
@@ -177,6 +179,7 @@ class TokenServiceTest {
         var signTokenOptions = new SignTokenOptions(userId,
                 client.audience(),
                 client.issuerUri(),
+                client.clientSecretDecoded(),
                 client.tokenExpiresInMinutes() * 60,
                 Map.of());
 

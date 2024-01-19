@@ -5,7 +5,6 @@ import com.brew.oauth20.server.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -15,9 +14,6 @@ import java.util.Date;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-    @Value("${jwt.secret.key}")
-    String jwtSecretKey;
-
     @Override
     public String signToken(SignTokenOptions signTokenOptions) {
 
@@ -40,7 +36,7 @@ public class JwtServiceImpl implements JwtService {
         // sign JWT token
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(getSigningKey(jwtSecretKey))
+                .signWith(getSigningKey(signTokenOptions.signingKey()))
                 .compact();
 
     }
