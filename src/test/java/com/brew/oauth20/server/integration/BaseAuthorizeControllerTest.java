@@ -74,7 +74,7 @@ abstract class BaseAuthorizeControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeAll
+    @BeforeEach
     void setup() {
         this.faker = new Faker();
         var clientsGrantFixture = new ClientGrantFixture();
@@ -147,7 +147,7 @@ abstract class BaseAuthorizeControllerTest {
     }
 
 
-    @AfterAll
+    @AfterEach
     void emptyData() {
         authorizationCodeRepository.deleteAll();
         activeAuthorizationCodeRepository.deleteAll();
