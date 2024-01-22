@@ -5,8 +5,6 @@ import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
 
-import java.util.Optional;
-
 public abstract class BaseAuthorizeTypeProvider {
     protected ResponseType responseType;
 
@@ -22,6 +20,6 @@ public abstract class BaseAuthorizeTypeProvider {
         if (clientModel == null)
             return new ValidationResultModel(false, "unauthorized_client");
 
-        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, Optional.ofNullable(null));
+        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, null);
     }
 }

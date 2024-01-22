@@ -6,8 +6,6 @@ import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.utils.abstracts.BaseValidator;
 
-import java.util.Optional;
-
 
 public class ClientValidator extends BaseValidator<ClientModel> {
     public ClientValidator(ClientModel clientModel) {
@@ -22,14 +20,14 @@ public class ClientValidator extends BaseValidator<ClientModel> {
         return new ValidationResultModel(true, null);
     }
 
-    public ValidationResultModel validate(String responseType, String redirectUri, Optional<String> scope) {
+    public ValidationResultModel validate(String responseType, String redirectUri, String scope) {
         if (!validateResponseType(responseType))
             return getErrorResponse();
 
         if (!validateRedirectUri(redirectUri))
             return getErrorResponse();
 
-        if (scope.isPresent() && !validateScope(scope.get()))
+        if (scope != null && !scope.isBlank() && !validateScope(scope))
             return getErrorResponse();
 
         return getSuccessResponse();

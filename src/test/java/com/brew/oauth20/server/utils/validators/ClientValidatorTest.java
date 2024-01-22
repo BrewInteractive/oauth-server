@@ -17,7 +17,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,7 +102,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.ofNullable(null));
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, null);
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -121,7 +120,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(validScope));
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, validScope);
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -153,7 +152,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.empty());
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, "");
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -171,7 +170,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri, Optional.of(validScope));
+        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri, validScope);
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -189,7 +188,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri, Optional.of(validScope));
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri, validScope);
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -207,7 +206,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(invalidScope));
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, invalidScope);
 
         // Assert
         assertEquals(expectedResult, actualResult);
