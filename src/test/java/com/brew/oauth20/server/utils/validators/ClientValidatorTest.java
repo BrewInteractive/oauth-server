@@ -201,7 +201,7 @@ class ClientValidatorTest {
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
         var validResponseType = getValidResponseType(clientModel);
-        var validRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        var validRedirectUri = getValidRedirectUri(clientModel);
         var invalidScope = faker.lordOfTheRings().location();
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
