@@ -14,12 +14,12 @@ public abstract class BaseAuthorizeTypeProvider {
         this.clientService = clientService;
     }
 
-    public ValidationResultModel validate(String clientId, String redirectUri) {
+    public ValidationResultModel validate(String clientId, String redirectUri, String scope) {
         var clientModel = clientService.getClient(clientId);
 
         if (clientModel == null)
             return new ValidationResultModel(false, "unauthorized_client");
 
-        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, null);
+        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, scope);
     }
 }

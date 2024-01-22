@@ -80,7 +80,7 @@ public class AuthorizeController {
                     .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
 
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
-                    authorizeRequest.getRedirect_uri());
+                    authorizeRequest.getRedirect_uri(), null);
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
                 return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
