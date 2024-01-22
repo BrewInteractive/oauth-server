@@ -103,7 +103,7 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(null));
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.ofNullable(null));
 
         // Assert
         assertEquals(expectedResult, actualResult);
