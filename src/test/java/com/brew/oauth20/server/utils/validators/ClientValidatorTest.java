@@ -1,4 +1,4 @@
-package com.brew.oauth20.server.utils;
+package com.brew.oauth20.server.utils.validators;
 
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
@@ -8,7 +8,6 @@ import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.testUtils.FakerUtils;
-import com.brew.oauth20.server.utils.validators.ClientValidator;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
