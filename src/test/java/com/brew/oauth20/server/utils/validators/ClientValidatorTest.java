@@ -143,6 +143,22 @@ class ClientValidatorTest {
         assertEquals(expectedResult, actualResult);
     }
 
+    @Test
+    void validate_client_without_scope_should_return_valid_result() {
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validResponseType = getValidResponseType(clientModel);
+        var validRedirectUri = getValidRedirectUri(clientModel);
+        var expectedResult = new ValidationResultModel(true, null);
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.empty());
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
     @MethodSource
     @ParameterizedTest
     void invalid_client_response_type_should_return_invalid_result(ResponseType invalidResponseType, Integer grantSize, ResponseType[] responseTypeOptions) {
