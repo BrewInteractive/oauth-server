@@ -17,7 +17,8 @@ public record ClientModel(
         int tokenExpiresInMinutes,
         int refreshTokenExpiresInDays,
         ArrayList<GrantModel> grantList,
-        ArrayList<RedirectUriModel> redirectUriList
+        ArrayList<RedirectUriModel> redirectUriList,
+        ArrayList<ScopeModel> scopeList
 ) {
     public String clientSecretDecoded() {
         byte[] decodedBytes = Base64.getUrlDecoder().decode(clientSecret);
