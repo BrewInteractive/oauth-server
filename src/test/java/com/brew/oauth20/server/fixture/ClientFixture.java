@@ -19,12 +19,9 @@ import static org.instancio.Select.field;
 
 public class ClientFixture extends Fixture<Client> {
 
-    private final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{ResponseType.code,
-            ResponseType.token};
-    private final Scope[] defaultScopeOptions = new Scope[]{Scope.openid,
-            Scope.profile, Scope.email};
-    private final GrantType[] defaultGrantTypeOptions = new GrantType[]{GrantType.authorization_code,
-            GrantType.client_credentials, GrantType.refresh_token};
+    private final ResponseType[] defaultResponseTypeOptions = ResponseType.values();
+    private final GrantType[] defaultGrantTypeOptions = GrantType.values();
+    private final Scope[] defaultScopeOptions = Scope.values();
 
     private final ClientGrantFixture clientGrantFixture;
     private final ClientScopeFixture clientScopeFixture;
