@@ -35,7 +35,15 @@ class ScopeValidatorTest {
                 Arguments.of(
                         "email profile openid",
                         new String[]{"email", "profile", "openid"}
-                )
+                ),
+                Arguments.of(
+                        "",
+                        new String[]{"email", "profile", "openid"}
+                ), // "model" is an empty string.
+                Arguments.of(
+                        "     ",
+                        new String[]{"email", "profile", "openid"}
+                ) // "model" consists only of spaces.
         );
     }
 
