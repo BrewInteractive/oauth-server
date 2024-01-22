@@ -17,6 +17,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,8 +83,14 @@ class ClientValidatorTest {
 
     private static GrantType getValidGrantType(ClientModel clientModel) {
         return clientModel.grantList().stream().map(GrantModel::grantType).findFirst().get();
-
     }
+
+    private static String getValidScope(ClientModel clientModel) {
+        return clientModel.scopeList().stream()
+                .map(scopeModel -> scopeModel.scope().getScope())
+                .collect(Collectors.joining(" "));
+    }
+
 
     @Test
     void validate_client_by_response_type_and_redirect_uri_should_return_valid_result() {
@@ -95,7 +103,25 @@ class ClientValidatorTest {
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(null));
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    void validate_client_by_response_type_and_redirect_uri_and_scope_should_return_valid_result() {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validResponseType = getValidResponseType(clientModel);
+        var validRedirectUri = getValidRedirectUri(clientModel);
+        var validScope = getValidScope(clientModel);
+        var expectedResult = new ValidationResultModel(true, null);
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(validScope));
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -124,11 +150,48 @@ class ClientValidatorTest {
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne(grantSize, responseTypeOptions);
         var validRedirectUri = getValidRedirectUri(clientModel);
+        var validScope = getValidScope(clientModel);
         var expectedResult = new ValidationResultModel(false, "unauthorized_client");
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri);
+        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri, Optional.of(validScope));
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    void invalid_client_redirect_uri_should_return_invalid_result() {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validResponseType = getValidResponseType(clientModel);
+        var invalidRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        var validScope = getValidScope(clientModel);
+        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri, Optional.of(validScope));
+
+        // Assert
+        assertEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    void invalid_client_scope_should_return_invalid_result() {
+
+        // Arrange
+        var clientModel = new ClientModelFixture().createRandomOne();
+        var validResponseType = getValidResponseType(clientModel);
+        var validRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        var invalidScope = faker.lordOfTheRings().location();
+        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+
+        // Act
+        var clientValidator = new ClientValidator(clientModel);
+        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, Optional.of(invalidScope));
 
         // Assert
         assertEquals(expectedResult, actualResult);
@@ -150,20 +213,5 @@ class ClientValidatorTest {
         assertEquals(expectedResult, actualResult);
     }
 
-    @Test
-    void invalid_client_redirect_uri_should_return_invalid_result() {
 
-        // Arrange
-        var clientModel = new ClientModelFixture().createRandomOne();
-        var validResponseType = getValidResponseType(clientModel);
-        var invalidRedirectUri = FakerUtils.createRandomRedirectUri(faker);
-        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
-
-        // Act
-        var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
-    }
 }
