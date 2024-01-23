@@ -22,7 +22,7 @@ public class ClientUserServiceImpl implements ClientUserService {
     }
 
     @Override
-    public ClientUser create(String clientId, String userId) {
+    public ClientUser getOrCreate(String clientId, String userId) {
         var existingClientUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (existingClientUser.isPresent())
@@ -33,9 +33,11 @@ public class ClientUserServiceImpl implements ClientUserService {
         if (client.isEmpty())
             throw new ClientNotFoundException(clientId);
 
-        return clientsUserRepository.save(ClientUser.builder()
+        ClientUser clientUser = ClientUser.builder()
                 .client(client.get())
                 .userId(userId)
-                .build());
+                .build();
+
+        return clientsUserRepository.save(clientUser);
     }
 }

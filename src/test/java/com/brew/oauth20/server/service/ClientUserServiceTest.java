@@ -51,7 +51,7 @@ class ClientUserServiceTest {
         when(clientUserRepository.save(argThat(x -> x.getUserId().equals(clientUser.getUserId()) && x.getClient().equals(clientUser.getClient()))))
                 .thenReturn(clientUser);
 
-        var result = clientUserService.create(clientUser.getClient().getClientId(), clientUser.getUserId());
+        var result = clientUserService.getOrCreate(clientUser.getClient().getClientId(), clientUser.getUserId());
 
         assertThat(clientUser).isEqualTo(result);
     }
@@ -76,7 +76,7 @@ class ClientUserServiceTest {
         when(clientUserRepository.save(argThat(x -> x.getUserId().equals(clientUser.getUserId()) && x.getClient().equals(clientUser.getClient()))))
                 .thenReturn(existingClientUser);
 
-        var result = clientUserService.create(clientUser.getClient().getClientId(), clientUser.getUserId());
+        var result = clientUserService.getOrCreate(clientUser.getClient().getClientId(), clientUser.getUserId());
 
         assertThat(existingClientUser).isEqualTo(result);
     }
@@ -93,7 +93,7 @@ class ClientUserServiceTest {
         when(clientRepository.findByClientId(clientUser.getClient().getClientId()))
                 .thenReturn(Optional.empty());
 
-        Throwable thrown = catchThrowable(() -> clientUserService.create(clientUser.getClient().getClientId(), clientUser.getUserId()));
+        Throwable thrown = catchThrowable(() -> clientUserService.getOrCreate(clientUser.getClient().getClientId(), clientUser.getUserId()));
 
         assertThat(thrown).isInstanceOf(ClientNotFoundException.class);
         verify(clientRepository, never()).save(any());
