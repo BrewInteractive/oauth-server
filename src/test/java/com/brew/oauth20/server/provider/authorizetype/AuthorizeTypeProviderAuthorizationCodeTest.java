@@ -44,22 +44,23 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var clientModelFixture = new ClientModelFixture();
         var client = clientModelFixture.createRandomOne(1, new ResponseType[]{ResponseType.code});
         var url = client.redirectUriList().get(0).redirectUri();
+        var scope = client.scopeList().get(0).scope().getScope();
         return Stream.of(
-                Arguments.of(client, faker.letterify("????????????????"), url, new ValidationResultModel(true, null))
+                Arguments.of(client, faker.letterify("????????????????"), url, scope, new ValidationResultModel(true, null))
         );
     }
 
 
     @MethodSource
     @ParameterizedTest
-    void should_return_valid_result(ClientModel clientModel, String clientId, String url, ValidationResultModel expectedValidationResult) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, String scope, ValidationResultModel expectedValidationResult) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(clientModel);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var actualValidationResult = provider.validate(clientId, url);
+        var actualValidationResult = provider.validate(clientId, url, scope);
 
         assertThat(actualValidationResult).isEqualTo(expectedValidationResult);
     }
@@ -68,13 +69,14 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
     void should_return_invalid_result() {
         var clientId = UUID.randomUUID().toString();
         var url = faker.internet().url();
+        var scope = faker.lordOfTheRings().location();
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(null);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var validationResult = provider.validate(clientId, url);
+        var validationResult = provider.validate(clientId, url, scope);
 
         assertThat(validationResult.getResult()).isFalse();
         assertThat(validationResult.getError()).isEqualTo("unauthorized_client");
