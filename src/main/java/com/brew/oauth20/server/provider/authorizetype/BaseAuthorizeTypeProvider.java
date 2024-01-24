@@ -20,6 +20,6 @@ public abstract class BaseAuthorizeTypeProvider {
         if (clientModel == null)
             return new ValidationResultModel(false, "unauthorized_client");
 
-        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri);
+        return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, null);
     }
 }

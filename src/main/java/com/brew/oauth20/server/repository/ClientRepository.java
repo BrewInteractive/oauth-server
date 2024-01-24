@@ -10,9 +10,9 @@ import java.util.UUID;
 public interface ClientRepository extends JpaRepository<Client, UUID> {
     boolean existsByClientId(String clientId);
 
-    @EntityGraph(attributePaths = {"clientGrants.grant", "redirectUris"})
+    @EntityGraph(attributePaths = {"clientGrants.grant", "redirectUris", "clientScopes.scope"})
     Optional<Client> findByClientId(String clientId);
 
-    @EntityGraph(attributePaths = {"clientGrants.grant", "redirectUris"})
+    @EntityGraph(attributePaths = {"clientGrants.grant", "redirectUris", "clientScopes.scope"})
     Optional<Client> findByClientIdAndClientSecret(String clientId, String clientSecret);
 }
