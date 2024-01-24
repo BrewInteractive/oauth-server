@@ -28,6 +28,7 @@ public class ClientsUserFixture extends Fixture<ClientUser> {
         return Instancio.of(ClientUser.class)
                 .supply(field(ClientUser::getId), UUID::randomUUID)
                 .supply(field(ClientUser::getClient), () -> clientFixture.createRandomOne(false))
+                .supply(field(ClientUser::getClientUserScopes), () -> new LinkedHashSet<>())
                 .supply(field(ClientUser::getUserId), () -> faker.letterify("?").repeat(20))
                 .supply(field(ClientUser::getRefreshTokens), () -> new LinkedHashSet<>())
                 .supply(field(ClientUser::getCreatedAt), () -> OffsetDateTime.now())
