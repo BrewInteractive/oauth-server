@@ -1,6 +1,5 @@
-package com.brew.oauth20.server.utils;
+package com.brew.oauth20.server.utils.validators;
 
-import com.brew.oauth20.server.utils.validators.ScopeValidator;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

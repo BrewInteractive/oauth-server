@@ -20,15 +20,19 @@ public class ClientValidator extends BaseValidator<ClientModel> {
         return new ValidationResultModel(true, null);
     }
 
-    public ValidationResultModel validate(String responseType, String redirectUri) {
+    public ValidationResultModel validate(String responseType, String redirectUri, String scope) {
         if (!validateResponseType(responseType))
             return getErrorResponse();
 
         if (!validateRedirectUri(redirectUri))
             return getErrorResponse();
 
+        if (scope != null && !scope.isBlank() && !validateScope(scope))
+            return getErrorResponse();
+
         return getSuccessResponse();
     }
+
 
     public ValidationResultModel validate(String grantType) {
         if (!validateGrantType(grantType))
@@ -45,6 +49,14 @@ public class ClientValidator extends BaseValidator<ClientModel> {
     private boolean validateRedirectUri(String redirectUri) {
         return this.model.redirectUriList().stream()
                 .anyMatch(redirectUriModel -> redirectUriModel.redirectUri().equals(redirectUri));
+    }
+
+    private boolean validateScope(String scope) {
+        var authorizedScopes = this.model.scopeList().stream()
+                .map(scopeModel -> scopeModel.scope().getScope())
+                .toArray(String[]::new);
+        var scopeValidator = new ScopeValidator(scope);
+        return scopeValidator.validateScope(authorizedScopes);
     }
 
     private boolean validateGrantType(String grantType) {

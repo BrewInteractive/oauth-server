@@ -1,7 +1,6 @@
-package com.brew.oauth20.server.utils;
+package com.brew.oauth20.server.utils.validators;
 
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.utils.validators.TokenRequestModelValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.junit.jupiter.api.Test;
 
