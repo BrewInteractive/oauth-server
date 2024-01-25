@@ -12,7 +12,6 @@ import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
-
     private final String userIdPrefix = "did:tmrwid:";
 
     @Test
@@ -160,7 +159,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     @Test
     void should_redirect_to_login_post_test() throws Exception {
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, authorizedScope);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -172,13 +171,14 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
                 .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
                 .doesNotContain("error");
     }
 
     @Test
     void should_redirect_to_login_get_test() throws Exception {
         // Act
-        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState, authorizedScope);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
@@ -189,6 +189,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
                 .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
                 .doesNotContain("error");
     }
 
@@ -207,7 +208,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var clientUsersList = clientsUserRepository.findAll();
+        var clientUsersList = clientUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
         var clientUserOptional = clientUsersList.stream()
@@ -243,7 +244,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(locationHeader).contains(authorizedRedirectUri)
                 .contains("code=");
 
-        var clientUsersList = clientsUserRepository.findAll();
+        var clientUsersList = clientUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
         var clientUserOptional = clientUsersList.stream()

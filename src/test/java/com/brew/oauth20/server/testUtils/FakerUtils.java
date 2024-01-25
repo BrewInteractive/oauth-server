@@ -6,7 +6,7 @@ import com.brew.oauth20.server.data.enums.Scope;
 import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
+import java.util.*;
 
 public class FakerUtils {
 
@@ -37,6 +37,20 @@ public class FakerUtils {
 
     public static Scope createRandomScope(@NotNull Faker faker, Scope[] scopeOptions) {
         return faker.options().option(scopeOptions);
+    }
+
+    public static Set<Scope> createRandomScopeList(@NotNull Faker faker, Scope[] scopeOptions) {
+        var totalScopeCount = scopeOptions.length;
+        var numberOfScopesToCreate = faker.random().nextInt(1, totalScopeCount);
+        var createdScopes = new HashSet<Scope>();
+        var availableScopeOptions = new ArrayList<>(Arrays.asList(scopeOptions));
+
+        for (int i = 0; i < numberOfScopesToCreate; i++) {
+            // Update available scopes (filter out the already created ones)
+            availableScopeOptions.removeAll(createdScopes);
+            createdScopes.add(createRandomScope(faker, availableScopeOptions.toArray(new Scope[0])));
+        }
+        return createdScopes;
     }
 
     public static String createRandomRedirectUri(@NotNull Faker faker) {

@@ -50,7 +50,7 @@ class TokenControllerTest {
     @Autowired
     private RedirectUriRepository redirectUriRepository;
     @Autowired
-    private ClientsUserRepository clientsUserRepository;
+    private ClientUserRepository clientUserRepository;
     @Autowired
     private ActiveRefreshTokenRepository activeRefreshTokenRepository;
     @Autowired
@@ -82,7 +82,7 @@ class TokenControllerTest {
 
         var savedClient = clientRepository.save(client);
 
-        var savedClientUser = clientsUserRepository.save(clientsUser);
+        var savedClientUser = clientUserRepository.save(clientsUser);
 
         ActiveRefreshToken activeRefreshToken = activeRefreshTokenFixture.createRandomOne(savedClientUser);
 

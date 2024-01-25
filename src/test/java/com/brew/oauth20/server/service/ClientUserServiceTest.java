@@ -3,7 +3,7 @@ package com.brew.oauth20.server.service;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.fixture.ClientsUserFixture;
 import com.brew.oauth20.server.repository.ClientRepository;
-import com.brew.oauth20.server.repository.ClientsUserRepository;
+import com.brew.oauth20.server.repository.ClientUserRepository;
 import com.brew.oauth20.server.service.impl.ClientUserServiceImpl;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -30,7 +30,7 @@ class ClientUserServiceTest {
     private ClientRepository clientRepository;
 
     @Mock
-    private ClientsUserRepository clientUserRepository;
+    private ClientUserRepository clientUserRepository;
 
     @InjectMocks
     private ClientUserServiceImpl clientUserService;
