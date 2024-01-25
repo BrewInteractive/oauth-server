@@ -211,12 +211,19 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         var clientUsersList = clientsUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
-        var clientUser = clientUsersList.stream().filter(x -> x.getClient().getClientId().equals(authorizedClientId) && x.getUserId().equals(userId)).findFirst().get();
+        var clientUserOptional = clientUsersList.stream()
+                .filter(x -> x.getClient().getClientId().equals(authorizedClientId) &&
+                        x.getUserId().equals(userId))
+                .findFirst();
 
+        assertThat(clientUserOptional).isPresent();
+        var clientUser = clientUserOptional.get();
         assertThat(clientUser).isNotNull();
 
-        var codeEntity = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny().get();
+        var codeEntityOptional = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny();
+        assertThat(codeEntityOptional).isPresent();
 
+        var codeEntity = codeEntityOptional.get();
         assertThat(codeEntity).isNotNull();
 
         assertThat(locationHeader).contains("code=" + codeEntity.getCode()).contains("user_id=" + userId);
@@ -240,14 +247,20 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         var clientUsersList = clientsUserRepository.findAll();
         var codeEntityList = authorizationCodeRepository.findAll();
 
-        var clientUser = clientUsersList.stream().filter(x -> x.getClient().getClientId().equals(authorizedClientId) && x.getUserId().equals(userId)).findFirst().get();
+        var clientUserOptional = clientUsersList.stream()
+                .filter(x -> x.getClient().getClientId().equals(authorizedClientId) &&
+                        x.getUserId().equals(userId))
+                .findFirst();
 
+        assertThat(clientUserOptional).isPresent();
+        var clientUser = clientUserOptional.get();
         assertThat(clientUser).isNotNull();
 
-        var codeEntity = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny().get();
-
+        var codeEntityOptional = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny();
+        assertThat(codeEntityOptional).isPresent();
+        
+        var codeEntity = codeEntityOptional.get();
         assertThat(codeEntity).isNotNull();
-
         assertThat(locationHeader).contains("code=" + codeEntity.getCode()).contains("user_id=" + userId);
     }
 
