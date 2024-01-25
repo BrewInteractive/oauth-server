@@ -80,7 +80,7 @@ public class AuthorizeController {
                     .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
 
             var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
-                    authorizeRequest.getRedirect_uri(), null);
+                    authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
 
             if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
                 return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
@@ -124,7 +124,9 @@ public class AuthorizeController {
                 .append("response_type=").append(authorizeRequest.getResponse_type())
                 .append("&redirect_uri=").append(authorizeRequest.getRedirect_uri())
                 .append("&client_id=").append(authorizeRequest.getClient_id());
-        if (!authorizeRequest.getState().isBlank())
+        if (authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank())
+            queryStringBuilder.append("&scope=").append(authorizeRequest.getScope());
+        if (authorizeRequest.getState() != null && !authorizeRequest.getState().isBlank())
             queryStringBuilder.append("&state=").append(authorizeRequest.getState());
         return queryStringBuilder.toString();
     }
