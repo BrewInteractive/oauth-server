@@ -159,7 +159,6 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
     @Test
     void should_redirect_to_login_post_test() throws Exception {
-        authorizedState = "Théoden";
         // Act
         ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
 
@@ -258,11 +257,9 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         var codeEntityOptional = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny();
         assertThat(codeEntityOptional).isPresent();
-        
+
         var codeEntity = codeEntityOptional.get();
         assertThat(codeEntity).isNotNull();
         assertThat(locationHeader).contains("code=" + codeEntity.getCode()).contains("user_id=" + userId);
     }
-
-    // endregion tests
 }
