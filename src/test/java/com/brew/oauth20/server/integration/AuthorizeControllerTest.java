@@ -265,7 +265,9 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
         assertThat(locationHeader)
                 .contains("code=" + codeEntity.getCode())
-                .contains("user_id=" + userId);
+                .contains("user_id=" + userId)
+                .doesNotContain("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .doesNotContain("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")));
     }
 
     @Test
@@ -302,6 +304,87 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         assertThat(codeEntity).isNotNull();
         assertThat(locationHeader)
                 .contains("code=" + codeEntity.getCode())
-                .contains("user_id=" + userId);
+                .contains("user_id=" + userId)
+                .doesNotContain("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .doesNotContain("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")));
+    }
+
+    @Test
+    void should_redirect_with_authorization_code_with_state_and_scope_post_test() throws Exception {
+        // Arrange
+        String userId = userIdPrefix + faker.random().nextLong(10);
+
+        // Act
+        ResultActions resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", userId, authorizedState, authorizedScope);
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(locationHeader).contains(authorizedRedirectUri)
+                .contains("code=");
+
+        var clientUsersList = clientUserRepository.findAll();
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var clientUserOptional = clientUsersList.stream()
+                .filter(x -> x.getClient().getClientId().equals(authorizedClientId) &&
+                        x.getUserId().equals(userId))
+                .findFirst();
+
+        assertThat(clientUserOptional).isPresent();
+        var clientUser = clientUserOptional.get();
+        assertThat(clientUser).isNotNull();
+
+        var codeEntityOptional = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny();
+        assertThat(codeEntityOptional).isPresent();
+
+        var codeEntity = codeEntityOptional.get();
+        assertThat(codeEntity).isNotNull();
+
+        assertThat(locationHeader)
+                .contains("code=" + codeEntity.getCode())
+                .contains("user_id=" + userId)
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")));
+    }
+
+    @Test
+    void should_redirect_with_authorization_code_with_state_and_scope_get_test() throws Exception {
+        // Arrange
+        String userId = userIdPrefix + faker.random().nextLong(10);
+
+        // Act
+        ResultActions resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", userId, authorizedState, authorizedScope);
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(locationHeader).contains(authorizedRedirectUri)
+                .contains("code=");
+
+        var clientUsersList = clientUserRepository.findAll();
+        var codeEntityList = authorizationCodeRepository.findAll();
+
+        var clientUserOptional = clientUsersList.stream()
+                .filter(x -> x.getClient().getClientId().equals(authorizedClientId) &&
+                        x.getUserId().equals(userId))
+                .findFirst();
+
+        assertThat(clientUserOptional).isPresent();
+        var clientUser = clientUserOptional.get();
+        assertThat(clientUser).isNotNull();
+
+        var codeEntityOptional = codeEntityList.stream().filter(x -> x.getClientUser().equals(clientUser)).findAny();
+        assertThat(codeEntityOptional).isPresent();
+
+        var codeEntity = codeEntityOptional.get();
+        assertThat(codeEntity).isNotNull();
+        assertThat(locationHeader)
+                .contains("code=" + codeEntity.getCode())
+                .contains("user_id=" + userId)
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")));
     }
 }

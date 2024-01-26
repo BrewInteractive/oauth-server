@@ -234,6 +234,10 @@ abstract class BaseAuthorizeControllerTest {
         return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId));
     }
 
+    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId));
+    }
+
     protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
         return getAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty());
     }
