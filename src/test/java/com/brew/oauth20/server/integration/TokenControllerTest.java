@@ -64,7 +64,7 @@ class TokenControllerTest {
         var redirectUrisFixture = new RedirectUriFixture();
         var authorizationCodeFixture = new AuthorizationCodeFixture();
         var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
-        var clientsUserFixture = new ClientsUserFixture();
+        var clientsUserFixture = new ClientUserFixture();
         var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
 
         var authCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});

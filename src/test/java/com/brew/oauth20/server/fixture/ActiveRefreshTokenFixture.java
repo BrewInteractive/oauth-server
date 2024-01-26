@@ -13,16 +13,17 @@ import static org.instancio.Select.field;
 
 public class ActiveRefreshTokenFixture extends Fixture<ActiveRefreshToken> {
 
-    private final ClientsUserFixture clientsUserFixture;
+    private final ClientUserFixture clientUserFixture;
 
     public ActiveRefreshTokenFixture() {
-        this.clientsUserFixture = new ClientsUserFixture();
+        this.clientUserFixture = new ClientUserFixture();
     }
 
     public ActiveRefreshToken createRandomOne() {
         return Instancio.of(refreshToken(null))
                 .create();
     }
+
     public ActiveRefreshToken createRandomOne(ClientUser clientUser) {
         return Instancio.of(refreshToken(clientUser))
                 .create();
@@ -30,7 +31,7 @@ public class ActiveRefreshTokenFixture extends Fixture<ActiveRefreshToken> {
 
     private Model<ActiveRefreshToken> refreshToken(ClientUser clientUser) {
         return Instancio.of(ActiveRefreshToken.class)
-                .supply(field(ActiveRefreshToken::getClientUser), () -> clientUser != null ? clientUser : clientsUserFixture.createRandomOne())
+                .supply(field(ActiveRefreshToken::getClientUser), () -> clientUser != null ? clientUser : clientUserFixture.createRandomOne())
                 .supply(field(ActiveRefreshToken::getCreatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
                 .supply(field(ActiveRefreshToken::getUpdatedAt), () -> faker.date().past(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))
                 .supply(field(ActiveRefreshToken::getExpiresAt), () -> faker.date().future(1, TimeUnit.DAYS).toInstant().atOffset(ZoneOffset.UTC))

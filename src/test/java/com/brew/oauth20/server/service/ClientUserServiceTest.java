@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.service;
 
 import com.brew.oauth20.server.exception.ClientNotFoundException;
-import com.brew.oauth20.server.fixture.ClientsUserFixture;
+import com.brew.oauth20.server.fixture.ClientUserFixture;
 import com.brew.oauth20.server.repository.ClientRepository;
 import com.brew.oauth20.server.repository.ClientUserRepository;
 import com.brew.oauth20.server.service.impl.ClientUserServiceImpl;
@@ -35,14 +35,14 @@ class ClientUserServiceTest {
     @InjectMocks
     private ClientUserServiceImpl clientUserService;
 
-    private ClientsUserFixture clientsUserFixture;
+    private ClientUserFixture clientUserFixture;
 
     @Test
     void should_create_client_user() {
 
-        clientsUserFixture = new ClientsUserFixture();
+        clientUserFixture = new ClientUserFixture();
 
-        var clientUser = clientsUserFixture.createRandomOne();
+        var clientUser = clientUserFixture.createRandomOne();
 
         when(clientUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.empty());
@@ -59,11 +59,11 @@ class ClientUserServiceTest {
     @Test
     void should_create_return_existing_client_user() {
 
-        clientsUserFixture = new ClientsUserFixture();
+        clientUserFixture = new ClientUserFixture();
 
-        var clientUser = clientsUserFixture.createRandomOne();
+        var clientUser = clientUserFixture.createRandomOne();
 
-        var existingClientUser = clientsUserFixture.createRandomOne();
+        var existingClientUser = clientUserFixture.createRandomOne();
 
         existingClientUser.setClient(clientUser.getClient());
 
@@ -84,9 +84,9 @@ class ClientUserServiceTest {
     @Test
     void should_create_throw_client_not_found() {
 
-        clientsUserFixture = new ClientsUserFixture();
+        clientUserFixture = new ClientUserFixture();
 
-        var clientUser = clientsUserFixture.createRandomOne();
+        var clientUser = clientUserFixture.createRandomOne();
 
         when(clientUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.empty());

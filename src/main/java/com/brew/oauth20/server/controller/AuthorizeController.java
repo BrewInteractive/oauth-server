@@ -7,6 +7,7 @@ import com.brew.oauth20.server.model.AuthorizeRequestModel;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
+import com.brew.oauth20.server.utils.validators.ScopeValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -35,6 +37,9 @@ public class AuthorizeController {
 
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
+
+    @Value("${oauth.consent_endpoint}")
+    private String consentEndpoint;
 
     @Autowired
     public AuthorizeController(UserCookieManager userCookieManager,
@@ -103,6 +108,12 @@ public class AuthorizeController {
             var userId = userIdOptional.get();
 
             var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
+            if (authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank()) {
+                var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
+                var authorizedScopes = clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope()).toArray(String[]::new);
+                if (!scopeValidator.validateScope(authorizedScopes))
+                    return generateConsentResponse(consentEndpoint, parameters);
+            }
 
             var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
@@ -132,17 +143,15 @@ public class AuthorizeController {
     }
 
     private ResponseEntity<String> generateErrorResponse(String error, String parameters, String redirectUri) {
-        var headers = new HttpHeaders();
+        URI location = null;
         if (redirectUri != null) {
-            var location = UriComponentsBuilder.fromUriString(redirectUri)
+            location = UriComponentsBuilder.fromUriString(redirectUri)
                     .query(parameters)
                     .queryParam("error", error)
                     .build()
                     .toUri();
-            headers.setContentType(MediaType.TEXT_HTML);
-            headers.setLocation(location);
         }
-        return new ResponseEntity<>(error, headers, HttpStatus.FOUND);
+        return createRedirectResponse(location);
     }
 
     private ResponseEntity<String> generateLoginResponse(String loginSignupEndpoint, String parameters) {
@@ -150,10 +159,15 @@ public class AuthorizeController {
                 .query(parameters)
                 .build()
                 .toUri();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_HTML);
-        headers.setLocation(location);
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        return createRedirectResponse(location);
+    }
+
+    private ResponseEntity<String> generateConsentResponse(String consentEndpoint, String parameters) {
+        var location = UriComponentsBuilder.fromUriString(consentEndpoint)
+                .query(parameters)
+                .build()
+                .toUri();
+        return createRedirectResponse(location);
     }
 
     private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
@@ -163,9 +177,15 @@ public class AuthorizeController {
                 .queryParam("user_id", userId)
                 .build()
                 .toUri();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_HTML);
-        headers.setLocation(location);
+        return createRedirectResponse(location);
+    }
+
+    private ResponseEntity<String> createRedirectResponse(URI location) {
+        var headers = new HttpHeaders();
+        if (location != null) {
+            headers.setContentType(MediaType.TEXT_HTML);
+            headers.setLocation(location);
+        }
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 }

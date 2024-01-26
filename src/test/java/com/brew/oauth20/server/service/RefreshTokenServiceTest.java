@@ -3,7 +3,7 @@ package com.brew.oauth20.server.service;
 import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.exception.RefreshTokenNotFoundException;
 import com.brew.oauth20.server.fixture.ActiveRefreshTokenFixture;
-import com.brew.oauth20.server.fixture.ClientsUserFixture;
+import com.brew.oauth20.server.fixture.ClientUserFixture;
 import com.brew.oauth20.server.repository.ActiveRefreshTokenRepository;
 import com.brew.oauth20.server.repository.ClientUserRepository;
 import com.brew.oauth20.server.repository.RefreshTokenRepository;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 @DataJpaTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class RefreshTokenServiceTest {
-    private ClientsUserFixture clientsUserFixture;
+    private ClientUserFixture clientUserFixture;
     private ActiveRefreshTokenFixture activeRefreshTokenFixture;
     @Mock
     private ClientUserRepository clientUserRepository;
@@ -42,7 +42,7 @@ class RefreshTokenServiceTest {
 
     @BeforeEach
     public void init() {
-        clientsUserFixture = new ClientsUserFixture();
+        clientUserFixture = new ClientUserFixture();
         activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
         Mockito.reset(clientUserRepository);
         Mockito.reset(refreshTokenRepository);
@@ -52,7 +52,7 @@ class RefreshTokenServiceTest {
     @Test
     void should_create_and_return_refresh_token() throws ClientsUserNotFoundException {
         // Arrange
-        var clientUser = clientsUserFixture.createRandomOne();
+        var clientUser = clientUserFixture.createRandomOne();
         when(clientUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.of(clientUser));
         var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientUserRepository);
@@ -88,7 +88,7 @@ class RefreshTokenServiceTest {
     void should_revoke_refresh_token() throws RefreshTokenNotFoundException {
         // Arrange
         var activeRefreshToken = activeRefreshTokenFixture.createRandomOne();
-        var clientUser = clientsUserFixture.createRandomOne();
+        var clientUser = clientUserFixture.createRandomOne();
         activeRefreshToken.setClientUser(clientUser);
 
         when(clientUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))

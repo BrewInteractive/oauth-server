@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.fixture;
 
 import com.brew.oauth20.server.data.ActiveAuthorizationCode;
+import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
 import org.instancio.Model;
@@ -13,31 +14,38 @@ import java.util.concurrent.TimeUnit;
 import static org.instancio.Select.field;
 
 public class ActiveAuthorizationCodeFixture extends Fixture<ActiveAuthorizationCode> {
-    private final ClientsUserFixture clientsUserFixture;
+    private final ClientUserFixture clientUserFixture;
 
     public ActiveAuthorizationCodeFixture() {
         super();
-        this.clientsUserFixture = new ClientsUserFixture();
+        this.clientUserFixture = new ClientUserFixture();
     }
 
 
     public ActiveAuthorizationCode createRandomOne() {
-        return Instancio.of(authorizationCodeModel(null))
+        return Instancio.of(authorizationCodeModel(null, null))
                 .create();
     }
 
     public ActiveAuthorizationCode createRandomOne(String url) {
-        return Instancio.of(authorizationCodeModel(url))
+        return Instancio.of(authorizationCodeModel(null, url))
                 .create();
     }
 
-    private Model<ActiveAuthorizationCode> authorizationCodeModel(String url) {
+    public ActiveAuthorizationCode createRandomOne(ClientUser clientUser, String url) {
+        return Instancio.of(authorizationCodeModel(clientUser, url))
+                .create();
+    }
+
+    private Model<ActiveAuthorizationCode> authorizationCodeModel(ClientUser clientUser, String url) {
         return Instancio.of(ActiveAuthorizationCode.class)
                 .supply(field(ActiveAuthorizationCode::getId), UUID::randomUUID)
                 .supply(field(ActiveAuthorizationCode::getExpiresAt), () ->
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
-                .supply(field(ActiveAuthorizationCode::getRedirectUri), () -> url == null ? faker.internet().url() : url)
-                .supply(field(ActiveAuthorizationCode::getClientUser), () -> clientsUserFixture.createRandomOne())
+                .supply(field(ActiveAuthorizationCode::getRedirectUri), () -> url != null ? url : faker.internet().url())
+                .supply(field(ActiveAuthorizationCode::getClientUser), () -> clientUser != null ? clientUser : clientUserFixture.createRandomOne())
                 .toModel();
     }
+
+
 }
