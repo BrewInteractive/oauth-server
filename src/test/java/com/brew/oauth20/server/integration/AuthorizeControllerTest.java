@@ -194,6 +194,43 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
     }
 
     @Test
+    void should_redirect_to_login_with_state_and_without_scope_post_test() throws Exception {
+        // Act
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+
+        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+                .contains("response_type=code")
+                .contains("client_id=%s".formatted(authorizedClientId))
+                .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .doesNotContain("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
+                .doesNotContain("error");
+    }
+
+    @Test
+    void should_redirect_to_login_with_state_and_without_scope_get_test() throws Exception {
+        // Act
+        ResultActions resultActions = getAuthorize(authorizedRedirectUri, authorizedClientId, "code", authorizedState);
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+                .contains("response_type=code")
+                .contains("client_id=%s".formatted(authorizedClientId))
+                .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
+                .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
+                .doesNotContain("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
+                .doesNotContain("error");
+    }
+
+    @Test
     void should_redirect_to_login_without_state_and_scope_post_test() throws Exception {
         // Act
         ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code");
