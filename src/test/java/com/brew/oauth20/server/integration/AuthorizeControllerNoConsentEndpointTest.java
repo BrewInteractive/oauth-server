@@ -16,7 +16,7 @@ class AuthorizeControllerNoConsentEndpointTest extends BaseAuthorizeControllerTe
     void should_return_server_error_if_consent_endpoint_is_not_set() throws Exception {
 
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code");
+        ResultActions resultActions = postAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope);
 
         // Assert
         MockHttpServletResponse response = resultActions.andReturn().getResponse();

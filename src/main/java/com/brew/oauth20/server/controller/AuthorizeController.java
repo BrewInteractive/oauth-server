@@ -109,13 +109,12 @@ public class AuthorizeController {
 
             var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
             if (authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank()) {
+                if (consentEndpoint.isBlank())
+                    throw new IllegalStateException("CONSENT_ENDPOINT is not set in the environment variables");
                 var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
                 var authorizedScopes = clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope()).toArray(String[]::new);
-                if (!scopeValidator.validateScope(authorizedScopes)) {
-                    if (consentEndpoint.isBlank())
-                        throw new IllegalStateException("CONSENT_ENDPOINT is not set in the environment variables");
+                if (!scopeValidator.validateScope(authorizedScopes))
                     return generateConsentResponse(consentEndpoint, parameters);
-                }
             }
 
             if (authorizeRequest.getResponse_type().equals("token"))
