@@ -57,7 +57,9 @@ abstract class BaseAuthorizeControllerTest {
     @Value("${cookie.encryption.secret}")
     protected String cookieEncryptionSecret;
     @Value("${oauth.login_signup_endpoint}")
-    protected String authorizedLoginSignupEndpoint;
+    protected String loginSignupEndpoint;
+    @Value("${oauth.consent_endpoint}")
+    protected String consentEndpoint;
     @Value("${cookie.encryption.algorithm}")
     protected String cookieEncryptionAlgorithm;
     protected String authorizedRedirectUri;

@@ -125,7 +125,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+        assertThat(locationHeader).contains(loginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
@@ -149,7 +149,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+        assertThat(locationHeader).contains(loginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
@@ -173,12 +173,40 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(locationHeader).contains(authorizedLoginSignupEndpoint)
+        assertThat(locationHeader).contains(loginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
                 .doesNotContain("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .doesNotContain("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
+                .doesNotContain("error");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    void should_redirect_to_consent_endpoint_when_scope_consent_required(String httpMethod) throws Exception {
+        // Arrange
+        // Remove one of the scopes from the client
+        var allClientUserScopes = clientUserScopeRepository.findAll();
+        clientUserScopeRepository.delete(allClientUserScopes.get(0));
+
+        // Act
+        ResultActions resultActions;
+        if (httpMethod.equals(HttpMethod.GET.name()))
+            resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope);
+        else
+            resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope);
+
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(locationHeader).contains(consentEndpoint)
+                .contains("response_type=code")
+                .contains("client_id=%s".formatted(authorizedClientId))
+                .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
+                .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")))
                 .doesNotContain("error");
     }
 
