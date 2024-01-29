@@ -148,15 +148,18 @@ abstract class BaseAuthorizeControllerTest {
         var authorizationCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
         var clientCredentialsGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
         var refreshTokenGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.refresh_token});
+        var implicitGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.token}, new GrantType[]{GrantType.implicit});
 
         var savedAuthorizationCodeGrant = grantRepository.save(authorizationCodeGrant);
-        var savedclientCredentialsGrant = grantRepository.save(clientCredentialsGrant);
-        var savedrefreshTokenGrant = grantRepository.save(refreshTokenGrant);
+        var savedClientCredentialsGrant = grantRepository.save(clientCredentialsGrant);
+        var savedRefreshTokenGrant = grantRepository.save(refreshTokenGrant);
+        var savedImplicitGrant = grantRepository.save(implicitGrant);
 
         var clientGrantAuthorizationCode = clientGrantFixture.createRandomOne(savedClient, savedAuthorizationCodeGrant);
-        var clientGrantClientCredentials = clientGrantFixture.createRandomOne(savedClient, savedclientCredentialsGrant);
-        var clientGrantRefreshToken = clientGrantFixture.createRandomOne(savedClient, savedrefreshTokenGrant);
-        clientGrantRepository.saveAll(Arrays.asList(clientGrantAuthorizationCode, clientGrantClientCredentials, clientGrantRefreshToken));
+        var clientGrantClientCredentials = clientGrantFixture.createRandomOne(savedClient, savedClientCredentialsGrant);
+        var clientGrantRefreshToken = clientGrantFixture.createRandomOne(savedClient, savedRefreshTokenGrant);
+        var clientGrantImplicit = clientGrantFixture.createRandomOne(savedClient, savedImplicitGrant);
+        clientGrantRepository.saveAll(Arrays.asList(clientGrantAuthorizationCode, clientGrantClientCredentials, clientGrantRefreshToken, clientGrantImplicit));
     }
 
     @NotNull

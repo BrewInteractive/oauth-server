@@ -289,4 +289,27 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
                 .contains("state=%s".formatted(URLEncoder.encode(authorizedState, StandardCharsets.UTF_8)))
                 .contains("scope=%s".formatted(URLEncoder.encode(authorizedScope, StandardCharsets.UTF_8).replace("+", "%20")));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"GET", "POST"})
+    void should_throw_UnsupportedServiceTypeException_when_token_response_type_used(String httpMethod) throws Exception {
+        // Arrange
+        String tokenResponseType = "token"; // This is the unsupported response type
+
+        // Act
+        ResultActions resultActions;
+        if (httpMethod.equals(HttpMethod.GET.name())) {
+            resultActions = getAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, tokenResponseType, authorizedUserId);
+        } else {
+            resultActions = postAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, tokenResponseType, authorizedUserId);
+        }
+
+        // Assert
+        MockHttpServletResponse response = resultActions.andReturn().getResponse();
+        String locationHeader = response.getHeader(LOCATION);
+        resultActions.andExpect(status().isFound());
+        assertThat(locationHeader).contains(authorizedRedirectUri)
+                .contains("error=unsupported_response_type");
+        assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
+    }
 }
