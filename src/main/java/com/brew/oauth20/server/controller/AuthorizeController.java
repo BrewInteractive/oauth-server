@@ -115,13 +115,17 @@ public class AuthorizeController {
                     return generateConsentResponse(consentEndpoint, parameters);
             }
 
-            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
-                    Long.parseLong(expiresMs),
-                    clientUser,
-                    authorizeRequest.getScope());
+            if (authorizeRequest.getResponse_type().equals("token"))
+                throw new UnsupportedServiceTypeException();
+            else {
+                var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
+                        Long.parseLong(expiresMs),
+                        clientUser,
+                        authorizeRequest.getScope());
 
-            /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);
+                /* logged-in user redirect with authorization code */
+                return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);
+            }
         } catch (UnsupportedServiceTypeException e) {
             return generateErrorResponse("unsupported_response_type", parameters,
                     authorizeRequest.redirect_uri);
