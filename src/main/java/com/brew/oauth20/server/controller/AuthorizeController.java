@@ -117,7 +117,8 @@ public class AuthorizeController {
 
             var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
-                    clientUser);
+                    clientUser,
+                    authorizeRequest.getScope());
 
             /* logged-in user redirect with authorization code */
             return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);

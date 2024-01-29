@@ -28,7 +28,7 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
     }
 
     @Override
-    public String createAuthorizationCode(String redirectUri, long expiresIn, ClientUser clientUser) {
+    public String createAuthorizationCode(String redirectUri, long expiresIn, ClientUser clientUser, String scope) {
         OffsetDateTime expiresAt = OffsetDateTime.now().plus(Duration.ofMillis(expiresIn));
         String code = StringUtils.generateSecureRandomString();
         var authorizationCode = AuthorizationCode.builder()
@@ -38,6 +38,7 @@ public class AuthorizationCodeServiceImpl implements AuthorizationCodeService {
                 .expiresAt(expiresAt)
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(OffsetDateTime.now())
+                .scope(scope)
                 .build();
 
         authorizationCodeRepository.save(authorizationCode);

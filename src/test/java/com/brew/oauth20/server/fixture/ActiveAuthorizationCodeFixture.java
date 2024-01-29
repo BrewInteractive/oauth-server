@@ -2,7 +2,10 @@ package com.brew.oauth20.server.fixture;
 
 import com.brew.oauth20.server.data.ActiveAuthorizationCode;
 import com.brew.oauth20.server.data.ClientUser;
+import com.brew.oauth20.server.data.enums.Scope;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
+import com.brew.oauth20.server.testUtils.FakerUtils;
+import com.brew.oauth20.server.testUtils.ScopeUtils;
 import org.instancio.Instancio;
 import org.instancio.Model;
 
@@ -44,6 +47,7 @@ public class ActiveAuthorizationCodeFixture extends Fixture<ActiveAuthorizationC
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
                 .supply(field(ActiveAuthorizationCode::getRedirectUri), () -> url != null ? url : faker.internet().url())
                 .supply(field(ActiveAuthorizationCode::getClientUser), () -> clientUser != null ? clientUser : clientUserFixture.createRandomOne())
+                .supply(field(ActiveAuthorizationCode::getScope), () -> ScopeUtils.createScopeString(FakerUtils.createRandomScopeList(faker, Scope.values())))
                 .toModel();
     }
 

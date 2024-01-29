@@ -45,6 +45,9 @@ public class ActiveAuthorizationCode {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "scope", nullable = false, length = Integer.MAX_VALUE)
+    private String scope;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
