@@ -109,8 +109,7 @@ public class AuthorizeController {
 
             return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
         } catch (UnsupportedServiceTypeException e) {
-            return generateErrorResponse("unsupported_response_type", parameters,
-                    authorizeRequest.redirect_uri);
+            return generateErrorResponse("unsupported_response_type", parameters, authorizeRequest.redirect_uri);
         } catch (Exception e) {
             return generateErrorResponse("server_error", parameters, authorizeRequest.getRedirect_uri());
         }
