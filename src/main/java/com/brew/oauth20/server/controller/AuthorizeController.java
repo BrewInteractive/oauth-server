@@ -156,7 +156,7 @@ public class AuthorizeController {
                     .build()
                     .toUri();
         }
-        return createRedirectResponse(location);
+        return createRedirectResponse(error, location);
     }
 
     private ResponseEntity<String> generateLoginResponse(String loginSignupEndpoint, String parameters) {
@@ -164,7 +164,7 @@ public class AuthorizeController {
                 .query(parameters)
                 .build()
                 .toUri();
-        return createRedirectResponse(location);
+        return createRedirectResponse("", location);
     }
 
     private ResponseEntity<String> generateConsentResponse(String consentEndpoint, String parameters) {
@@ -172,7 +172,7 @@ public class AuthorizeController {
                 .query(parameters)
                 .build()
                 .toUri();
-        return createRedirectResponse(location);
+        return createRedirectResponse("", location);
     }
 
     private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
@@ -182,15 +182,15 @@ public class AuthorizeController {
                 .queryParam("user_id", userId)
                 .build()
                 .toUri();
-        return createRedirectResponse(location);
+        return createRedirectResponse("", location);
     }
 
-    private ResponseEntity<String> createRedirectResponse(URI location) {
+    private ResponseEntity<String> createRedirectResponse(String body, URI location) {
         var headers = new HttpHeaders();
         if (location != null) {
             headers.setContentType(MediaType.TEXT_HTML);
             headers.setLocation(location);
         }
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        return new ResponseEntity<>(body, headers, HttpStatus.FOUND);
     }
 }
