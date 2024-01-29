@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -62,6 +63,14 @@ public class AuthorizeController {
         return clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope()).toArray(String[]::new);
     }
 
+    private static boolean scopeExists(AuthorizeRequestModel authorizeRequest) {
+        return authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank();
+    }
+
+    private static boolean stateExists(AuthorizeRequestModel authorizeRequest) {
+        return authorizeRequest.getState() != null && !authorizeRequest.getState().isBlank();
+    }
+
     @GetMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizeGet(
             @Valid @ModelAttribute("authorizeRequest") AuthorizeRequestModel authorizeRequest,
@@ -84,37 +93,49 @@ public class AuthorizeController {
                                              HttpServletRequest request,
                                              String parameters) {
         try {
-            /* request parameters validation */
-            if (validationResult.hasErrors())
-                return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
+            var errorResponse = validateClientRequest(authorizeRequest, validationResult, parameters);
+            if (errorResponse != null) return errorResponse;
 
-            var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-                return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
-
-            /* user cookie and authorization code */
+            /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
 
             /* not logged-in user redirect login signup */
             if (userIdOptional.isEmpty())
                 return redirectToLoginSignup(parameters);
 
-            var userId = userIdOptional.get();
+            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userIdOptional.get());
+            var consentResponse = validateClientUserConsent(authorizeRequest, parameters, clientUser);
+            if (consentResponse != null) return consentResponse;
 
-            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
-            if (authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank()) {
-                var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
-                if (!scopeValidator.validateScope(getAuthorizedScopes(clientUser)))
-                    return redirectToConsent(parameters);
-            }
-
-            return redirectToRedirectUri(authorizeRequest, parameters, userId, clientUser);
+            return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
         } catch (UnsupportedServiceTypeException e) {
             return generateErrorResponse("unsupported_response_type", parameters,
                     authorizeRequest.redirect_uri);
         } catch (Exception e) {
             return generateErrorResponse("server_error", parameters, authorizeRequest.getRedirect_uri());
         }
+    }
+
+    @Nullable
+    private ResponseEntity<String> validateClientUserConsent(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
+        if (scopeExists(authorizeRequest)) {
+            var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
+            if (!scopeValidator.validateScope(getAuthorizedScopes(clientUser)))
+                return redirectToConsent(parameters);
+        }
+        return null;
+    }
+
+    @Nullable
+    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, String parameters) {
+        /* request parameters validation */
+        if (validationResult.hasErrors())
+            return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
+
+        var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
+        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
+            return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
+        return null;
     }
 
     @NotNull
@@ -148,7 +169,7 @@ public class AuthorizeController {
     }
 
     @NotNull
-    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters, String userId, ClientUser clientUser) {
+    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
         if (authorizeRequest.getResponse_type().equals("token"))
             throw new UnsupportedServiceTypeException();
         else {
@@ -159,7 +180,7 @@ public class AuthorizeController {
                     authorizeRequest.getScope());
 
             /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);
+            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, clientUser.getUserId());
         }
     }
 
@@ -169,9 +190,9 @@ public class AuthorizeController {
                 .append("response_type=").append(authorizeRequest.getResponse_type())
                 .append("&redirect_uri=").append(authorizeRequest.getRedirect_uri())
                 .append("&client_id=").append(authorizeRequest.getClient_id());
-        if (authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank())
+        if (scopeExists(authorizeRequest))
             queryStringBuilder.append("&scope=").append(authorizeRequest.getScope());
-        if (authorizeRequest.getState() != null && !authorizeRequest.getState().isBlank())
+        if (stateExists(authorizeRequest))
             queryStringBuilder.append("&state=").append(authorizeRequest.getState());
         return queryStringBuilder.toString();
     }
