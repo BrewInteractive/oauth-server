@@ -14,6 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthorizeControllerNoConsentEndpointTest extends BaseAuthorizeControllerTest {
     @Test
     void should_return_server_error_if_consent_endpoint_is_not_set() throws Exception {
+        // Arrange
+        // Remove one of the scopes from the client
+        var allClientUserScopes = clientUserScopeRepository.findAll();
+        clientUserScopeRepository.delete(allClientUserScopes.get(0));
 
         // Act
         ResultActions resultActions = postAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope);
