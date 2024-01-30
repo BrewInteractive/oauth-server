@@ -6,7 +6,7 @@ import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.exception.RefreshTokenNotFoundException;
 import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.ActiveRefreshTokenRepository;
-import com.brew.oauth20.server.repository.ClientsUserRepository;
+import com.brew.oauth20.server.repository.ClientUserRepository;
 import com.brew.oauth20.server.repository.RefreshTokenRepository;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.utils.StringUtils;
@@ -23,20 +23,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private static final int REFRESH_TOKEN_LENGTH = 64;
     private final RefreshTokenRepository refreshTokenRepository;
     private final ActiveRefreshTokenRepository activeRefreshTokenRepository;
-    private final ClientsUserRepository clientsUserRepository;
+    private final ClientUserRepository clientUserRepository;
 
     @Autowired
     public RefreshTokenServiceImpl(RefreshTokenRepository refreshTokenRepository,
                                    ActiveRefreshTokenRepository activeRefreshTokenRepository,
-                                   ClientsUserRepository clientsUserRepository) {
+                                   ClientUserRepository clientUserRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.activeRefreshTokenRepository = activeRefreshTokenRepository;
-        this.clientsUserRepository = clientsUserRepository;
+        this.clientUserRepository = clientUserRepository;
     }
 
     @Override
     public RefreshToken createRefreshToken(String clientId, String userId, int expirationTimeInDays) throws ClientsUserNotFoundException {
-        Optional<ClientUser> clientsUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
+        Optional<ClientUser> clientsUser = clientUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (clientsUser.isEmpty())
             throw new ClientsUserNotFoundException(clientId, userId);

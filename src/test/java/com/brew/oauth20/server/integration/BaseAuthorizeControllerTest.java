@@ -1,16 +1,21 @@
 package com.brew.oauth20.server.integration;
 
-import com.brew.oauth20.server.data.ActiveRefreshToken;
+import com.brew.oauth20.server.data.Client;
+import com.brew.oauth20.server.data.ClientScope;
+import com.brew.oauth20.server.data.ClientUser;
+import com.brew.oauth20.server.data.RedirectUri;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.data.enums.Scope;
 import com.brew.oauth20.server.fixture.*;
-import com.brew.oauth20.server.mapper.AuthorizationCodeMapper;
-import com.brew.oauth20.server.mapper.RefreshTokenMapper;
 import com.brew.oauth20.server.repository.*;
+import com.brew.oauth20.server.testUtils.FakerUtils;
+import com.brew.oauth20.server.testUtils.ScopeUtils;
 import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +31,8 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,20 +43,31 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class BaseAuthorizeControllerTest {
-    protected final String notAuthorizedRedirectUri = "http://www.not-authorized-uri.com";
+
+    protected Faker faker;
+    protected ClientFixture clientFixture;
+    protected GrantFixture grantFixture;
+    protected ClientGrantFixture clientGrantFixture;
+    protected RedirectUriFixture redirectUriFixture;
+    protected ClientScopeFixture clientScopeFixture;
+    protected ClientUserFixture clientUserFixture;
+    protected ActiveAuthorizationCodeFixture activeAuthorizationCodeFixture;
+    protected ActiveRefreshTokenFixture activeRefreshTokenFixture;
+    protected ClientUserScopeFixture clientUserScopeFixture;
     @Value("${cookie.encryption.secret}")
     protected String cookieEncryptionSecret;
     @Value("${oauth.login_signup_endpoint}")
-    protected String authorizedLoginSignupEndpoint;
+    protected String loginSignupEndpoint;
+    @Value("${oauth.consent_endpoint}")
+    protected String consentEndpoint;
     @Value("${cookie.encryption.algorithm}")
     protected String cookieEncryptionAlgorithm;
     protected String authorizedRedirectUri;
-    protected String authorizedAuthCode;
     protected String authorizedClientId;
-    protected String authorizedClientSecret;
-    protected String authorizedRefreshToken;
+    protected String authorizedUserId;
     protected String authorizedState;
-    protected Faker faker;
+    protected String authorizedScope;
+    protected String notAuthorizedRedirectUri;
     @Autowired
     protected AuthorizationCodeRepository authorizationCodeRepository;
     @Autowired
@@ -66,86 +81,104 @@ abstract class BaseAuthorizeControllerTest {
     @Autowired
     protected RedirectUriRepository redirectUriRepository;
     @Autowired
-    protected ClientsUserRepository clientsUserRepository;
+    protected ClientScopeRepository clientScopeRepository;
     @Autowired
-    protected ActiveRefreshTokenRepository activeRefreshTokenRepository;
+    protected ClientUserRepository clientUserRepository;
     @Autowired
-    protected RefreshTokenRepository refreshTokenRepository;
+    protected ClientUserScopeRepository clientUserScopeRepository;
     @Autowired
     private MockMvc mockMvc;
 
     @BeforeEach
     void setup() {
         this.faker = new Faker();
-        var clientsGrantFixture = new ClientGrantFixture();
-        var grantFixture = new GrantFixture();
-        var redirectUrisFixture = new RedirectUriFixture();
-        var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
-        var clientsUserFixture = new ClientsUserFixture();
-        var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
+        createFixtures();
 
-        var authCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
-        var clientCredGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
-        var refreshTokenGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.refresh_token});
-        var clientsGrantAuthCode = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
-        var clientsGrantClientCred = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
-        var clientsGrantRefreshToken = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
-        var redirectUris = redirectUrisFixture.createRandomOne();
-        var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
+        var savedClient = createClient();
 
-        var clientsUser = clientsUserFixture.createRandomOne();
+        createClientGrants(savedClient);
 
-        var client = clientsUser.getClient();
+        RedirectUri savedRedirectUri = createRedirectUri(savedClient);
 
-        var savedClient = clientRepository.save(client);
+        Set<ClientScope> savedClientScopes = createClientScopes(savedClient);
 
-        var savedClientUser = clientsUserRepository.save(clientsUser);
+        ClientUser savedClientUser = createClientUser(savedClient);
 
-        ActiveRefreshToken activeRefreshToken = activeRefreshTokenFixture.createRandomOne(savedClientUser);
+        createClientUserScopes(savedClientScopes, savedClientUser);
 
-        authorizedRefreshToken = activeRefreshToken.getToken();
-
-        activeRefreshTokenRepository.save(activeRefreshToken);
-
-        var existingRefreshToken = RefreshTokenMapper.INSTANCE.toRefreshToken(activeRefreshToken);
-
-        refreshTokenRepository.save(existingRefreshToken);
-
-        activeAuthorizationCode.setClientUser(savedClientUser);
-        activeAuthorizationCodeRepository.save(activeAuthorizationCode);
-
-        var authorizationCode = AuthorizationCodeMapper.INSTANCE.toAuthorizationCode(activeAuthorizationCode);
-
-        authorizationCode.setClientUser(savedClientUser);
-        authorizationCodeRepository.save(authorizationCode);
-
-        var savedAuthCodeGrant = grantRepository.save(authCodeGrant);
-        var savedClientCredGrant = grantRepository.save(clientCredGrant);
-        var savedRefreshTokenGrant = grantRepository.save(refreshTokenGrant);
-
-        redirectUris.setClient(savedClient);
-        redirectUriRepository.save(redirectUris);
-
-        clientsGrantAuthCode.setClient(savedClient);
-        clientsGrantAuthCode.setGrant(savedAuthCodeGrant);
-        clientGrantRepository.save(clientsGrantAuthCode);
-
-        clientsGrantClientCred.setClient(savedClient);
-        clientsGrantClientCred.setGrant(savedClientCredGrant);
-        clientGrantRepository.save(clientsGrantClientCred);
-
-        clientsGrantRefreshToken.setClient(savedClient);
-        clientsGrantRefreshToken.setGrant(savedRefreshTokenGrant);
-        clientGrantRepository.save(clientsGrantRefreshToken);
-
-        authorizedClientId = client.getClientId();
-        authorizedClientSecret = client.getClientSecret();
-        authorizedRedirectUri = redirectUris.getRedirectUri();
-        authorizedAuthCode = authorizationCode.getCode();
-        authorizedState = faker.lordOfTheRings().character().replace(" ", "");
+        exposeTestVariables(savedClient, savedClientUser, savedRedirectUri, savedClientScopes);
 
     }
 
+    private void exposeTestVariables(Client savedClient, ClientUser savedClientUser, RedirectUri savedRedirectUri, Set<ClientScope> savedClientScopes) {
+        authorizedClientId = savedClient.getClientId();
+        authorizedUserId = savedClientUser.getUserId();
+        authorizedRedirectUri = savedRedirectUri.getRedirectUri();
+        authorizedState = faker.lordOfTheRings().character().replace(" ", "");
+        authorizedScope = ScopeUtils.createScopeString(savedClientScopes.stream().map(ClientScope::getScope).collect(Collectors.toSet()));
+
+        notAuthorizedRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+    }
+
+    private void createClientUserScopes(Set<ClientScope> clientScopes, ClientUser savedClientUser) {
+        var clientUserScopes = clientScopes.stream().map(clientsScope -> clientUserScopeFixture.createRandomOne(savedClientUser, clientsScope.getScope())).collect(Collectors.toSet());
+        clientUserScopeRepository.saveAll(clientUserScopes);
+    }
+
+    @NotNull
+    private ClientUser createClientUser(Client savedClient) {
+        var clientUser = clientUserFixture.createRandomOne(savedClient);
+        return clientUserRepository.save(clientUser);
+    }
+
+    @NotNull
+    private Set<ClientScope> createClientScopes(Client savedClient) {
+        var clientScopes = clientScopeFixture.createRandomUniqueList(savedClient, Scope.values());
+        clientScopeRepository.saveAll(clientScopes);
+        return clientScopes;
+    }
+
+    @NotNull
+    private RedirectUri createRedirectUri(Client savedClient) {
+        var redirectUri = redirectUriFixture.createRandomOne(savedClient);
+        return redirectUriRepository.save(redirectUri);
+    }
+
+    private void createClientGrants(Client savedClient) {
+        var authorizationCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
+        var clientCredentialsGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
+        var refreshTokenGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.refresh_token});
+        var implicitGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.token}, new GrantType[]{GrantType.implicit});
+
+        var savedAuthorizationCodeGrant = grantRepository.save(authorizationCodeGrant);
+        var savedClientCredentialsGrant = grantRepository.save(clientCredentialsGrant);
+        var savedRefreshTokenGrant = grantRepository.save(refreshTokenGrant);
+        var savedImplicitGrant = grantRepository.save(implicitGrant);
+
+        var clientGrantAuthorizationCode = clientGrantFixture.createRandomOne(savedClient, savedAuthorizationCodeGrant);
+        var clientGrantClientCredentials = clientGrantFixture.createRandomOne(savedClient, savedClientCredentialsGrant);
+        var clientGrantRefreshToken = clientGrantFixture.createRandomOne(savedClient, savedRefreshTokenGrant);
+        var clientGrantImplicit = clientGrantFixture.createRandomOne(savedClient, savedImplicitGrant);
+        clientGrantRepository.saveAll(Arrays.asList(clientGrantAuthorizationCode, clientGrantClientCredentials, clientGrantRefreshToken, clientGrantImplicit));
+    }
+
+    @NotNull
+    private Client createClient() {
+        var client = clientFixture.createRandomOne(false);
+        return clientRepository.save(client);
+    }
+
+    private void createFixtures() {
+        this.clientFixture = new ClientFixture();
+        this.grantFixture = new GrantFixture();
+        this.clientGrantFixture = new ClientGrantFixture();
+        this.redirectUriFixture = new RedirectUriFixture();
+        this.clientScopeFixture = new ClientScopeFixture();
+        this.clientUserFixture = new ClientUserFixture();
+        this.activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
+        this.activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
+        this.clientUserScopeFixture = new ClientUserScopeFixture();
+    }
 
     @AfterEach
     void emptyData() {
@@ -153,16 +186,19 @@ abstract class BaseAuthorizeControllerTest {
         activeAuthorizationCodeRepository.deleteAll();
         clientGrantRepository.deleteAllInBatch();
         redirectUriRepository.deleteAllInBatch();
+        clientUserScopeRepository.deleteAllInBatch();
+        clientUserRepository.deleteAllInBatch();
         clientRepository.deleteAll();
         grantRepository.deleteAllInBatch();
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<String> userId) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId) throws Exception {
         Map<String, String> requestBodyMap = new HashMap<>();
         requestBodyMap.put("redirect_uri", redirectUri);
         requestBodyMap.put("client_id", clientId);
         requestBodyMap.put("response_type", responseType);
         requestBodyMap.put("state", state);
+        requestBodyMap.put("scope", scope);
 
         String requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
 
@@ -181,39 +217,63 @@ abstract class BaseAuthorizeControllerTest {
     }
 
     protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
+        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty());
     }
 
     protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
+        return postAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty());
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, Optional<String> userId) throws Exception {
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty());
+    }
+
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId) throws Exception {
         if (userId.isEmpty())
             return this.mockMvc.perform(get("/oauth/authorize")
                     .queryParam("redirect_uri", redirectUri)
                     .queryParam("client_id", clientId)
                     .queryParam("response_type", responseType)
-                    .queryParam("state", state));
+                    .queryParam("state", state)
+                    .queryParam("scope", scope)
+            );
         var cookieValue = createCookieValue(userId.get());
         return this.mockMvc.perform(get("/oauth/authorize")
                 .cookie(new Cookie("user", cookieValue))
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", responseType)
-                .queryParam("state", state));
+                .queryParam("state", state)
+                .queryParam("scope", scope)
+        );
     }
 
     protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", Optional.empty());
+        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty());
     }
 
     protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", Optional.ofNullable(userId));
+        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId));
+    }
+
+    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId));
+    }
+
+    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId));
+    }
+
+    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId));
     }
 
     protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, state, Optional.empty());
+        return getAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty());
+    }
+
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty());
     }
 
     private String createCookieValue(String userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {

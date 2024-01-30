@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ClientsUserRepository extends JpaRepository<ClientUser, UUID> {
+public interface ClientUserRepository extends JpaRepository<ClientUser, UUID> {
     @Query(value = "SELECT distinct cu FROM ClientUser cu " +
             "JOIN FETCH cu.client c " +
             "LEFT JOIN FETCH cu.clientUserScopes cus " +

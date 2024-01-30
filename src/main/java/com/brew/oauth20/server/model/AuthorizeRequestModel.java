@@ -21,4 +21,5 @@ public class AuthorizeRequestModel {
     @UriConstraint
     public String redirect_uri;
     public String state;
+    public String scope;
 }

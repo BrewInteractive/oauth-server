@@ -3,7 +3,7 @@ package com.brew.oauth20.server.service.impl;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
 import com.brew.oauth20.server.repository.ClientRepository;
-import com.brew.oauth20.server.repository.ClientsUserRepository;
+import com.brew.oauth20.server.repository.ClientUserRepository;
 import com.brew.oauth20.server.service.ClientUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,19 +11,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class ClientUserServiceImpl implements ClientUserService {
 
-    private final ClientsUserRepository clientsUserRepository;
+    private final ClientUserRepository clientUserRepository;
     private final ClientRepository clientRepository;
 
     @Autowired
-    public ClientUserServiceImpl(ClientsUserRepository clientsUserRepository,
+    public ClientUserServiceImpl(ClientUserRepository clientUserRepository,
                                  ClientRepository clientRepository) {
-        this.clientsUserRepository = clientsUserRepository;
+        this.clientUserRepository = clientUserRepository;
         this.clientRepository = clientRepository;
     }
 
     @Override
     public ClientUser getOrCreate(String clientId, String userId) {
-        var existingClientUser = clientsUserRepository.findByClientIdAndUserId(clientId, userId);
+        var existingClientUser = clientUserRepository.findByClientIdAndUserId(clientId, userId);
 
         if (existingClientUser.isPresent())
             return existingClientUser.get();
@@ -38,6 +38,6 @@ public class ClientUserServiceImpl implements ClientUserService {
                 .userId(userId)
                 .build();
 
-        return clientsUserRepository.save(clientUser);
+        return clientUserRepository.save(clientUser);
     }
 }

@@ -1,15 +1,20 @@
 package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.component.UserCookieManager;
+import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
+import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
+import com.brew.oauth20.server.utils.validators.ScopeValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -21,6 +26,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
@@ -36,6 +42,9 @@ public class AuthorizeController {
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
 
+    @Value("${oauth.consent_endpoint}")
+    private String consentEndpoint;
+
     @Autowired
     public AuthorizeController(UserCookieManager userCookieManager,
                                AuthorizationCodeService authorizationCodeService,
@@ -47,6 +56,19 @@ public class AuthorizeController {
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.clientUserService = clientUserService;
         this.env = env;
+    }
+
+    @NotNull
+    private static String[] getAuthorizedScopes(ClientUser clientUser) {
+        return clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope()).toArray(String[]::new);
+    }
+
+    private static boolean scopeExists(AuthorizeRequestModel authorizeRequest) {
+        return authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank();
+    }
+
+    private static boolean stateExists(AuthorizeRequestModel authorizeRequest) {
+        return authorizeRequest.getState() != null && !authorizeRequest.getState().isBlank();
     }
 
     @GetMapping(value = "/oauth/authorize")
@@ -71,50 +93,93 @@ public class AuthorizeController {
                                              HttpServletRequest request,
                                              String parameters) {
         try {
-            /* request parameters validation */
-            if (validationResult.hasErrors())
-                return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
+            var errorResponse = validateClientRequest(authorizeRequest, validationResult, parameters);
+            if (errorResponse != null) return errorResponse;
 
-            /* authorize type validator */
-            var authorizeTypeProvider = authorizeTypeProviderFactory
-                    .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
-
-            var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
-                    authorizeRequest.getRedirect_uri(), null);
-
-            if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-                return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters,
-                        authorizeRequest.getRedirect_uri());
-
-            /* user cookie and authorization code */
+            /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
 
             /* not logged-in user redirect login signup */
-            if (userIdOptional.isEmpty()) {
-                if (loginSignupEndpoint.isBlank())
-                    throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
+            if (userIdOptional.isEmpty())
+                return redirectToLoginSignup(parameters);
 
-                return generateLoginResponse(loginSignupEndpoint, parameters);
-            }
+            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userIdOptional.get());
+            var consentResponse = validateClientUserConsent(authorizeRequest, parameters, clientUser);
+            if (consentResponse != null) return consentResponse;
 
-            var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
-                    DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
-
-            var userId = userIdOptional.get();
-
-            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
-
-            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
-                    Long.parseLong(expiresMs),
-                    clientUser);
-
-            /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, userId);
+            return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
         } catch (UnsupportedServiceTypeException e) {
-            return generateErrorResponse("unsupported_response_type", parameters,
-                    authorizeRequest.redirect_uri);
+            return generateErrorResponse("unsupported_response_type", parameters, authorizeRequest.redirect_uri);
         } catch (Exception e) {
             return generateErrorResponse("server_error", parameters, authorizeRequest.getRedirect_uri());
+        }
+    }
+
+    @Nullable
+    private ResponseEntity<String> validateClientUserConsent(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
+        if (scopeExists(authorizeRequest)) {
+            var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
+            if (!scopeValidator.validateScope(getAuthorizedScopes(clientUser)))
+                return redirectToConsent(parameters);
+        }
+        return null;
+    }
+
+    @Nullable
+    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, String parameters) {
+        /* request parameters validation */
+        if (validationResult.hasErrors())
+            return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
+
+        var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
+        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
+            return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
+        return null;
+    }
+
+    @NotNull
+    private ResponseEntity<String> redirectToConsent(String parameters) {
+        validateConsentEndpoint();
+        return generateConsentResponse(consentEndpoint, parameters);
+    }
+
+    @NotNull
+    private ResponseEntity<String> redirectToLoginSignup(String parameters) {
+        validateLoginSignupEndpoint();
+        return generateLoginSignupResponse(loginSignupEndpoint, parameters);
+    }
+
+    private void validateConsentEndpoint() {
+        if (consentEndpoint.isBlank())
+            throw new IllegalStateException("CONSENT_ENDPOINT is not set in the environment variables");
+    }
+
+    private void validateLoginSignupEndpoint() {
+        if (loginSignupEndpoint.isBlank())
+            throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
+    }
+
+    private ValidationResultModel validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
+        /* authorize type validator */
+        var authorizeTypeProvider = authorizeTypeProviderFactory
+                .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
+
+        return authorizeTypeProvider.validate(authorizeRequest.getClient_id(), authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
+    }
+
+    @NotNull
+    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
+        if (authorizeRequest.getResponse_type().equals("token"))
+            throw new UnsupportedServiceTypeException();
+        else {
+            var expiresMs = env.getProperty("oauth.authorization_code_expires_ms", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
+                    Long.parseLong(expiresMs),
+                    clientUser,
+                    authorizeRequest.getScope());
+
+            /* logged-in user redirect with authorization code */
+            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, clientUser.getUserId());
         }
     }
 
@@ -124,34 +189,39 @@ public class AuthorizeController {
                 .append("response_type=").append(authorizeRequest.getResponse_type())
                 .append("&redirect_uri=").append(authorizeRequest.getRedirect_uri())
                 .append("&client_id=").append(authorizeRequest.getClient_id());
-        if (!authorizeRequest.getState().isBlank())
+        if (scopeExists(authorizeRequest))
+            queryStringBuilder.append("&scope=").append(authorizeRequest.getScope());
+        if (stateExists(authorizeRequest))
             queryStringBuilder.append("&state=").append(authorizeRequest.getState());
         return queryStringBuilder.toString();
     }
 
     private ResponseEntity<String> generateErrorResponse(String error, String parameters, String redirectUri) {
-        var headers = new HttpHeaders();
+        URI location = null;
         if (redirectUri != null) {
-            var location = UriComponentsBuilder.fromUriString(redirectUri)
+            location = UriComponentsBuilder.fromUriString(redirectUri)
                     .query(parameters)
                     .queryParam("error", error)
                     .build()
                     .toUri();
-            headers.setContentType(MediaType.TEXT_HTML);
-            headers.setLocation(location);
         }
-        return new ResponseEntity<>(error, headers, HttpStatus.FOUND);
+        return createRedirectResponse(error, location);
     }
 
-    private ResponseEntity<String> generateLoginResponse(String loginSignupEndpoint, String parameters) {
+    private ResponseEntity<String> generateLoginSignupResponse(String loginSignupEndpoint, String parameters) {
         var location = UriComponentsBuilder.fromUriString(loginSignupEndpoint)
                 .query(parameters)
                 .build()
                 .toUri();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_HTML);
-        headers.setLocation(location);
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        return createRedirectResponse("", location);
+    }
+
+    private ResponseEntity<String> generateConsentResponse(String consentEndpoint, String parameters) {
+        var location = UriComponentsBuilder.fromUriString(consentEndpoint)
+                .query(parameters)
+                .build()
+                .toUri();
+        return createRedirectResponse("", location);
     }
 
     private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
@@ -161,9 +231,15 @@ public class AuthorizeController {
                 .queryParam("user_id", userId)
                 .build()
                 .toUri();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.TEXT_HTML);
-        headers.setLocation(location);
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        return createRedirectResponse("", location);
+    }
+
+    private ResponseEntity<String> createRedirectResponse(String body, URI location) {
+        var headers = new HttpHeaders();
+        if (location != null) {
+            headers.setContentType(MediaType.TEXT_HTML);
+            headers.setLocation(location);
+        }
+        return new ResponseEntity<>(body, headers, HttpStatus.FOUND);
     }
 }

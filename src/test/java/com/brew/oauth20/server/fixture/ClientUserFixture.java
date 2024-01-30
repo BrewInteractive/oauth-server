@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.fixture;
 
+import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.fixture.abstracts.Fixture;
 import org.instancio.Instancio;
@@ -11,25 +12,31 @@ import java.util.UUID;
 
 import static org.instancio.Select.field;
 
-public class ClientsUserFixture extends Fixture<ClientUser> {
+public class ClientUserFixture extends Fixture<ClientUser> {
 
+    private final String userIdPrefix = "did:tmrwid:";
     private final ClientFixture clientFixture;
 
-    public ClientsUserFixture() {
+    public ClientUserFixture() {
         this.clientFixture = new ClientFixture();
     }
 
     public ClientUser createRandomOne() {
-        return Instancio.of(clientsUser())
+        return Instancio.of(clientsUser(null))
                 .create();
     }
 
-    private Model<ClientUser> clientsUser() {
+    public ClientUser createRandomOne(Client client) {
+        return Instancio.of(clientsUser(client))
+                .create();
+    }
+
+    private Model<ClientUser> clientsUser(Client client) {
         return Instancio.of(ClientUser.class)
                 .supply(field(ClientUser::getId), UUID::randomUUID)
-                .supply(field(ClientUser::getClient), () -> clientFixture.createRandomOne(false))
+                .supply(field(ClientUser::getClient), () -> client != null ? client : clientFixture.createRandomOne(false))
                 .supply(field(ClientUser::getClientUserScopes), () -> new LinkedHashSet<>())
-                .supply(field(ClientUser::getUserId), () -> faker.letterify("?").repeat(20))
+                .supply(field(ClientUser::getUserId), () -> userIdPrefix + faker.random().nextLong(10))
                 .supply(field(ClientUser::getRefreshTokens), () -> new LinkedHashSet<>())
                 .supply(field(ClientUser::getCreatedAt), () -> OffsetDateTime.now())
                 .supply(field(ClientUser::getUpdatedAt), () -> OffsetDateTime.now())

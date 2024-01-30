@@ -42,7 +42,9 @@ class AuthorizationCodeServiceTest {
         var result = authorizationCodeService.createAuthorizationCode(
                 activeAuthorizationCode.getRedirectUri(),
                 activeAuthorizationCode.getExpiresAt().toInstant().toEpochMilli(),
-                activeAuthorizationCode.getClientUser()
+                activeAuthorizationCode.getClientUser(),
+                activeAuthorizationCode.getScope()
+
         );
         assertThat(result).isNotEmpty().isNotBlank();
         verify(authorizationCodeRepository, times(1)).save(argThat(x ->
@@ -50,6 +52,7 @@ class AuthorizationCodeServiceTest {
                         && x.getRedirectUri().equals(activeAuthorizationCode.getRedirectUri())
                         && x.getClientUser().getClient().equals(activeAuthorizationCode.getClientUser().getClient())
                         && x.getExpiresAt().isAfter(OffsetDateTime.now())
+                        && x.getScope().equals(activeAuthorizationCode.getScope())
         ));
     }
 
