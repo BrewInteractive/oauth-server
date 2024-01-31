@@ -48,7 +48,7 @@ You will need to add below environment variables to run the server. These values
 file in the root directory.:
 
 | Variable Name                 | Description                                                          | Required | Default Value |
-| ----------------------------- | -------------------------------------------------------------------- | :------: | :-----------: |
+|-------------------------------|----------------------------------------------------------------------| :------: | :-----------: |
 | DB_HOST                       | Represents the hostname of the database that needs to be connected.  |   YES    |       -       |
 | DB_NAME                       | Represents the name of the database that needs to be connected.      |   YES    |       -       |
 | DB_USER                       | Represents the user of the database that needs to be connected.      |   YES    |       -       |
@@ -58,6 +58,7 @@ file in the root directory.:
 | COOKIE_ENCRYPTION_ALGORITHM   | Represents the algorithm while decrypting the user cookie.           |   YES    |       -       |
 | COOKIE_ENCRYPTION_SECRET      | Represents the secret while decrypting the user cookie.              |   YES    |       -       |
 | ENABLE_SWAGGER                | Represents the enabling or disabling the swagger.                    |    NO    |       -       |
+| USER_IDENTITY_SERVICE_URL     | Represents the identity service url to get user-info                 |    NO    |       -       |
 
 #### Starting the Server
 
