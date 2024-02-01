@@ -28,7 +28,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     }
 
     @Override
-    public Map<String, Object> getUserIdentity(String accessToken) {
+    public Map<String, Object> getUserIdentityInfo(String accessToken) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

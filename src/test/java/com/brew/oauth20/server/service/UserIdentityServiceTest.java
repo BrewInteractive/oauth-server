@@ -58,7 +58,7 @@ class UserIdentityServiceTest {
         when(restTemplate.exchange(userIdentityServiceUrl, HttpMethod.GET, requestEntity, JsonNode.class))
                 .thenReturn(responseEntity);
         // Act
-        Map<String, Object> result = userIdentityService.getUserIdentity(accessToken);
+        Map<String, Object> result = userIdentityService.getUserIdentityInfo(accessToken);
         // Assert
         assertThat(result).isNotNull()
                 .isEqualTo(expectedModel);
@@ -77,7 +77,7 @@ class UserIdentityServiceTest {
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         // Act & Assert
-        assertThatThrownBy(() -> userIdentityService.getUserIdentity(accessToken))
+        assertThatThrownBy(() -> userIdentityService.getUserIdentityInfo(accessToken))
                 .isInstanceOf(UserIdentityServiceException.class);
     }
 }
