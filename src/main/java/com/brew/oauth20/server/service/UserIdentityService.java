@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.service;
 
-import com.brew.oauth20.server.model.UserIdentityInfoModel;
+import java.util.Map;
 
 public interface UserIdentityService {
-    UserIdentityInfoModel getUserIdentity(String accessToken);
+    Map<String, Object> getUserIdentity(String accessToken);
 }
