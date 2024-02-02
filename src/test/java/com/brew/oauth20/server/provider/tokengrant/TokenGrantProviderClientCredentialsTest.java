@@ -106,7 +106,7 @@ class TokenGrantProviderClientCredentialsTest {
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 
         when(tokenService.generateToken(clientModel, tokenRequest.state, tokenRequest.additional_claims))
-                .thenReturn(tokenResultModel.getResult());
+                .thenReturn(tokenResultModel.getResult().getAccessToken());
 
         // Act
         var result = tokenGrantProviderClientCredentials.generateToken(authorizationHeader, tokenRequest);

@@ -8,7 +8,9 @@ import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
+import com.brew.oauth20.server.service.UserIdentityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,15 +21,17 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     @Autowired
     protected TokenGrantProviderRefreshToken(ClientService clientService,
                                              TokenService tokenService,
+                                             UserIdentityService userIdentityService,
+                                             Environment env,
                                              RefreshTokenService refreshTokenService) {
-        super(clientService, tokenService);
+        super(clientService, tokenService, userIdentityService, env);
         this.refreshTokenService = refreshTokenService;
         this.grantType = GrantType.refresh_token;
     }
 
     @Override
     public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.refresh_token))
+        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.getRefresh_token()))
             return new ValidationResultModel(false, "invalid_request");
         return super.validate(authorizationHeader, tokenRequest);
     }
@@ -40,11 +44,15 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
             if (Boolean.FALSE.equals(validationResult.getResult()))
                 return new TokenResultModel(null, validationResult.getError());
 
-            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.refresh_token, client.refreshTokenExpiresInDays());
+            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.getRefresh_token(), client.refreshTokenExpiresInDays());
 
             var userId = refreshToken.getClientUser().getUserId();
 
-            var tokenModel = tokenService.generateToken(client, userId, tokenRequest.state, tokenRequest.additional_claims, refreshToken.getToken());
+            var accessToken = tokenService.generateToken(client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+
+            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+
+            var tokenModel = this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 
             return new TokenResultModel(tokenModel, null);
         } catch (ClientsUserNotFoundException e) {

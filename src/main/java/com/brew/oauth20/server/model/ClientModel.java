@@ -24,4 +24,8 @@ public record ClientModel(
         byte[] decodedBytes = Base64.getUrlDecoder().decode(clientSecret);
         return new String(decodedBytes);
     }
+
+    public Long tokenExpiresInSeconds() {
+        return tokenExpiresInMinutes * 60L;
+    }
 }

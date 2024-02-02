@@ -6,12 +6,17 @@ import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
+import com.brew.oauth20.server.service.UserIdentityService;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider {
-    protected TokenGrantProviderClientCredentials(ClientService clientService, TokenService tokenService) {
-        super(clientService, tokenService);
+    protected TokenGrantProviderClientCredentials(ClientService clientService,
+                                                  TokenService tokenService,
+                                                  UserIdentityService userIdentityService,
+                                                  Environment env) {
+        super(clientService, tokenService, userIdentityService, env);
         this.grantType = GrantType.client_credentials;
     }
 
@@ -23,7 +28,9 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
             if (Boolean.FALSE.equals(validationResult.getResult()))
                 return new TokenResultModel(null, validationResult.getError());
 
-            var tokenModel = tokenService.generateToken(client, tokenRequest.state, tokenRequest.additional_claims);
+            var accessToken = tokenService.generateToken(client, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+
+            var tokenModel = this.buildToken(accessToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 
             return new TokenResultModel(tokenModel, null);
         } catch (ClientsUserNotFoundException e) {

@@ -16,8 +16,6 @@ import java.util.Date;
 public class JwtServiceImpl implements JwtService {
     @Override
     public String signToken(SignTokenOptions signTokenOptions) {
-
-
         // create claims for JWT token
         Claims claims = Jwts.claims().
                 setAudience(signTokenOptions.audience()).
