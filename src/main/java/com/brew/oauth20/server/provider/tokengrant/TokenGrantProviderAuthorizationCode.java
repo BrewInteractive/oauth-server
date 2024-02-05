@@ -56,9 +56,9 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
                 var refreshTokenEntity = this.refreshTokenService.createRefreshToken(client.clientId(), userId, client.refreshTokenExpiresInDays());
                 refreshToken = refreshTokenEntity.getToken();
             }
-            var accessToken = this.tokenService.generateToken(client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+            var accessToken = this.tokenService.generateToken(client, userId, tokenRequest.getState(), activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims());
 
-            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims());
 
             var tokenModel = this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 

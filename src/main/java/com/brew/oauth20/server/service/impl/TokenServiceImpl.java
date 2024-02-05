@@ -21,18 +21,20 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public String generateToken(ClientModel client, String state, Map<String, Object> additionalClaims) {
-        return generateToken(client, null, state, additionalClaims);
+        return generateToken(client, null, state, null, additionalClaims);
     }
 
     @Override
-    public String generateToken(ClientModel client, String userId, String state, Map<String, Object> additionalClaims) {
-        var signTokenOptions = createSignTokenOptions(client, userId, additionalClaims);
+    public String generateToken(ClientModel client, String userId, String state, String scope, Map<String, Object> additionalClaims) {
+        var signTokenOptions = createSignTokenOptions(client, userId, scope, additionalClaims);
         return jwtService.signToken(signTokenOptions);
     }
 
-    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, Map<String, Object> additionalClaims) {
+    private SignTokenOptions createSignTokenOptions(ClientModel client, String userId, String scope, Map<String, Object> additionalClaims) {
         return new SignTokenOptions(
                 userId,
+                client.clientId(),
+                scope,
                 client.audience(),
                 client.issuerUri(),
                 client.tokenExpiresInMinutes() * 60,
@@ -40,6 +42,4 @@ public class TokenServiceImpl implements TokenService {
                 additionalClaims
         );
     }
-
-
 }

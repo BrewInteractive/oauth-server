@@ -33,6 +33,8 @@ class JwtServiceTest {
         return Stream.of(
                 Arguments.of(
                         faker.internet().url(),
+                        faker.internet().uuid(),
+                        faker.lordOfTheRings().location(),
                         faker.internet().url(),
                         faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
@@ -42,6 +44,8 @@ class JwtServiceTest {
                 ),
                 Arguments.of(
                         faker.internet().url(),
+                        faker.internet().uuid(),
+                        faker.lordOfTheRings().location(),
                         faker.internet().url(),
                         faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
@@ -54,6 +58,8 @@ class JwtServiceTest {
         return Stream.of(
                 Arguments.of(
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
+                        faker.internet().uuid(),
+                        faker.lordOfTheRings().location(),
                         faker.internet().url(),
                         faker.internet().url(),
                         faker.letterify("?".repeat(32)),
@@ -65,6 +71,8 @@ class JwtServiceTest {
                 ),
                 Arguments.of(
                         String.valueOf(faker.random().nextInt(Integer.MAX_VALUE)),
+                        faker.internet().uuid(),
+                        faker.lordOfTheRings().location(),
                         faker.internet().url(),
                         faker.internet().url(),
                         faker.letterify("?".repeat(32)),
@@ -77,6 +85,8 @@ class JwtServiceTest {
     @ParameterizedTest
     @MethodSource
     void should_sign_token_without_subject(String audience,
+                                           String authorizedParty,
+                                           String scope,
                                            String issuerUri,
                                            String signingKey,
                                            Integer expiresInSeconds,
@@ -84,7 +94,7 @@ class JwtServiceTest {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        var result = jwtService.signToken(new SignTokenOptions(null, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(null, authorizedParty, scope, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
 
         // Assert
         var claims = parseClaims(result, signingKey);
@@ -94,6 +104,8 @@ class JwtServiceTest {
         assertThat(claims.getIssuer()).isEqualTo(issuerUri);
         assertThat(claims.getIssuedAt()).isNotNull();
         assertThat(claims.getExpiration()).isNotNull();
+        assertThat(claims).containsEntry("azp", authorizedParty)
+                .containsEntry("scope", scope);
         if (additionalClaims != null)
             for (var entry : additionalClaims.entrySet())
                 assertThat(claims).containsEntry(entry.getKey(), entry.getValue());
@@ -103,6 +115,8 @@ class JwtServiceTest {
     @ParameterizedTest
     @MethodSource
     void should_sign_token_with_subject(String subject,
+                                        String authorizedParty,
+                                        String scope,
                                         String audience,
                                         String issuerUri,
                                         String signingKey,
@@ -111,7 +125,7 @@ class JwtServiceTest {
 
         // Act
         var jwtService = new JwtServiceImpl();
-        var result = jwtService.signToken(new SignTokenOptions(subject, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
+        var result = jwtService.signToken(new SignTokenOptions(subject, authorizedParty, scope, audience, issuerUri, expiresInSeconds, signingKey, additionalClaims));
 
         // Assert
         var claims = parseClaims(result, signingKey);
@@ -122,6 +136,8 @@ class JwtServiceTest {
         assertThat(claims.getIssuer()).isEqualTo(issuerUri);
         assertThat(claims.getIssuedAt()).isNotNull();
         assertThat(claims.getExpiration()).isNotNull();
+        assertThat(claims).containsEntry("azp", authorizedParty)
+                .containsEntry("scope", scope);
         if (additionalClaims != null)
             for (var entry : additionalClaims.entrySet())
                 assertThat(claims).containsEntry(entry.getKey(), entry.getValue());

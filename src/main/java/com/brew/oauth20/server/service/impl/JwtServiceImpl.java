@@ -23,13 +23,17 @@ public class JwtServiceImpl implements JwtService {
                 setIssuedAt(Date.from(Instant.now())).
                 setExpiration(Date.from(Instant.now().plusSeconds(signTokenOptions.expiresInSeconds())));
 
-        if (signTokenOptions.subject() != null) {
+        if (signTokenOptions.subject() != null)
             claims.setSubject(signTokenOptions.subject());
-        }
 
-        if (signTokenOptions.additionalClaims() != null) {
+        if (signTokenOptions.authorizedParty() != null)
+            claims.put("azp", signTokenOptions.authorizedParty());
+
+        if (signTokenOptions.scope() != null)
+            claims.put("scope", signTokenOptions.scope());
+
+        if (signTokenOptions.additionalClaims() != null)
             claims.putAll(signTokenOptions.additionalClaims());
-        }
 
         // sign JWT token
         return Jwts.builder()
