@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class BaseTokenGrantProvider {
@@ -65,6 +66,8 @@ public abstract class BaseTokenGrantProvider {
             return null;
 
         var userIdentityInfo = userIdentityService.getUserIdentityInfo(accessToken);
+        if (additionalClaims == null)
+            additionalClaims = new HashMap<>(Map.of());
         additionalClaims.putAll(userIdentityInfo);
         return this.tokenService.generateToken(client, userId, state, additionalClaims);
 
