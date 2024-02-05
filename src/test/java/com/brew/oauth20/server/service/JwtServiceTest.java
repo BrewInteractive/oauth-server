@@ -50,6 +50,15 @@ class JwtServiceTest {
                         faker.letterify("?".repeat(32)),
                         faker.random().nextInt(1, Integer.MAX_VALUE),
                         null
+                ),
+                Arguments.of(
+                        faker.internet().url(),
+                        null,
+                        faker.lordOfTheRings().location(),
+                        faker.internet().url(),
+                        faker.letterify("?".repeat(32)),
+                        faker.random().nextInt(1, Integer.MAX_VALUE),
+                        null
                 )
         );
     }
@@ -104,8 +113,12 @@ class JwtServiceTest {
         assertThat(claims.getIssuer()).isEqualTo(issuerUri);
         assertThat(claims.getIssuedAt()).isNotNull();
         assertThat(claims.getExpiration()).isNotNull();
-        assertThat(claims).containsEntry("azp", authorizedParty)
-                .containsEntry("scope", scope);
+        assertThat(claims).containsEntry("scope", scope);
+        if (authorizedParty != null)
+            assertThat(claims).containsEntry("azp", authorizedParty);
+        else
+            assertThat(claims).doesNotContainKey("azp");
+
         if (additionalClaims != null)
             for (var entry : additionalClaims.entrySet())
                 assertThat(claims).containsEntry(entry.getKey(), entry.getValue());
