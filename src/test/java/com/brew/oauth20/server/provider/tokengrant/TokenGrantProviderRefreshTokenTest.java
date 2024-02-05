@@ -79,7 +79,7 @@ class TokenGrantProviderRefreshTokenTest {
         tokenRequestWithoutClient.setClient_id("");
         tokenRequestWithoutClient.setClient_secret("");
 
-        String authorizationCode = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+        var authorizationCode = createAuthorizationHeader(client);
 
         var pair = Pair.of(client.clientId(), client.clientSecret());
 
@@ -129,6 +129,10 @@ class TokenGrantProviderRefreshTokenTest {
         );
     }
 
+    private static String createAuthorizationHeader(ClientModel client) {
+        return Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+    }
+
     private static Stream<Arguments> should_generate_token_from_valid_request() {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
 
@@ -136,7 +140,7 @@ class TokenGrantProviderRefreshTokenTest {
         validTokenRequest.setClient_id(client.clientId());
         validTokenRequest.setClient_secret(client.clientSecret());
 
-        String authorizationCode = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+        var authorizationCode = createAuthorizationHeader(client);
         var pair = Pair.of(client.clientId(), client.clientSecret());
 
 

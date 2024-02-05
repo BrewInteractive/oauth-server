@@ -1,19 +1,18 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
+import com.github.javafaker.Faker;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -36,6 +35,11 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class TokenGrantProviderClientCredentialsTest {
+
+    private static Faker faker;
+    private static ClientModelFixture clientModelFixture;
+    private static TokenRequestModelFixture tokenRequestModelFixture;
+
     @Mock
     TokenService tokenService;
     @Mock
@@ -45,43 +49,103 @@ class TokenGrantProviderClientCredentialsTest {
     private TokenGrantProviderClientCredentials tokenGrantProviderClientCredentials;
 
     private static Stream<Arguments> should_generate_token_from_valid_request() {
-        var clientModelFixture = new ClientModelFixture();
+        var clientModel = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.client_credentials});
 
+        TokenRequestModel validTokenRequest = createValidTokenRequest(clientModel);
+
+        var accessToken = faker.regexify("[A-Za-z0-9]{150}");
+
+        var tokenModel = TokenModel.builder()
+                .accessToken(accessToken)
+                .state(validTokenRequest.getState())
+                .expiresIn(clientModel.tokenExpiresInSeconds())
+                .tokenType("Bearer")
+                .build();
+
+        return Stream.of(
+                Arguments.of(clientModel,
+                        validTokenRequest,
+                        new TokenResultModel(tokenModel, null))
+
+        );
+    }
+
+    @NotNull
+    private static TokenRequestModel createValidTokenRequest(ClientModel clientModel) {
+        var validTokenRequest = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
+        validTokenRequest.setClient_id(clientModel.clientId());
+        validTokenRequest.setClient_secret(clientModel.clientSecret());
+        return validTokenRequest;
+    }
+
+    private static String createAuthorizationHeader(ClientModel client) {
+        return Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+    }
+
+    private static Stream<Arguments> should_validate_client_credentials_provider() {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.client_credentials});
+        TokenRequestModel validTokenRequest = createValidTokenRequest(client);
 
-        var tokenRequestFixture = new TokenRequestModelFixture();
-
-        var validTokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
-        validTokenRequest.setClient_id(client.clientId());
-        validTokenRequest.setClient_secret(client.clientSecret());
-
-        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
+        var tokenRequestWithoutClient = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
         tokenRequestWithoutClient.setClient_id("");
         tokenRequestWithoutClient.setClient_secret("");
 
-        String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+        var authorizationHeader = createAuthorizationHeader(client);
 
-        var clientCredentials = Pair.of(client.clientId(), client.clientSecret());
-
-        var tokenModel = TokenModel.builder().build();
+        var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
 
         return Stream.of(
+                //valid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationHeader,
                         validTokenRequest,
-                        new TokenResultModel(tokenModel, null),
-                        clientCredentials),
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
+                //valid case client credentials from request model
+                Arguments.of(client,
+                        "",
+                        validTokenRequest,
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
+                //valid case client credentials from request model
+                Arguments.of(client,
+                        null,
+                        validTokenRequest,
+                        clientCredentialsPair,
+                        new ValidationResultModel(true, null)
+                ),
+                //invalid case client credentials from authorization code
                 Arguments.of(client,
                         authorizationHeader,
+                        validTokenRequest,
+                        null,
+                        new ValidationResultModel(false, "unauthorized_client")
+                ),
+                //no client credentials provided case
+                Arguments.of(client,
+                        "",
                         tokenRequestWithoutClient,
-                        new TokenResultModel(null, "unauthorized_client"),
-                        clientCredentials),
-                Arguments.of(client,
+                        clientCredentialsPair,
+                        new ValidationResultModel(false, "unauthorized_client")
+                ),
+                //client not found case
+                Arguments.of(null,
                         authorizationHeader,
                         validTokenRequest,
-                        new TokenResultModel(null, "unauthorized_client"),
-                        null)
+                        clientCredentialsPair,
+                        new ValidationResultModel(false, "unauthorized_client")
+                )
         );
+    }
+
+
+    @BeforeAll
+    static void init() {
+        faker = new Faker();
+        clientModelFixture = new ClientModelFixture();
+        tokenRequestModelFixture = new TokenRequestModelFixture();
     }
 
     @BeforeEach
@@ -92,64 +156,52 @@ class TokenGrantProviderClientCredentialsTest {
 
     @MethodSource
     @ParameterizedTest
-    void should_generate_token_from_valid_request(ClientModel clientModel,
-                                                  String authorizationHeader,
-                                                  TokenRequestModel tokenRequest,
-                                                  TokenResultModel tokenResultModel,
-                                                  Pair<String, String> clientCredentialsPair) {
-
+    void should_validate_client_credentials_provider(ClientModel clientModel,
+                                                     String authorizationHeader,
+                                                     TokenRequestModel tokenRequest,
+                                                     Pair<String, String> clientCredentialsPair,
+                                                     ValidationResultModel expectedResult
+    ) {
         // Arrange
-        when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
-                .thenReturn(clientModel);
-
-        when(clientService.decodeClientCredentials(authorizationHeader))
-                .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
-
-        when(tokenService.generateToken(clientModel, tokenRequest.state, tokenRequest.additional_claims))
-                .thenReturn(tokenResultModel.getResult().getAccessToken());
+        if (!tokenRequest.getClient_id().isEmpty() && !tokenRequest.getClient_secret().isEmpty())
+            when(clientService.getClient(tokenRequest.getClient_id(), tokenRequest.getClient_secret()))
+                    .thenReturn(clientModel);
+        if (!StringUtils.isEmpty(authorizationHeader))
+            when(clientService.decodeClientCredentials(authorizationHeader))
+                    .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 
         // Act
-        var result = tokenGrantProviderClientCredentials.generateToken(authorizationHeader, tokenRequest);
+        var result = tokenGrantProviderClientCredentials.validate(authorizationHeader, tokenRequest);
 
         // Assert
-        assertThat(result).isEqualTo(tokenResultModel);
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
     }
 
-    @Test
-    void should_return_unauthorized_client_clients_user_not_found_test() {
+    @MethodSource
+    @ParameterizedTest
+    void should_generate_token_from_valid_request(ClientModel clientModel,
+                                                  TokenRequestModel tokenRequestModel,
+                                                  TokenResultModel tokenResultModel) {
+
         // Arrange
-        var clientModelFixture = new ClientModelFixture();
-
-        var clientModel = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.client_credentials});
-
-        var tokenRequestFixture = new TokenRequestModelFixture();
-
-        var tokenRequest = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
-        tokenRequest.setClient_id(clientModel.clientId());
-        tokenRequest.setClient_secret(clientModel.clientSecret());
-
-        var tokenRequestWithoutClient = tokenRequestFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
-        tokenRequestWithoutClient.setClient_id("");
-        tokenRequestWithoutClient.setClient_secret("");
-
-        String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((clientModel.clientId() + ":" + clientModel.clientSecret()).getBytes());
-
+        var accessToken = tokenResultModel.getResult().getAccessToken();
+        var authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((clientModel.clientId() + ":" + clientModel.clientSecret()).getBytes());
         var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
 
-        when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
+
+        when(clientService.getClient(tokenRequestModel.getClient_id(), tokenRequestModel.getClient_secret()))
                 .thenReturn(clientModel);
 
         when(clientService.decodeClientCredentials(authorizationHeader))
                 .thenReturn(Optional.of(clientCredentialsPair));
 
-        when(tokenService.generateToken(clientModel, tokenRequest.state, tokenRequest.additional_claims))
-                .thenThrow(new ClientsUserNotFoundException(clientModel.clientId(), "user"));
+        when(tokenService.generateToken(clientModel, tokenRequestModel.getState(), tokenRequestModel.getAdditional_claims()))
+                .thenReturn(accessToken);
 
-        var tokenResultModel = new TokenResultModel(null, "unauthorized_client");
         // Act
-        var result = tokenGrantProviderClientCredentials.generateToken(authorizationHeader, tokenRequest);
+        var result = tokenGrantProviderClientCredentials.generateToken(authorizationHeader, tokenRequestModel);
 
         // Assert
-        assertThat(result).isEqualTo(tokenResultModel);
+        assertThat(result).usingRecursiveComparison().isEqualTo(tokenResultModel);
     }
 }

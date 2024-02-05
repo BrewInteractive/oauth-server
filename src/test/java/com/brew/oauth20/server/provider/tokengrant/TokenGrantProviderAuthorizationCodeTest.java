@@ -72,7 +72,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         tokenRequestWithoutClient.setClient_id("");
         tokenRequestWithoutClient.setClient_secret("");
 
-        String authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
+        var authorizationHeader = createAuthorizationHeader(client);
 
         var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
 
@@ -127,6 +127,10 @@ class TokenGrantProviderAuthorizationCodeTest {
                         new ValidationResultModel(false, "unauthorized_client")
                 )
         );
+    }
+
+    private static String createAuthorizationHeader(ClientModel client) {
+        return Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
     }
 
     private static Stream<Arguments> should_generate_token_from_valid_request_client_issues_refresh_tokens() {
@@ -281,7 +285,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         var result = tokenGrantProviderAuthorizationCode.validate(authorizationHeader, tokenRequest);
 
         // Assert
-        assertThat(result).isEqualTo(expectedResult);
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
     }
 
     @MethodSource
@@ -296,7 +300,7 @@ class TokenGrantProviderAuthorizationCodeTest {
     ) {
         // Arrange
         var accessToken = tokenResultModel.getResult().getAccessToken();
-        var authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((clientModel.clientId() + ":" + clientModel.clientSecret()).getBytes());
+        String authorizationHeader = createAuthorizationHeader(clientModel);
         var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
 
 
@@ -343,9 +347,8 @@ class TokenGrantProviderAuthorizationCodeTest {
     ) {
         // Arrange
         var accessToken = tokenResultModel.getResult().getAccessToken();
-        var authorizationHeader = Base64.getEncoder().withoutPadding().encodeToString((clientModel.clientId() + ":" + clientModel.clientSecret()).getBytes());
+        String authorizationHeader = createAuthorizationHeader(clientModel);
         var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
-
 
         when(clientService.getClient(tokenRequest.getClient_id(), tokenRequest.getClient_secret()))
                 .thenReturn(clientModel);
