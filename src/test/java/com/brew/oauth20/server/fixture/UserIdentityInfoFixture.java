@@ -26,7 +26,7 @@ public class UserIdentityInfoFixture extends Fixture<Map<String, Object>> {
 
     private Map<String, Object> userIdentityInfo() {
         Map<String, Object> detail = new java.util.HashMap<>();
-        for (int i = 0; i < faker.random().nextInt(1, 5); i++) {
+        for (int i = 0; i < faker.random().nextInt(2, 5); i++) {
             detail.put(faker.lordOfTheRings().location(), faker.lordOfTheRings().character());
         }
         return detail;
