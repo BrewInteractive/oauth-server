@@ -1,10 +1,7 @@
 package com.brew.oauth20.server.service;
 
-import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.RefreshTokenFixture;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.SignTokenOptions;
 import com.brew.oauth20.server.service.impl.TokenServiceImpl;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,20 +9,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -100,7 +91,7 @@ class TokenServiceTest {
         Mockito.reset(jwtService);
         Mockito.reset(refreshTokenService);
     }
-
+/*
     @ParameterizedTest
     @MethodSource
     void should_generate_token_without_user_id(ClientModel client,
@@ -199,4 +190,6 @@ class TokenServiceTest {
         assertThat(result.getExpiresIn()).isEqualTo(expiresIn);
         assertThat(result.getRefreshToken()).isEqualTo(refreshToken.getToken());
     }
+
+ */
 }

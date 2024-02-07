@@ -5,11 +5,9 @@ import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.service.AuthorizationCodeService;
-import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.service.RefreshTokenService;
-import com.brew.oauth20.server.service.TokenService;
+import com.brew.oauth20.server.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,9 +19,11 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
     @Autowired
     protected TokenGrantProviderAuthorizationCode(ClientService clientService,
                                                   TokenService tokenService,
+                                                  UserIdentityService userIdentityService,
+                                                  Environment env,
                                                   AuthorizationCodeService authorizationCodeService,
                                                   RefreshTokenService refreshTokenService) {
-        super(clientService, tokenService);
+        super(clientService, tokenService, userIdentityService, env);
         this.authorizationCodeService = authorizationCodeService;
         this.refreshTokenService = refreshTokenService;
         this.grantType = GrantType.authorization_code;
@@ -56,10 +56,11 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
                 var refreshTokenEntity = this.refreshTokenService.createRefreshToken(client.clientId(), userId, client.refreshTokenExpiresInDays());
                 refreshToken = refreshTokenEntity.getToken();
             }
+            var accessToken = this.tokenService.generateToken(client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
 
-            // todo: getUserIdentity on base class then send to generate token generate id token as well. (TMID-931)
+            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
 
-            var tokenModel = this.tokenService.generateToken(client, userId, tokenRequest.state, tokenRequest.getAdditional_claims(), refreshToken);
+            var tokenModel = this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 
             return new TokenResultModel(tokenModel, null);
         } catch (ClientsUserNotFoundException e) {
