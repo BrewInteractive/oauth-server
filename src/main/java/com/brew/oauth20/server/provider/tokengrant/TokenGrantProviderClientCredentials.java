@@ -28,7 +28,7 @@ public class TokenGrantProviderClientCredentials extends BaseTokenGrantProvider 
             if (Boolean.FALSE.equals(validationResult.getResult()))
                 return new TokenResultModel(null, validationResult.getError());
 
-            var accessToken = tokenService.generateToken(client, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+            var accessToken = tokenService.generateToken(client, tokenRequest.getAdditional_claims());
 
             var tokenModel = this.buildToken(accessToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 

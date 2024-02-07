@@ -250,7 +250,7 @@ class TokenGrantProviderRefreshTokenTest {
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
         when(refreshTokenService.revokeRefreshToken(tokenRequest.getClient_id(), tokenRequest.getRefresh_token(), clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.getState(), refreshToken.getScope(), tokenRequest.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), tokenRequest.getAdditional_claims()))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -262,7 +262,7 @@ class TokenGrantProviderRefreshTokenTest {
             mergedAdditionalClaims.putAll(tokenRequest.getAdditional_claims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
-            when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), tokenRequest.getState(), refreshToken.getScope(), mergedAdditionalClaims))
+            when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), mergedAdditionalClaims))
                     .thenReturn(idToken);
             when(userIdentityService.getUserIdentityInfo(accessToken))
                     .thenReturn(userIdentityInfo);
