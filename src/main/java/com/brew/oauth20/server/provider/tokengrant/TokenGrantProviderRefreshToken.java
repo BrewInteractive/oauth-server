@@ -48,9 +48,9 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
             var userId = refreshToken.getClientUser().getUserId();
 
-            var accessToken = tokenService.generateToken(client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+            var accessToken = tokenService.generateToken(client, userId, tokenRequest.getState(), refreshToken.getScope(), tokenRequest.getAdditional_claims());
 
-            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), tokenRequest.getAdditional_claims());
+            var idToken = this.generateIdToken(accessToken, client, userId, tokenRequest.getState(), refreshToken.getScope(), tokenRequest.getAdditional_claims());
 
             var tokenModel = this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 

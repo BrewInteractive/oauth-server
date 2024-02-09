@@ -37,10 +37,12 @@ public class RefreshToken {
     private OffsetDateTime expiresAt;
     @Column(name = "token", nullable = false, length = Integer.MAX_VALUE)
     private String token;
-    @Column(name = "revoked_at", nullable = true)
+    @Column(name = "scope")
+    private String scope;
+    @Column(name = "revoked_at")
     private OffsetDateTime revokedAt;
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "replaced_by_token_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "replaced_by_token_id")
     @ToString.Exclude
     private RefreshToken replacedByToken;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

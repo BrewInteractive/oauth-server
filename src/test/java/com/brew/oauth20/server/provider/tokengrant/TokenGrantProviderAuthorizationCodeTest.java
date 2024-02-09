@@ -310,7 +310,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                 .thenReturn(Optional.of(clientCredentialsPair));
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirect_uri(), true))
                 .thenReturn(activeAuthorizationCode);
-        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), tokenRequest.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims()))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -323,7 +323,7 @@ class TokenGrantProviderAuthorizationCodeTest {
             mergedAdditionalClaims.putAll(tokenRequest.getAdditional_claims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
-            when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), mergedAdditionalClaims))
+            when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), activeAuthorizationCode.getScope(), mergedAdditionalClaims))
                     .thenReturn(idToken);
             when(userIdentityService.getUserIdentityInfo(accessToken))
                     .thenReturn(userIdentityInfo);
@@ -356,7 +356,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                 .thenReturn(Optional.of(clientCredentialsPair));
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirect_uri(), true))
                 .thenReturn(activeAuthorizationCode);
-        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), tokenRequest.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims()))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -367,7 +367,7 @@ class TokenGrantProviderAuthorizationCodeTest {
             mergedAdditionalClaims.putAll(tokenRequest.getAdditional_claims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
-            when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), mergedAdditionalClaims))
+            when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), tokenRequest.getState(), activeAuthorizationCode.getScope(), mergedAdditionalClaims))
                     .thenReturn(idToken);
             when(userIdentityService.getUserIdentityInfo(accessToken))
                     .thenReturn(userIdentityInfo);
