@@ -37,7 +37,7 @@ public class RefreshToken {
     private OffsetDateTime expiresAt;
     @Column(name = "token", nullable = false, length = Integer.MAX_VALUE)
     private String token;
-    @Column(name = "scope", length = Integer.MAX_VALUE)
+    @Column(name = "scope")
     private String scope;
     @Column(name = "revoked_at")
     private OffsetDateTime revokedAt;
