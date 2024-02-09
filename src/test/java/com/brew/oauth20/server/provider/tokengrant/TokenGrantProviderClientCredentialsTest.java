@@ -195,7 +195,7 @@ class TokenGrantProviderClientCredentialsTest {
         when(clientService.decodeClientCredentials(authorizationHeader))
                 .thenReturn(Optional.of(clientCredentialsPair));
 
-        when(tokenService.generateToken(clientModel, tokenRequestModel.getState(), tokenRequestModel.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, tokenRequestModel.getAdditional_claims()))
                 .thenReturn(accessToken);
 
         // Act

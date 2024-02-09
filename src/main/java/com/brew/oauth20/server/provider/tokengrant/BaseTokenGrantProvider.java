@@ -61,7 +61,7 @@ public abstract class BaseTokenGrantProvider {
 
     public abstract TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest);
 
-    protected String generateIdToken(String accessToken, ClientModel client, String userId, String state, String scope, Map<String, Object> additionalClaims) {
+    protected String generateIdToken(String accessToken, ClientModel client, String userId, String scope, Map<String, Object> additionalClaims) {
         if (!isIdTokenEnabled())
             return null;
 
@@ -69,7 +69,7 @@ public abstract class BaseTokenGrantProvider {
         if (additionalClaims == null)
             additionalClaims = new HashMap<>(Map.of());
         additionalClaims.putAll(userIdentityInfo);
-        return this.tokenService.generateToken(client, userId, state, scope, additionalClaims);
+        return this.tokenService.generateToken(client, userId, scope, additionalClaims);
 
     }
 
