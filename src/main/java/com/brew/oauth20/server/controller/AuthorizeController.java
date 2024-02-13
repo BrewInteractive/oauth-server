@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -32,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 public class AuthorizeController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizeController.class);
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieManager userCookieManager;
     private final AuthorizationCodeService authorizationCodeService;
@@ -94,7 +97,10 @@ public class AuthorizeController {
                                              String parameters) {
         try {
             var errorResponse = validateClientRequest(authorizeRequest, validationResult, parameters);
-            if (errorResponse != null) return errorResponse;
+            if (errorResponse != null) {
+                logger.error("invalid_request");
+                return errorResponse;
+            }
 
             /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
@@ -109,8 +115,10 @@ public class AuthorizeController {
 
             return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
         } catch (UnsupportedServiceTypeException e) {
+            logger.error(e.getMessage(), e);
             return generateErrorResponse("unsupported_response_type", parameters, authorizeRequest.redirect_uri);
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             return generateErrorResponse("server_error", parameters, authorizeRequest.getRedirect_uri());
         }
     }

@@ -7,6 +7,9 @@ import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.service.factory.TokenGrantProviderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -16,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class TokenController {
+    private static final Logger logger = LoggerFactory.getLogger(TokenController.class);
     private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
     private final TokenGrantProviderFactory tokenGrantProviderFactory;
 
+    @Autowired
     public TokenController(TokenGrantProviderFactory tokenGrantProviderFactory) {
         this.tokenGrantProviderFactory = tokenGrantProviderFactory;
     }
@@ -29,6 +34,7 @@ public class TokenController {
                                             HttpServletRequest request) {
         try {
             if (validationResult.hasErrors()) {
+                logger.error("invalid_request");
                 return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
             }
 
@@ -45,8 +51,10 @@ public class TokenController {
                 return new ResponseEntity<>(tokenResponse.getResult(), HttpStatus.OK);
             }
         } catch (UnsupportedServiceTypeException e) {
+            logger.error(e.getMessage(), e);
             return new ResponseEntity<>("invalid_grant", HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             return new ResponseEntity<>("system_error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
