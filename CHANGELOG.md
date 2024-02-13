@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/BrewInteractive/oauth-server/compare/v1.9.0...v1.10.0) (2024-02-13)
+
+
+### Features
+
+* **TMID-873:** added body to error response. ([a21b5cd](https://github.com/BrewInteractive/oauth-server/commit/a21b5cd2496bfabde7ec5a73f99ec96924104077))
+* **TMID-873:** added check for consent endpoint. ([c0b824f](https://github.com/BrewInteractive/oauth-server/commit/c0b824ffe68b6fe84a2309c413410ddb40277c66))
+* **TMID-873:** added check for consent endpoint. ([9ebf29a](https://github.com/BrewInteractive/oauth-server/commit/9ebf29a190cef9a9de52810e232c6ae46957ea2a))
+* **TMID-873:** added check for request type. ([b1c38e4](https://github.com/BrewInteractive/oauth-server/commit/b1c38e48f3c7dd6653b4ac7fbea0dfd5549c0611))
+* **TMID-873:** added implicit grant for test cases. ([7fd26ee](https://github.com/BrewInteractive/oauth-server/commit/7fd26ee3a2a4ce92b2643e50af810fd88a6c3b0b))
+* **TMID-873:** added scope parameter to /authorize endpoint. ([d17ab71](https://github.com/BrewInteractive/oauth-server/commit/d17ab714b8b3d9aacef688357f9d4e64fdc8646a))
+* **TMID-873:** added scope to authorization codes. ([2867879](https://github.com/BrewInteractive/oauth-server/commit/28678796cf9dcfad823d8a3e427291e5b7c173de))
+* **TMID-874:** added scope parameter to validate method. ([810cc04](https://github.com/BrewInteractive/oauth-server/commit/810cc04eb743667bbd4c089d65874a8cefae6564))
+* **TMID-875:** added clients_scopes relation. ([8f1cebf](https://github.com/BrewInteractive/oauth-server/commit/8f1cebfbea89cd7e5560018bf7d6a3f35f5674eb))
+* **TMID-875:** added scope validation to ClientValidator. ([da6d00d](https://github.com/BrewInteractive/oauth-server/commit/da6d00dac9e05624a7f35574a32bac41537ec03a))
+* **TMID-875:** added scopeList. ([30a5e2b](https://github.com/BrewInteractive/oauth-server/commit/30a5e2b8b6864b7b76e84c099cc8e8b2fb8ea2a7))
+* **TMID-875:** added ScopeModel class. ([5e5f308](https://github.com/BrewInteractive/oauth-server/commit/5e5f308fa38c6aa5930011ed03fa2c09b70ab193))
+* **TMID-881:** add ScopeValidator ([3bcc33c](https://github.com/BrewInteractive/oauth-server/commit/3bcc33c5441e478d1c5b0a30420df9e61ed770a8))
+* **TMID-883:** refactor ClientUserService.getOrCreate ([cb852c9](https://github.com/BrewInteractive/oauth-server/commit/cb852c9ba9cffda5166a706cdd5ebc18dbe6e0ec))
+* **TMID-933:** added azp and scope claims. ([22839fd](https://github.com/BrewInteractive/oauth-server/commit/22839fdd2d63fecdcaed8fa1da6d332f8d3429c5))
+* **TMID-934, TMID-931:** added generating id token. ([c14db7b](https://github.com/BrewInteractive/oauth-server/commit/c14db7b84cf587d2dd649bd867e7b4bd1e467f63))
+* **TMID-934:** add ENABLE_ID_TOKEN env. ([4de3620](https://github.com/BrewInteractive/oauth-server/commit/4de36205f6bf347d80fae28d13f36e7fa1af7f14))
+* **TMID-935:** add UserIdentityService ([fbbb270](https://github.com/BrewInteractive/oauth-server/commit/fbbb270beaadd30c8058224bd355e480f75e9661))
+
+
+### Bug Fixes
+
+* **TMID-873:** typo on oauth.consent_endpoint config ([baae558](https://github.com/BrewInteractive/oauth-server/commit/baae5580c714e419e4d1ef6ef5d64a704ca37d3a))
+* **TMID-934:** fix userIdentityInfo fixture random map count to 2 ([7e1db3f](https://github.com/BrewInteractive/oauth-server/commit/7e1db3f143cd6ccee9c7f8ce5547085b22d445a8))
+* **TMID-935:** generify user info model response ([28081e1](https://github.com/BrewInteractive/oauth-server/commit/28081e16ff1d1b00e04c3a034f053467038c3fc5))
+
 ## [1.9.0](https://github.com/BrewInteractive/oauth-server/compare/v1.8.0...v1.9.0) (2024-01-19)
 
 
