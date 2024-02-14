@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.10.2](https://github.com/BrewInteractive/oauth-server/compare/v1.10.1...v1.10.2) (2024-02-14)
+
+
+### Bug Fixes
+
+* fix url patterns for corsfilter ([4b84d75](https://github.com/BrewInteractive/oauth-server/commit/4b84d759b7bbab03f937fb612127728e41b34b45))
+
 ### [1.10.1](https://github.com/BrewInteractive/oauth-server/compare/v1.10.0...v1.10.1) (2024-02-13)
 
 ## [1.10.0](https://github.com/BrewInteractive/oauth-server/compare/v1.9.0...v1.10.0) (2024-02-13)
