@@ -17,7 +17,7 @@ public class FilterConfig {
     public FilterRegistrationBean<CORSFilter> corsFilterRegistration() {
         final FilterRegistrationBean<CORSFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(corsFilter);
-        registration.addUrlPatterns("/authorize", "/token");
+        registration.addUrlPatterns("/oauth/authorize", "/oauth/token");
         return registration;
     }
 }
