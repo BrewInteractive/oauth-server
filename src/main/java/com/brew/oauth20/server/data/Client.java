@@ -40,9 +40,9 @@ public class Client {
     private String clientId;
     @Column(name = "client_secret", nullable = false, length = Integer.MAX_VALUE)
     private String clientSecret;
-    @Column(name = "audience", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "audience", length = Integer.MAX_VALUE)
     private String audience;
-    @Column(name = "issuer_uri", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "issuer_uri", length = Integer.MAX_VALUE)
     private String issuerUri;
     @Column(name = "issue_refresh_tokens", nullable = false)
     private Boolean issueRefreshTokens;
