@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/BrewInteractive/oauth-server/compare/v1.10.2...v1.11.0) (2024-02-28)
+
+
+### Features
+
+* make audience and issuer_uri nullable. ([a14cb82](https://github.com/BrewInteractive/oauth-server/commit/a14cb827dd82174542df456e301c5f5b4a3173d2))
+
 ### [1.10.2](https://github.com/BrewInteractive/oauth-server/compare/v1.10.1...v1.10.2) (2024-02-14)
 
 
