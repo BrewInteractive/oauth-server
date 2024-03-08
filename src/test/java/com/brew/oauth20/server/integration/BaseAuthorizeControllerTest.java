@@ -15,6 +15,7 @@ import com.brew.oauth20.server.utils.EncryptionUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import jakarta.servlet.http.Cookie;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,6 +82,8 @@ abstract class BaseAuthorizeControllerTest {
     protected ClientUserRepository clientUserRepository;
     @Autowired
     protected ClientUserScopeRepository clientUserScopeRepository;
+    @Value("${cookie.encryption.cipher_spec}")
+    String cookieEncryptionCipherSpec;
     @Autowired
     private MockMvc mockMvc;
 
@@ -276,8 +274,9 @@ abstract class BaseAuthorizeControllerTest {
         return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty());
     }
 
-    private String createCookieValue(String userId) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
-
+    @SneakyThrows
+    private String createCookieValue(String userId) {
+        var encryptionAlgorithms = EncryptionUtils.createAlgorithmKeyHashmap(cookieEncryptionAlgorithm, cookieEncryptionCipherSpec);
         var expiresAt = OffsetDateTime.now().plusDays(2);
         var cookieValue = "{"
                 + "\"user_id\": \"" + userId + "\","
@@ -286,6 +285,6 @@ abstract class BaseAuthorizeControllerTest {
                 + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
                 + "\"expires_at\": " + expiresAt.toEpochSecond()
                 + "}";
-        return EncryptionUtils.encrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
+        return EncryptionUtils.encrypt(cookieValue, encryptionAlgorithms, cookieEncryptionSecret);
     }
 }

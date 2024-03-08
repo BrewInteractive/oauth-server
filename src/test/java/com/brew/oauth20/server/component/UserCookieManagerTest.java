@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
@@ -28,11 +29,13 @@ import static org.mockito.Mockito.when;
 class UserCookieManagerTest {
     private static final String USER_COOKIE_KEY = "user";
     private static final String ENCRYPTION_ALGORITHM = "AES";
+    private static final String ENCRYPTION_CIPHER_SPEC = "AES/GCM/NoPadding";
     private static final String ENCRYPTION_SECRET = "jHk$5hVpLm#nG@9$";
     private static Faker faker;
     @Mock
     CookieService cookieService;
     UserCookieManagerImpl userCookieManager;
+    private Map<String, String> encryptionAlgorithms;
 
     private static Stream<Arguments> should_get_null_value_if_cookie_does_not_exist() {
 
@@ -45,6 +48,11 @@ class UserCookieManagerTest {
         );
     }
 
+    @BeforeAll
+    void SetupBeforeAll() {
+        this.encryptionAlgorithms = EncryptionUtils.createAlgorithmKeyHashmap(ENCRYPTION_ALGORITHM, ENCRYPTION_CIPHER_SPEC);
+    }
+
 
     @BeforeEach
     void Setup() {
@@ -53,6 +61,7 @@ class UserCookieManagerTest {
         userCookieManager = new UserCookieManagerImpl(cookieService);
         ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionSecret", ENCRYPTION_SECRET);
         ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionAlgorithm", ENCRYPTION_ALGORITHM);
+        ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionCipherSpec", ENCRYPTION_CIPHER_SPEC);
     }
 
     @Test
@@ -66,7 +75,7 @@ class UserCookieManagerTest {
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
-        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, encryptionAlgorithms, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
 
@@ -105,7 +114,7 @@ class UserCookieManagerTest {
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
-        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, encryptionAlgorithms, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
 

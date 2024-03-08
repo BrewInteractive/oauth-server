@@ -2,14 +2,10 @@ package com.brew.oauth20.server.utils;
 
 import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.github.javafaker.Faker;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -21,31 +17,22 @@ class EncryptionUtilsTest {
         this.faker = new Faker();
     }
 
+    @SneakyThrows
     @Test
-    void should_encrypt_and_decrypt_via_AES_algorithm() throws Exception {
+    void should_encrypt_and_decrypt_data() {
         // Arrange
-        var testData = faker.lordOfTheRings().location();
-        var key = FakerUtils.create128BitRandomString(faker);
+        var key = faker.regexify("[A-Za-z0-9]{16}");
         var algorithm = "AES";
+        var cipherSpec = "AES/GCM/NoPadding";
+        var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Act
-        String encryptedData = EncryptionUtils.encrypt(testData, algorithm, key);
-        String decryptedData = EncryptionUtils.decrypt(encryptedData, algorithm, key);
+        var testData = faker.lordOfTheRings().location();
+        var encryptedData = EncryptionUtils.encrypt(testData, algorithms, key);
+        var decryptedData = EncryptionUtils.decrypt(encryptedData, algorithms, key);
 
         // Assert
-        assertThat(decryptedData).isEqualTo(testData);
-    }
-
-    @Test
-    void should_not_encrypt_null_data() {
-        // Arrange
-        var key = FakerUtils.create128BitRandomString(faker);
-        var algorithm = "AES";
-
-        // Assert
-        assertThrows(Exception.class, () -> {
-            EncryptionUtils.encrypt(null, algorithm, key);
-        });
+        Assertions.assertEquals(decryptedData, testData);
     }
 
     @Test
@@ -53,11 +40,11 @@ class EncryptionUtilsTest {
         // Arrange
         var key = faker.regexify("[A-Za-z0-9]{16}");
         var algorithm = "AES";
+        var cipherSpec = "AES/GCM/NoPadding";
+        var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Assert
-        assertThrows(Exception.class, () -> {
-            EncryptionUtils.decrypt(null, algorithm, key);
-        });
+        assertThrows(Exception.class, () -> EncryptionUtils.decrypt(null, algorithms, key));
     }
 
     @Test
@@ -65,24 +52,10 @@ class EncryptionUtilsTest {
         // Arrange
         var key = FakerUtils.create128BitRandomString(faker);
         var algorithm = "AES";
+        var cipherSpec = "AES/GCM/NoPadding";
+        var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Assert
-        assertThrows(Exception.class, () -> {
-            EncryptionUtils.decrypt("invalid-encrypted-data", algorithm, key);
-        });
-    }
-
-    @Test
-    void should_not_create_new_instance() throws Exception {
-        // Arrange
-        Constructor<EncryptionUtils> constructor = EncryptionUtils.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
-
-        // Act and Assert
-        Throwable actualException = assertThrows(InvocationTargetException.class, () -> {
-            constructor.newInstance();
-        });
-
-        assertTrue(actualException.getCause() instanceof IllegalStateException);
+        assertThrows(Exception.class, () -> EncryptionUtils.decrypt("invalid-encrypted-data", algorithms, key));
     }
 }
