@@ -56,8 +56,6 @@ abstract class BaseAuthorizeControllerTest {
     protected String loginSignupEndpoint;
     @Value("${oauth.consent_endpoint}")
     protected String consentEndpoint;
-    @Value("${cookie.encryption.algorithm}")
-    protected String cookieEncryptionAlgorithm;
     protected String authorizedRedirectUri;
     protected String authorizedClientId;
     protected String authorizedUserId;
@@ -82,8 +80,6 @@ abstract class BaseAuthorizeControllerTest {
     protected ClientUserRepository clientUserRepository;
     @Autowired
     protected ClientUserScopeRepository clientUserScopeRepository;
-    @Value("${cookie.encryption.cipher_spec}")
-    String cookieEncryptionCipherSpec;
     @Autowired
     private MockMvc mockMvc;
 
@@ -276,7 +272,6 @@ abstract class BaseAuthorizeControllerTest {
 
     @SneakyThrows
     private String createCookieValue(String userId) {
-        var encryptionAlgorithms = EncryptionUtils.createAlgorithmKeyHashmap(cookieEncryptionAlgorithm, cookieEncryptionCipherSpec);
         var expiresAt = OffsetDateTime.now().plusDays(2);
         var cookieValue = "{"
                 + "\"user_id\": \"" + userId + "\","
@@ -285,6 +280,6 @@ abstract class BaseAuthorizeControllerTest {
                 + "\"phone_number\": \"" + faker.phoneNumber().phoneNumber() + "\","
                 + "\"expires_at\": " + expiresAt.toEpochSecond()
                 + "}";
-        return EncryptionUtils.encrypt(cookieValue, encryptionAlgorithms, cookieEncryptionSecret);
+        return EncryptionUtils.encrypt(cookieValue, cookieEncryptionSecret);
     }
 }
