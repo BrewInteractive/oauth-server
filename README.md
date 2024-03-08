@@ -48,7 +48,7 @@ You will need to add below environment variables to run the server. These values
 file in the root directory.:
 
 | Variable Name                 | Description                                                                                                         | Required | Default Value |
-| ----------------------------- |---------------------------------------------------------------------------------------------------------------------| :------: |:-------------:|
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- | :------: | :-----------: |
 | DB_HOST                       | Represents the hostname of the database that needs to be connected.                                                 |   YES    |       -       |
 | DB_NAME                       | Represents the name of the database that needs to be connected.                                                     |   YES    |       -       |
 | DB_USER                       | Represents the user of the database that needs to be connected.                                                     |   YES    |       -       |
@@ -56,7 +56,7 @@ file in the root directory.:
 | AUTHORIZATION_CODE_EXPIRES_MS | Represents the expiry time of authorization code in milliseconds.                                                   |    NO    |    300000     |
 | LOGIN_SIGNUP_ENDPOINT         | Represents the login/signup endpoint of the implementer application.                                                |   YES    |       -       |
 | COOKIE_ENCRYPTION_ALGORITHM   | Represents the algorithm while decrypting the user cookie.                                                          |   YES    |       -       |
-| COOKIE_ENCRYPTION_SECRET      | Represents the secret while decrypting the user cookie.                                                             |   YES    |    -       |
+| COOKIE_ENCRYPTION_SECRET      | Represents the secret while decrypting the user cookie.                                                             |   YES    |       -       |
 | COOKIE_ENCRYPTION_CIPHER_SPEC | Represents the cipher algorithm while encrypting/decrypting the user cookie.                                        |   YES    |       -       |
 | ENABLE_SWAGGER                | Represents the enabling or disabling the swagger.                                                                   |    NO    |       -       |
 | USER_IDENTITY_SERVICE_URL     | Represents the identity service url to get user identity info.                                                      |    NO    |       -       |
