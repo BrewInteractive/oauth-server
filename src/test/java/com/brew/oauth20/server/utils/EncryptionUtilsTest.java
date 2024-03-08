@@ -21,15 +21,15 @@ class EncryptionUtilsTest {
     @Test
     void should_encrypt_and_decrypt_data() {
         // Arrange
-        var key = faker.regexify("[A-Za-z0-9]{16}");
+        var secret = faker.regexify("[A-Za-z0-9]{16}");
         var algorithm = "AES";
         var cipherSpec = "AES/GCM/NoPadding";
         var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Act
         var testData = faker.lordOfTheRings().location();
-        var encryptedData = EncryptionUtils.encrypt(testData, algorithms, key);
-        var decryptedData = EncryptionUtils.decrypt(encryptedData, algorithms, key);
+        var encryptedData = EncryptionUtils.encrypt(testData, algorithms, secret);
+        var decryptedData = EncryptionUtils.decrypt(encryptedData, algorithms, secret);
 
         // Assert
         Assertions.assertEquals(decryptedData, testData);
@@ -38,24 +38,24 @@ class EncryptionUtilsTest {
     @Test
     void should_not_decrypt_null_data() {
         // Arrange
-        var key = faker.regexify("[A-Za-z0-9]{16}");
+        var secret = faker.regexify("[A-Za-z0-9]{16}");
         var algorithm = "AES";
         var cipherSpec = "AES/GCM/NoPadding";
         var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Assert
-        assertThrows(Exception.class, () -> EncryptionUtils.decrypt(null, algorithms, key));
+        assertThrows(Exception.class, () -> EncryptionUtils.decrypt(null, algorithms, secret));
     }
 
     @Test
     void should_not_decrypt_invalid_data() {
         // Arrange
-        var key = FakerUtils.create128BitRandomString(faker);
+        var secret = FakerUtils.create128BitRandomString(faker);
         var algorithm = "AES";
         var cipherSpec = "AES/GCM/NoPadding";
         var algorithms = EncryptionUtils.createAlgorithmKeyHashmap(algorithm, cipherSpec);
 
         // Assert
-        assertThrows(Exception.class, () -> EncryptionUtils.decrypt("invalid-encrypted-data", algorithms, key));
+        assertThrows(Exception.class, () -> EncryptionUtils.decrypt("invalid-encrypted-data", algorithms, secret));
     }
 }
