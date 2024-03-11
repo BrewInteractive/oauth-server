@@ -29,8 +29,12 @@ import java.util.Map;
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CORSFilter extends OncePerRequestFilter {
+    private final ClientService clientService;
+
     @Autowired
-    ClientService clientService;
+    public CORSFilter(ClientService clientService) {
+        this.clientService = clientService;
+    }
 
     private static String readClientIdFromBody(HttpServletRequest request) {
         String clientId;
