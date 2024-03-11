@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserCookieManagerTest {
     private static final String USER_COOKIE_KEY = "user";
-    private static final String ENCRYPTION_ALGORITHM = "AES";
     private static final String ENCRYPTION_SECRET = "jHk$5hVpLm#nG@9$";
     private static Faker faker;
     @Mock
@@ -45,14 +44,12 @@ class UserCookieManagerTest {
         );
     }
 
-
     @BeforeEach
     void Setup() {
         faker = new Faker();
         Mockito.reset(cookieService);
         userCookieManager = new UserCookieManagerImpl(cookieService);
         ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionSecret", ENCRYPTION_SECRET);
-        ReflectionTestUtils.setField(userCookieManager, "cookieEncryptionAlgorithm", ENCRYPTION_ALGORITHM);
     }
 
     @Test
@@ -66,7 +63,7 @@ class UserCookieManagerTest {
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
-        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
 
@@ -105,7 +102,7 @@ class UserCookieManagerTest {
                 + "\"email\": \"" + faker.internet().emailAddress() + "\","
                 + "\"expires_at\": " + expiresAt.toInstant().getEpochSecond()
                 + "}";
-        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_ALGORITHM, ENCRYPTION_SECRET);
+        var encryptedCookieValue = EncryptionUtils.encrypt(cookieValue, ENCRYPTION_SECRET);
         when(cookieService.getCookie(request, USER_COOKIE_KEY))
                 .thenReturn(encryptedCookieValue);
 

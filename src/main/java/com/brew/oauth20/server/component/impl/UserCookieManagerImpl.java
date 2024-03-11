@@ -19,8 +19,6 @@ public class UserCookieManagerImpl implements UserCookieManager {
     private final CookieService cookieService;
     @Value("${cookie.encryption.secret}")
     String cookieEncryptionSecret;
-    @Value("${cookie.encryption.algorithm}")
-    String cookieEncryptionAlgorithm;
 
     @Autowired
     public UserCookieManagerImpl(CookieService cookieService) {
@@ -32,13 +30,11 @@ public class UserCookieManagerImpl implements UserCookieManager {
             var cookieValue = cookieService.getCookie(request, USER_COOKIE_KEY);
             if (cookieValue == null || cookieValue.isBlank())
                 return Optional.empty();
-
-            var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionAlgorithm, cookieEncryptionSecret);
+            var decryptedCookieValue = EncryptionUtils.decrypt(cookieValue, cookieEncryptionSecret);
             var userCookieModel = UserCookieModel.parse(decryptedCookieValue);
             if (userCookieModel != null) {
                 if (userCookieModel.expires_at().isBefore(OffsetDateTime.now()))
                     return Optional.empty();
-
                 return Optional.of(userCookieModel.user_id());
             }
             return Optional.empty();
