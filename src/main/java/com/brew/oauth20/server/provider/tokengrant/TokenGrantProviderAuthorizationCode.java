@@ -19,11 +19,12 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
     @Autowired
     protected TokenGrantProviderAuthorizationCode(ClientService clientService,
                                                   TokenService tokenService,
+                                                  CustomClaimService customClaimService,
                                                   UserIdentityService userIdentityService,
                                                   Environment env,
                                                   AuthorizationCodeService authorizationCodeService,
                                                   RefreshTokenService refreshTokenService) {
-        super(clientService, tokenService, userIdentityService, env);
+        super(clientService, tokenService, customClaimService, userIdentityService, env);
         this.authorizationCodeService = authorizationCodeService;
         this.refreshTokenService = refreshTokenService;
         this.grantType = GrantType.authorization_code;
@@ -51,14 +52,16 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
 
             var userId = activeAuthorizationCode.getClientUser().getUserId();
 
+            var customClaims = this.getCustomClaims(client, userId);
+
             String refreshToken = null;
             if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
                 var refreshTokenEntity = this.refreshTokenService.createRefreshToken(client.clientId(), userId, client.refreshTokenExpiresInDays());
                 refreshToken = refreshTokenEntity.getToken();
             }
-            var accessToken = this.tokenService.generateToken(client, userId, activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims());
+            var accessToken = this.tokenService.generateToken(client, userId, activeAuthorizationCode.getScope(), customClaims);
 
-            var idToken = this.generateIdToken(accessToken, client, userId, activeAuthorizationCode.getScope(), tokenRequest.getAdditional_claims());
+            var idToken = this.generateIdToken(accessToken, client, userId, activeAuthorizationCode.getScope(), customClaims);
 
             var tokenModel = this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 

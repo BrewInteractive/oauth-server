@@ -5,10 +5,7 @@ import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
-import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.service.RefreshTokenService;
-import com.brew.oauth20.server.service.TokenService;
-import com.brew.oauth20.server.service.UserIdentityService;
+import com.brew.oauth20.server.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -21,10 +18,11 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     @Autowired
     protected TokenGrantProviderRefreshToken(ClientService clientService,
                                              TokenService tokenService,
+                                             CustomClaimService customClaimService,
                                              UserIdentityService userIdentityService,
                                              Environment env,
                                              RefreshTokenService refreshTokenService) {
-        super(clientService, tokenService, userIdentityService, env);
+        super(clientService, tokenService, customClaimService, userIdentityService, env);
         this.refreshTokenService = refreshTokenService;
         this.grantType = GrantType.refresh_token;
     }
@@ -48,9 +46,11 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
 
             var userId = refreshToken.getClientUser().getUserId();
 
-            var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), tokenRequest.getAdditional_claims());
+            var customClaims = this.getCustomClaims(client, userId);
 
-            var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), tokenRequest.getAdditional_claims());
+            var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), customClaims);
+
+            var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), customClaims);
 
             var tokenModel = this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 
