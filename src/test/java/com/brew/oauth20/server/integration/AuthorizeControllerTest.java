@@ -66,7 +66,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(errorPageUrl)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
@@ -86,7 +86,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(errorPageUrl)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
@@ -105,7 +105,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(notAuthorizedRedirectUri)
+        assertThat(locationHeader).contains(errorPageUrl)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
@@ -308,7 +308,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(errorPageUrl)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
