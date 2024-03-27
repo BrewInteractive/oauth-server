@@ -56,6 +56,8 @@ abstract class BaseAuthorizeControllerTest {
     protected String loginSignupEndpoint;
     @Value("${oauth.consent_endpoint}")
     protected String consentEndpoint;
+    @Value("${oauth.error_page_url}")
+    protected String errorPageUrl;
     protected String authorizedRedirectUri;
     protected String authorizedClientId;
     protected String authorizedUserId;
