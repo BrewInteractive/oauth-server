@@ -1,6 +1,7 @@
 package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.component.UserCookieManager;
+import com.brew.oauth20.server.controller.base.BaseController;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.ClientNotFoundException;
@@ -35,7 +36,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-public class AuthorizeController {
+public class AuthorizeController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeController.class);
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieManager userCookieManager;
@@ -102,7 +103,7 @@ public class AuthorizeController {
                                              HttpServletRequest request,
                                              String parameters) {
         try {
-            validateClientRequest(validationResult);
+            validateRequest(validationResult);
             validateAuthorizeType(authorizeRequest);
 
             /* check user cookie */
@@ -142,10 +143,6 @@ public class AuthorizeController {
         return false;
     }
 
-    private void validateClientRequest(BindingResult validationResult) {
-        if (validationResult.hasErrors())
-            throw new OAuthException(OAuthError.INVALID_REQUEST);
-    }
 
     @NotNull
     private ResponseEntity<String> redirectToConsent(String parameters) {
@@ -176,7 +173,7 @@ public class AuthorizeController {
 
 
     private void validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
-        BaseAuthorizeTypeProvider authorizeTypeProvider = createAuthorizeTypeProvider(authorizeRequest);
+        var authorizeTypeProvider = createAuthorizeTypeProvider(authorizeRequest);
         authorizeTypeProvider.validate(
                 authorizeRequest.getClient_id(),
                 authorizeRequest.getRedirect_uri(),

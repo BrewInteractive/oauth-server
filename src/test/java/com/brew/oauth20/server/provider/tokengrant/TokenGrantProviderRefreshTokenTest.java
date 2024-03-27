@@ -6,7 +6,10 @@ import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.RefreshTokenFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.fixture.UserIdentityInfoFixture;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
@@ -67,17 +70,17 @@ class TokenGrantProviderRefreshTokenTest {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
 
         var validTokenRequest = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        validTokenRequest.setClient_id(client.clientId());
-        validTokenRequest.setClient_secret(client.clientSecret());
+        validTokenRequest.setClientId(client.clientId());
+        validTokenRequest.setClientSecret(client.clientSecret());
 
         var tokenRequestWithoutRefreshToken = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        tokenRequestWithoutRefreshToken.setClient_id(client.clientId());
-        tokenRequestWithoutRefreshToken.setClient_secret(client.clientSecret());
-        tokenRequestWithoutRefreshToken.setRefresh_token("");
+        tokenRequestWithoutRefreshToken.setClientId(client.clientId());
+        tokenRequestWithoutRefreshToken.setClientSecret(client.clientSecret());
+        tokenRequestWithoutRefreshToken.setRefreshToken("");
 
         var tokenRequestWithoutClient = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        tokenRequestWithoutClient.setClient_id("");
-        tokenRequestWithoutClient.setClient_secret("");
+        tokenRequestWithoutClient.setClientId("");
+        tokenRequestWithoutClient.setClientSecret("");
 
         var authorizationCode = createAuthorizationHeader(client);
 
@@ -137,8 +140,8 @@ class TokenGrantProviderRefreshTokenTest {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
 
         var validTokenRequest = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.refresh_token});
-        validTokenRequest.setClient_id(client.clientId());
-        validTokenRequest.setClient_secret(client.clientSecret());
+        validTokenRequest.setClientId(client.clientId());
+        validTokenRequest.setClientSecret(client.clientSecret());
 
         var authorizationCode = createAuthorizationHeader(client);
         var pair = Pair.of(client.clientId(), client.clientSecret());
@@ -217,8 +220,8 @@ class TokenGrantProviderRefreshTokenTest {
                                                 ValidationResultModel expectedResult,
                                                 Pair<String, String> clientCredentialsPair) {
         // Arrange
-        if (!tokenRequest.client_id.isEmpty() && !tokenRequest.client_secret.isEmpty())
-            when(clientService.getClient(tokenRequest.client_id, tokenRequest.client_secret))
+        if (!tokenRequest.clientId.isEmpty() && !tokenRequest.clientSecret.isEmpty())
+            when(clientService.getClient(tokenRequest.clientId, tokenRequest.clientSecret))
                     .thenReturn(clientModel);
         if (!StringUtils.isEmpty(authorizationCode))
             when(clientService.decodeClientCredentials(authorizationCode))
@@ -244,13 +247,13 @@ class TokenGrantProviderRefreshTokenTest {
 
         // Arrange
         var accessToken = tokenResultModel.getResult().getAccessToken();
-        when(clientService.getClient(tokenRequest.getClient_id(), tokenRequest.getClient_secret()))
+        when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
         when(clientService.decodeClientCredentials(authorizationCode))
                 .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
-        when(refreshTokenService.revokeRefreshToken(tokenRequest.getClient_id(), tokenRequest.getRefresh_token(), clientModel.refreshTokenExpiresInDays()))
+        when(refreshTokenService.revokeRefreshToken(tokenRequest.getClientId(), tokenRequest.getRefreshToken(), clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), tokenRequest.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), tokenRequest.getAdditionalClaims()))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -259,7 +262,7 @@ class TokenGrantProviderRefreshTokenTest {
         if (idTokenEnabled) {
             var idToken = tokenResultModel.getResult().getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
-            mergedAdditionalClaims.putAll(tokenRequest.getAdditional_claims());
+            mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
             when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), mergedAdditionalClaims))

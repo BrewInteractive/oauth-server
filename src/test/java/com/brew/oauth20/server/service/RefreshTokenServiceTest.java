@@ -55,7 +55,7 @@ class RefreshTokenServiceTest {
         var clientUser = clientUserFixture.createRandomOne();
         when(clientUserRepository.findByClientIdAndUserId(clientUser.getClient().getClientId(), clientUser.getUserId()))
                 .thenReturn(Optional.of(clientUser));
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientUserRepository);
+        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository);
         OffsetDateTime currentDate = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime expirationDate = currentDate.plusDays(clientUser.getClient().getRefreshTokenExpiresInDays());
 
@@ -80,7 +80,7 @@ class RefreshTokenServiceTest {
                 .thenReturn(Optional.empty());
 
         // Act && Assert
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientUserRepository);
+        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository);
         assertThrows(ClientsUserNotFoundException.class, () -> service.createRefreshToken("", "", 0));
     }
 
@@ -100,8 +100,8 @@ class RefreshTokenServiceTest {
 
         // Act
         var refreshToken = new RefreshTokenServiceImpl(refreshTokenRepository,
-                activeRefreshTokenRepository,
-                clientUserRepository).revokeRefreshToken(
+                activeRefreshTokenRepository
+        ).revokeRefreshToken(
                 clientUser.getClient().getClientId(),
                 activeRefreshToken.getToken(),
                 clientUser.getClient().getRefreshTokenExpiresInDays()
@@ -127,7 +127,7 @@ class RefreshTokenServiceTest {
         // Arrange
         when(activeRefreshTokenRepository.findByToken(any()))
                 .thenReturn(Optional.empty());
-        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository, clientUserRepository);
+        var service = new RefreshTokenServiceImpl(refreshTokenRepository, activeRefreshTokenRepository);
 
         // Act && Assert
         assertThrows(RefreshTokenNotFoundException.class, () -> service.revokeRefreshToken("", "", 0));

@@ -29,13 +29,13 @@ public class TokenRequestModelFixture extends Fixture<TokenRequestModel> {
 
     private Model<TokenRequestModel> tokenRequest(GrantType[] grantTypeOptions) {
         return Instancio.of(TokenRequestModel.class)
-                .supply(field(TokenRequestModel::getRefresh_token), () -> faker.letterify("*********************"))
+                .supply(field(TokenRequestModel::getRefreshToken), () -> faker.letterify("*********************"))
                 .supply(field(TokenRequestModel::getCode), () -> faker.letterify("*********************"))
                 .supply(field(TokenRequestModel::getState), () -> faker.rickAndMorty().quote())
-                .supply(field(TokenRequestModel::getClient_id), () -> faker.letterify("*********************"))
-                .supply(field(TokenRequestModel::getClient_secret), () -> faker.letterify("*********************"))
-                .supply(field(TokenRequestModel::getGrant_type), () -> FakerUtils.createRandomGrantType(faker, grantTypeOptions).getGrantType())
-                .supply(field(TokenRequestModel::getRedirect_uri), () -> faker.internet().url())
+                .supply(field(TokenRequestModel::getClientId), () -> faker.letterify("*********************"))
+                .supply(field(TokenRequestModel::getClientSecret), () -> faker.letterify("*********************"))
+                .supply(field(TokenRequestModel::getGrantType), () -> FakerUtils.createRandomGrantType(faker, grantTypeOptions).getGrantType())
+                .supply(field(TokenRequestModel::getRedirectUri), () -> faker.internet().url())
                 .toModel();
     }
 }

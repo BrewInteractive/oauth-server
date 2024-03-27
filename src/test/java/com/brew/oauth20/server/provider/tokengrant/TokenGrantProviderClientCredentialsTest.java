@@ -3,7 +3,10 @@ package com.brew.oauth20.server.provider.tokengrant;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
 import com.github.javafaker.Faker;
@@ -73,8 +76,8 @@ class TokenGrantProviderClientCredentialsTest {
     @NotNull
     private static TokenRequestModel createValidTokenRequest(ClientModel clientModel) {
         var validTokenRequest = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
-        validTokenRequest.setClient_id(clientModel.clientId());
-        validTokenRequest.setClient_secret(clientModel.clientSecret());
+        validTokenRequest.setClientId(clientModel.clientId());
+        validTokenRequest.setClientSecret(clientModel.clientSecret());
         return validTokenRequest;
     }
 
@@ -87,8 +90,8 @@ class TokenGrantProviderClientCredentialsTest {
         TokenRequestModel validTokenRequest = createValidTokenRequest(client);
 
         var tokenRequestWithoutClient = tokenRequestModelFixture.createRandomOne(new GrantType[]{GrantType.client_credentials});
-        tokenRequestWithoutClient.setClient_id("");
-        tokenRequestWithoutClient.setClient_secret("");
+        tokenRequestWithoutClient.setClientId("");
+        tokenRequestWithoutClient.setClientSecret("");
 
         var authorizationHeader = createAuthorizationHeader(client);
 
@@ -163,8 +166,8 @@ class TokenGrantProviderClientCredentialsTest {
                                                      ValidationResultModel expectedResult
     ) {
         // Arrange
-        if (!tokenRequest.getClient_id().isEmpty() && !tokenRequest.getClient_secret().isEmpty())
-            when(clientService.getClient(tokenRequest.getClient_id(), tokenRequest.getClient_secret()))
+        if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
+            when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
         if (!StringUtils.isEmpty(authorizationHeader))
             when(clientService.decodeClientCredentials(authorizationHeader))
@@ -189,13 +192,13 @@ class TokenGrantProviderClientCredentialsTest {
         var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
 
 
-        when(clientService.getClient(tokenRequestModel.getClient_id(), tokenRequestModel.getClient_secret()))
+        when(clientService.getClient(tokenRequestModel.getClientId(), tokenRequestModel.getClientSecret()))
                 .thenReturn(clientModel);
 
         when(clientService.decodeClientCredentials(authorizationHeader))
                 .thenReturn(Optional.of(clientCredentialsPair));
 
-        when(tokenService.generateToken(clientModel, tokenRequestModel.getAdditional_claims()))
+        when(tokenService.generateToken(clientModel, tokenRequestModel.getAdditionalClaims()))
                 .thenReturn(accessToken);
 
         // Act
