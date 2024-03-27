@@ -6,16 +6,12 @@ import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.RefreshTokenFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.fixture.UserIdentityInfoFixture;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
 import com.brew.oauth20.server.service.UserIdentityService;
 import com.github.javafaker.Faker;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -29,13 +25,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +58,6 @@ class TokenGrantProviderRefreshTokenTest {
     @InjectMocks
     private TokenGrantProviderRefreshToken tokenGrantProviderRefreshToken;
 
-
     private static Stream<Arguments> should_validate_refresh_token_provider() {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.refresh_token});
 
@@ -82,58 +74,45 @@ class TokenGrantProviderRefreshTokenTest {
         tokenRequestWithoutClient.setClientId("");
         tokenRequestWithoutClient.setClientSecret("");
 
-        var authorizationCode = createAuthorizationHeader(client);
-
-        var pair = Pair.of(client.clientId(), client.clientSecret());
+        var clientCredentials = new ClientCredentialsModel(client.clientId(), client.clientSecret());
 
         return Stream.of(
                 //valid case client credentials from authorization code
                 Arguments.of(client,
-                        authorizationCode,
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        true,
+                        clientCredentials),
                 //valid case client credentials from request model
                 Arguments.of(client,
-                        "",
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        true,
+                        clientCredentials),
                 //valid case client credentials from request model
                 Arguments.of(client,
-                        null,
                         validTokenRequest,
-                        new ValidationResultModel(true, null),
-                        pair),
+                        true,
+                        clientCredentials),
                 //invalid case client credentials from authorization code
                 Arguments.of(client,
-                        authorizationCode,
                         validTokenRequest,
                         new ValidationResultModel(false, "unauthorized_client"),
                         null),
                 //no refresh code provided case
                 Arguments.of(client,
-                        authorizationCode,
                         tokenRequestWithoutRefreshToken,
                         new ValidationResultModel(false, "invalid_request"),
-                        pair),
+                        clientCredentials),
                 //no client credentials provided case
                 Arguments.of(client,
-                        "",
                         tokenRequestWithoutClient,
                         new ValidationResultModel(false, "unauthorized_client"),
-                        pair),
+                        clientCredentials),
                 //client not found case
                 Arguments.of(null,
-                        authorizationCode,
                         validTokenRequest,
                         new ValidationResultModel(false, "unauthorized_client"),
-                        pair)
+                        clientCredentials)
         );
-    }
-
-    private static String createAuthorizationHeader(ClientModel client) {
-        return Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
     }
 
     private static Stream<Arguments> should_generate_token_from_valid_request() {
@@ -143,15 +122,14 @@ class TokenGrantProviderRefreshTokenTest {
         validTokenRequest.setClientId(client.clientId());
         validTokenRequest.setClientSecret(client.clientSecret());
 
-        var authorizationCode = createAuthorizationHeader(client);
-        var pair = Pair.of(client.clientId(), client.clientSecret());
+        var clientCredentials = new ClientCredentialsModel(client.clientId(), client.clientSecret());
 
         var refreshToken = refreshTokenFixture.createRandomOne();
         var accessToken = faker.regexify("[A-Za-z0-9]{150}");
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.additional_claims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdToken = TokenModel.builder()
                 .accessToken(accessToken)
@@ -173,22 +151,20 @@ class TokenGrantProviderRefreshTokenTest {
         return Stream.of(
                 // While id token is enabled
                 Arguments.of(client,
-                        authorizationCode,
                         validTokenRequest,
                         refreshToken,
                         userIdentityInfo,
                         true,
-                        new TokenResultModel(tokenModelWithIdToken, null),
-                        pair),
+                        tokenModelWithIdToken,
+                        clientCredentials),
                 // While id token is disabled
                 Arguments.of(client,
-                        authorizationCode,
                         validTokenRequest,
                         refreshToken,
                         null,
                         false,
-                        new TokenResultModel(tokenModelWithoutIdToken, null),
-                        pair)
+                        tokenModelWithoutIdToken,
+                        clientCredentials)
 
         );
     }
@@ -215,42 +191,36 @@ class TokenGrantProviderRefreshTokenTest {
     @MethodSource
     @ParameterizedTest
     void should_validate_refresh_token_provider(ClientModel clientModel,
-                                                String authorizationCode,
                                                 TokenRequestModel tokenRequest,
-                                                ValidationResultModel expectedResult,
-                                                Pair<String, String> clientCredentialsPair) {
+                                                Boolean expectedResult,
+                                                ClientCredentialsModel clientCredentialsModel) {
         // Arrange
-        if (!tokenRequest.clientId.isEmpty() && !tokenRequest.clientSecret.isEmpty())
-            when(clientService.getClient(tokenRequest.clientId, tokenRequest.clientSecret))
+        if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
+            when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
-        if (!StringUtils.isEmpty(authorizationCode))
-            when(clientService.decodeClientCredentials(authorizationCode))
-                    .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 
         // Act
-        var result = tokenGrantProviderRefreshToken.validate(authorizationCode, tokenRequest);
+        var result = tokenGrantProviderRefreshToken.validate(clientCredentialsModel, tokenRequest);
 
         // Assert
-        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
+        assertThat(result).isEqualTo(expectedResult);
     }
 
     @MethodSource
     @ParameterizedTest
     void should_generate_token_from_valid_request(ClientModel clientModel,
-                                                  String authorizationCode,
                                                   TokenRequestModel tokenRequest,
                                                   RefreshToken refreshToken,
                                                   Map<String, Object> userIdentityInfo,
                                                   Boolean idTokenEnabled,
-                                                  TokenResultModel tokenResultModel,
-                                                  Pair<String, String> clientCredentialsPair) {
+                                                  TokenModel tokenModel,
+                                                  ClientCredentialsModel clientCredentialsModel) {
 
         // Arrange
-        var accessToken = tokenResultModel.getResult().getAccessToken();
+        var accessToken = tokenModel.getAccessToken();
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
-        when(clientService.decodeClientCredentials(authorizationCode))
-                .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
+
         when(refreshTokenService.revokeRefreshToken(tokenRequest.getClientId(), tokenRequest.getRefreshToken(), clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
         when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), tokenRequest.getAdditionalClaims()))
@@ -260,7 +230,7 @@ class TokenGrantProviderRefreshTokenTest {
 
 
         if (idTokenEnabled) {
-            var idToken = tokenResultModel.getResult().getIdToken();
+            var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
             mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
@@ -272,11 +242,9 @@ class TokenGrantProviderRefreshTokenTest {
         }
 
         // Act
-        var result = tokenGrantProviderRefreshToken.generateToken(authorizationCode, tokenRequest);
+        var result = tokenGrantProviderRefreshToken.generateToken(clientCredentialsModel, tokenRequest);
 
         // Assert
-        assertThat(result).usingRecursiveComparison().isEqualTo(tokenResultModel);
+        assertThat(result).usingRecursiveComparison().isEqualTo(tokenModel);
     }
-
-
 }

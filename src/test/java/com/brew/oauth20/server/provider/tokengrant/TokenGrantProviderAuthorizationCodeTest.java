@@ -4,13 +4,9 @@ import com.brew.oauth20.server.data.ActiveAuthorizationCode;
 import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.fixture.*;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.*;
 import com.github.javafaker.Faker;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +27,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -146,7 +141,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.additional_claims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdTokenAndRefreshToken = TokenModel.builder()
                 .accessToken(accessToken)
@@ -174,7 +169,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                         refreshToken,
                         userIdentityInfo,
                         true,
-                        new TokenResultModel(tokenModelWithIdTokenAndRefreshToken, null)),
+                        tokenModelWithIdTokenAndRefreshToken),
 
                 Arguments.of(clientModel,
                         validTokenRequest,
@@ -182,15 +177,15 @@ class TokenGrantProviderAuthorizationCodeTest {
                         refreshToken,
                         null,
                         false,
-                        new TokenResultModel(tokenModelWithRefreshTokenOnly, null))
+                        tokenModelWithRefreshTokenOnly)
         );
     }
 
     @NotNull
     private static ActiveAuthorizationCode createActiveAuthorizationCode(TokenRequestModel validTokenRequest) {
         var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne();
-        activeAuthorizationCode.setCode(validTokenRequest.code);
-        activeAuthorizationCode.setRedirectUri(validTokenRequest.redirectUri);
+        activeAuthorizationCode.setCode(validTokenRequest.getCode());
+        activeAuthorizationCode.setRedirectUri(validTokenRequest.getRedirectUri());
         return activeAuthorizationCode;
     }
 
@@ -212,7 +207,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.additional_claims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdTokenOnly = TokenModel.builder()
                 .accessToken(accessToken)
@@ -237,14 +232,14 @@ class TokenGrantProviderAuthorizationCodeTest {
                         activeAuthorizationCode,
                         userIdentityInfo,
                         true,
-                        new TokenResultModel(tokenModelWithIdTokenOnly, null)),
+                        tokenModelWithIdTokenOnly),
 
                 Arguments.of(clientModel,
                         validTokenRequest,
                         activeAuthorizationCode,
                         null,
                         false,
-                        new TokenResultModel(tokenModelWithoutIdTokenAndRefreshToken, null))
+                        tokenModelWithoutIdTokenAndRefreshToken)
         );
     }
 
@@ -271,24 +266,20 @@ class TokenGrantProviderAuthorizationCodeTest {
     @MethodSource
     @ParameterizedTest
     void should_validate_authorization_code_provider(ClientModel clientModel,
-                                                     String authorizationHeader,
                                                      TokenRequestModel tokenRequest,
-                                                     Pair<String, String> clientCredentialsPair,
-                                                     ValidationResultModel expectedResult
+                                                     ClientCredentialsModel clientCredentialsModel,
+                                                     Boolean expectedResult
     ) {
         // Arrange
         if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
             when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
-        if (!StringUtils.isEmpty(authorizationHeader))
-            when(clientService.decodeClientCredentials(authorizationHeader))
-                    .thenReturn(clientCredentialsPair == null ? Optional.empty() : Optional.of(clientCredentialsPair));
 
         // Act
-        var result = tokenGrantProviderAuthorizationCode.validate(authorizationHeader, tokenRequest);
+        var result = tokenGrantProviderAuthorizationCode.validate(clientCredentialsModel, tokenRequest);
 
         // Assert
-        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
+        assertThat(result).isEqualTo(expectedResult);
     }
 
     @MethodSource
@@ -299,29 +290,26 @@ class TokenGrantProviderAuthorizationCodeTest {
                                                                                RefreshToken refreshToken,
                                                                                Map<String, Object> userIdentityInfo,
                                                                                Boolean idTokenEnabled,
-                                                                               TokenResultModel tokenResultModel
+                                                                               TokenModel tokenModel
     ) {
         // Arrange
-        var accessToken = tokenResultModel.getResult().getAccessToken();
-        String authorizationHeader = createAuthorizationHeader(clientModel);
-        var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
+        var accessToken = tokenModel.getAccessToken();
+        var clientCredentialsModel = new ClientCredentialsModel(clientModel.clientId(), clientModel.clientSecret());
 
 
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
-        when(clientService.decodeClientCredentials(authorizationHeader))
-                .thenReturn(Optional.of(clientCredentialsPair));
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirectUri(), true))
                 .thenReturn(activeAuthorizationCode);
         when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), tokenRequest.getAdditionalClaims()))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
-        when(refreshTokenService.createRefreshToken(tokenRequest.getClientId(), activeAuthorizationCode.getClientUser().getUserId(), clientModel.refreshTokenExpiresInDays()))
+        when(refreshTokenService.createRefreshToken(activeAuthorizationCode.getClientUser(), clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
 
         if (idTokenEnabled) {
-            var idToken = tokenResultModel.getResult().getIdToken();
+            var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
             mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
@@ -333,10 +321,10 @@ class TokenGrantProviderAuthorizationCodeTest {
         }
 
         // Act
-        var result = tokenGrantProviderAuthorizationCode.generateToken(authorizationHeader, tokenRequest);
+        var result = tokenGrantProviderAuthorizationCode.generateToken(clientCredentialsModel, tokenRequest);
 
         // Assert
-        assertThat(result).usingRecursiveComparison().isEqualTo(tokenResultModel);
+        assertThat(result).usingRecursiveComparison().isEqualTo(tokenModel);
     }
 
     @MethodSource
@@ -346,17 +334,14 @@ class TokenGrantProviderAuthorizationCodeTest {
                                                                                    ActiveAuthorizationCode activeAuthorizationCode,
                                                                                    Map<String, Object> userIdentityInfo,
                                                                                    Boolean idTokenEnabled,
-                                                                                   TokenResultModel tokenResultModel
+                                                                                   TokenModel tokenModel
     ) {
         // Arrange
-        var accessToken = tokenResultModel.getResult().getAccessToken();
-        String authorizationHeader = createAuthorizationHeader(clientModel);
-        var clientCredentialsPair = Pair.of(clientModel.clientId(), clientModel.clientSecret());
+        var accessToken = tokenModel.getAccessToken();
+        var clientCredentialsModel = new ClientCredentialsModel(clientModel.clientId(), clientModel.clientSecret());
 
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
-        when(clientService.decodeClientCredentials(authorizationHeader))
-                .thenReturn(Optional.of(clientCredentialsPair));
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirectUri(), true))
                 .thenReturn(activeAuthorizationCode);
         when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), tokenRequest.getAdditionalClaims()))
@@ -365,7 +350,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                 .thenReturn(idTokenEnabled.toString());
 
         if (idTokenEnabled) {
-            var idToken = tokenResultModel.getResult().getIdToken();
+            var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
             mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
             mergedAdditionalClaims.putAll(userIdentityInfo);
@@ -377,10 +362,10 @@ class TokenGrantProviderAuthorizationCodeTest {
         }
 
         // Act
-        var result = tokenGrantProviderAuthorizationCode.generateToken(authorizationHeader, tokenRequest);
+        var result = tokenGrantProviderAuthorizationCode.generateToken(clientCredentialsModel, tokenRequest);
 
         // Assert
-        assertThat(result).usingRecursiveComparison().isEqualTo(tokenResultModel);
+        assertThat(result).usingRecursiveComparison().isEqualTo(tokenModel);
     }
 
 }
