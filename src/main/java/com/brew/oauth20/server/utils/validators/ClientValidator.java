@@ -4,6 +4,7 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.utils.abstracts.BaseValidator;
 
 
@@ -12,8 +13,8 @@ public class ClientValidator extends BaseValidator<ClientModel> {
         super(clientModel);
     }
 
-    private static ValidationResultModel getErrorResponse() {
-        return new ValidationResultModel(false, "unauthorized_client");
+    private static ValidationResultModel getErrorResponse(OAuthError error) {
+        return new ValidationResultModel(false, error.getValue());
     }
 
     private static ValidationResultModel getSuccessResponse() {
@@ -22,21 +23,20 @@ public class ClientValidator extends BaseValidator<ClientModel> {
 
     public ValidationResultModel validate(String responseType, String redirectUri, String scope) {
         if (!validateResponseType(responseType))
-            return getErrorResponse();
+            return getErrorResponse(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
 
         if (!validateRedirectUri(redirectUri))
-            return getErrorResponse();
+            return getErrorResponse(OAuthError.INVALID_GRANT);
 
         if (scope != null && !scope.isBlank() && !validateScope(scope))
-            return getErrorResponse();
+            return getErrorResponse(OAuthError.INVALID_SCOPE);
 
         return getSuccessResponse();
     }
 
-
     public ValidationResultModel validate(String grantType) {
         if (!validateGrantType(grantType))
-            return getErrorResponse();
+            return getErrorResponse(OAuthError.UNSUPPORTED_GRANT_TYPE);
 
         return getSuccessResponse();
     }

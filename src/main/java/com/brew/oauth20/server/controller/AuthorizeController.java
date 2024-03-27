@@ -5,7 +5,6 @@ import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
@@ -102,6 +101,12 @@ public class AuthorizeController {
                 return errorResponse;
             }
 
+            errorResponse = validateAuthorizeType(authorizeRequest, parameters);
+            if (errorResponse != null) {
+                logger.error("invalid_request");
+                return errorResponse;
+            }
+
             /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
 
@@ -135,13 +140,9 @@ public class AuthorizeController {
 
     @Nullable
     private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, String parameters) {
-        /* request parameters validation */
         if (validationResult.hasErrors())
             return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
 
-        var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
-        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-            return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
         return null;
     }
 
@@ -167,12 +168,15 @@ public class AuthorizeController {
             throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
     }
 
-    private ValidationResultModel validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
+    private ResponseEntity<String> validateAuthorizeType(AuthorizeRequestModel authorizeRequest, String parameters) {
         /* authorize type validator */
         var authorizeTypeProvider = authorizeTypeProviderFactory
                 .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
 
-        return authorizeTypeProvider.validate(authorizeRequest.getClient_id(), authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
+        var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(), authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
+        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
+            return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
+        return null;
     }
 
     @NotNull
