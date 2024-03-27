@@ -3,8 +3,12 @@ package com.brew.oauth20.server.controller;
 import com.brew.oauth20.server.component.UserCookieManager;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.exception.ClientNotFoundException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
+import com.brew.oauth20.server.provider.authorizetype.BaseAuthorizeTypeProvider;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
@@ -13,7 +17,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +55,10 @@ public class AuthorizeController {
 
     @Autowired
     public AuthorizeController(UserCookieManager userCookieManager,
-            AuthorizationCodeService authorizationCodeService,
-            AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
-            ClientUserService clientUserService,
-            Environment env) {
+                               AuthorizationCodeService authorizationCodeService,
+                               AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
+                               ClientUserService clientUserService,
+                               Environment env) {
         this.userCookieManager = userCookieManager;
         this.authorizationCodeService = authorizationCodeService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
@@ -89,68 +92,59 @@ public class AuthorizeController {
 
     @PostMapping(value = "/oauth/authorize")
     public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request) {
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
         return authorize(authorizeRequest, validationResult, request, convertToParameters(authorizeRequest));
     }
 
     private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult,
-            HttpServletRequest request,
-            String parameters) {
+                                             BindingResult validationResult,
+                                             HttpServletRequest request,
+                                             String parameters) {
         try {
-            var errorResponse = validateClientRequest(authorizeRequest, validationResult);
-            if (errorResponse != null) {
-                logger.error("invalid_request");
-                return errorResponse;
-            }
-
-            errorResponse = validateAuthorizeType(authorizeRequest);
-            if (errorResponse != null) {
-                logger.error("invalid_request");
-                return errorResponse;
-            }
+            validateClientRequest(validationResult);
+            validateAuthorizeType(authorizeRequest);
 
             /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
-
             /* not logged-in user redirect login signup */
             if (userIdOptional.isEmpty())
                 return redirectToLoginSignup(parameters);
 
-            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userIdOptional.get());
-            var consentResponse = validateClientUserConsent(authorizeRequest, parameters, clientUser);
-            if (consentResponse != null)
-                return consentResponse;
+            var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
+            if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
+                return redirectToConsent(parameters);
 
             return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
-        } catch (UnsupportedServiceTypeException e) {
+        } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("unsupported_response_type");
+            return generateErrorResponse(e.getMessage());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("server_error");
+            return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
         }
     }
 
-    @Nullable
-    private ResponseEntity<String> validateClientUserConsent(AuthorizeRequestModel authorizeRequest, String parameters,
-            ClientUser clientUser) {
+    private ClientUser obtainClientUser(AuthorizeRequestModel authorizeRequest, String userId) {
+        try {
+            return clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
+        } catch (ClientNotFoundException e) {
+            throw new OAuthException(OAuthError.INVALID_CLIENT);
+        }
+    }
+
+    private Boolean consentRequired(AuthorizeRequestModel authorizeRequest,
+                                    ClientUser clientUser) {
         if (scopeExists(authorizeRequest)) {
             var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
-            if (!scopeValidator.validateScope(getAuthorizedScopes(clientUser)))
-                return redirectToConsent(parameters);
+            return !scopeValidator.validateScope(getAuthorizedScopes(clientUser));
         }
-        return null;
+        return false;
     }
 
-    @Nullable
-    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest,
-            BindingResult validationResult, String parameters) {
+    private void validateClientRequest(BindingResult validationResult) {
         if (validationResult.hasErrors())
-            return generateErrorResponse("invalid_request");
-
-        return null;
+            throw new OAuthException(OAuthError.INVALID_REQUEST);
     }
 
     @NotNull
@@ -181,27 +175,37 @@ public class AuthorizeController {
     }
 
 
-    private ResponseEntity<String> validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
-        /* authorize type validator */
-        var authorizeTypeProvider = authorizeTypeProviderFactory
-                .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
+    private void validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
+        BaseAuthorizeTypeProvider authorizeTypeProvider = createAuthorizeTypeProvider(authorizeRequest);
+        authorizeTypeProvider.validate(
+                authorizeRequest.getClient_id(),
+                authorizeRequest.getRedirect_uri(),
+                authorizeRequest.getScope());
+    }
 
-        var authorizeTypeValidationResult = authorizeTypeProvider.validate(authorizeRequest.getClient_id(),
-                authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
-        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-            return generateErrorResponse(authorizeTypeValidationResult.getError());
-        return null;
+    @NotNull
+    private BaseAuthorizeTypeProvider createAuthorizeTypeProvider(AuthorizeRequestModel authorizeRequest) {
+        BaseAuthorizeTypeProvider authorizeTypeProvider;
+        try {
+            authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
+            if (authorizeTypeProvider == null)
+                throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
+        } catch (UnsupportedServiceTypeException e) {
+            throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
+        }
+        return authorizeTypeProvider;
     }
 
     @NotNull
     private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters,
-            ClientUser clientUser) {
+                                                         ClientUser clientUser) {
         if (authorizeRequest.getResponse_type().equals("token"))
             throw new UnsupportedServiceTypeException();
         else {
             var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
                     DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
-            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
+            var code = authorizationCodeService.createAuthorizationCode(
+                    authorizeRequest.getRedirect_uri(),
                     Long.parseLong(expiresMs),
                     clientUser,
                     authorizeRequest.getScope());
@@ -251,7 +255,7 @@ public class AuthorizeController {
     }
 
     private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters,
-            String userId) {
+                                                           String userId) {
         var location = UriComponentsBuilder.fromUriString(redirectUri)
                 .query(parameters)
                 .queryParam("code", code)

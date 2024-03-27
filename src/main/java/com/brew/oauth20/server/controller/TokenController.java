@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.exception.UnsupportedGrantTypeException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.TokenResultModel;
@@ -52,9 +52,9 @@ public class TokenController {
             } else {
                 return new ResponseEntity<>(tokenResponse.getResult(), HttpStatus.OK);
             }
-        } catch (UnsupportedGrantTypeException e) {
+        } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
-            return new ResponseEntity<>(new TokenResultModel(null, OAuthError.UNSUPPORTED_GRANT_TYPE.getValue()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new TokenResultModel(null, e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return new ResponseEntity<>("system_error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -66,10 +66,10 @@ public class TokenController {
             var tokenGrantProvider = tokenGrantProviderFactory
                     .getService(GrantType.fromValue(tokenRequestModel.grant_type));
             if (tokenGrantProvider == null)
-                throw new UnsupportedGrantTypeException();
+                throw new OAuthException(OAuthError.UNSUPPORTED_GRANT_TYPE);
             return tokenGrantProvider;
         } catch (UnsupportedServiceTypeException e) {
-            throw new UnsupportedGrantTypeException();
+            throw new OAuthException(OAuthError.UNSUPPORTED_GRANT_TYPE);
         }
     }
 }

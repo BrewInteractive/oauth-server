@@ -2,8 +2,8 @@ package com.brew.oauth20.server.utils.validators;
 
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
 import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.utils.abstracts.BaseValidator;
 
@@ -13,32 +13,24 @@ public class ClientValidator extends BaseValidator<ClientModel> {
         super(clientModel);
     }
 
-    private static ValidationResultModel getErrorResponse(OAuthError error) {
-        return new ValidationResultModel(false, error.getValue());
-    }
-
-    private static ValidationResultModel getSuccessResponse() {
-        return new ValidationResultModel(true, null);
-    }
-
-    public ValidationResultModel validate(String responseType, String redirectUri, String scope) {
+    public Boolean validate(String responseType, String redirectUri, String scope) {
         if (!validateResponseType(responseType))
-            return getErrorResponse(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
+            throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
 
         if (!validateRedirectUri(redirectUri))
-            return getErrorResponse(OAuthError.INVALID_GRANT);
+            throw new OAuthException(OAuthError.INVALID_GRANT);
 
         if (scope != null && !scope.isBlank() && !validateScope(scope))
-            return getErrorResponse(OAuthError.INVALID_SCOPE);
+            throw new OAuthException(OAuthError.INVALID_SCOPE);
 
-        return getSuccessResponse();
+        return true;
     }
 
-    public ValidationResultModel validate(String grantType) {
+    public Boolean validate(String grantType) {
         if (!validateGrantType(grantType))
-            return getErrorResponse(OAuthError.UNSUPPORTED_GRANT_TYPE);
+            throw new OAuthException(OAuthError.UNSUPPORTED_GRANT_TYPE);
 
-        return getSuccessResponse();
+        return true;
     }
 
     private boolean validateResponseType(String responseType) {
