@@ -45,6 +45,9 @@ public class AuthorizeController {
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
 
+    @Value("${oauth.error_page_url}")
+    private String errorPageUrl;
+
     @Value("${oauth.consent_endpoint}")
     private String consentEndpoint;
 
@@ -96,7 +99,7 @@ public class AuthorizeController {
                                              HttpServletRequest request,
                                              String parameters) {
         try {
-            var errorResponse = validateClientRequest(authorizeRequest, validationResult, parameters);
+            var errorResponse = validateClientRequest(authorizeRequest, validationResult);
             if (errorResponse != null) {
                 logger.error("invalid_request");
                 return errorResponse;
@@ -116,10 +119,10 @@ public class AuthorizeController {
             return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
         } catch (UnsupportedServiceTypeException e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("unsupported_response_type", parameters, authorizeRequest.getRedirect_uri());
+            return generateErrorResponse("unsupported_response_type");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("server_error", parameters, authorizeRequest.getRedirect_uri());
+            return generateErrorResponse("server_error");
         }
     }
 
@@ -134,14 +137,14 @@ public class AuthorizeController {
     }
 
     @Nullable
-    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult, String parameters) {
+    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult) {
         /* request parameters validation */
         if (validationResult.hasErrors())
-            return generateErrorResponse("invalid_request", parameters, authorizeRequest.getRedirect_uri());
+            return generateErrorResponse("invalid_request");
 
         var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
         if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-            return generateErrorResponse(authorizeTypeValidationResult.getError(), parameters, authorizeRequest.getRedirect_uri());
+            return generateErrorResponse(authorizeTypeValidationResult.getError());
         return null;
     }
 
@@ -165,6 +168,11 @@ public class AuthorizeController {
     private void validateLoginSignupEndpoint() {
         if (loginSignupEndpoint.isBlank())
             throw new IllegalStateException("LOGIN_SIGNUP_ENDPOINT is not set in the environment variables");
+    }
+
+    private void validateErrorPageUrl() {
+        if (errorPageUrl.isBlank())
+            throw new IllegalStateException("ERROR_PAGE_URL is not set in the environment variables");
     }
 
     private ValidationResultModel validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
@@ -204,15 +212,12 @@ public class AuthorizeController {
         return queryStringBuilder.toString();
     }
 
-    private ResponseEntity<String> generateErrorResponse(String error, String parameters, String redirectUri) {
-        URI location = null;
-        if (redirectUri != null) {
-            location = UriComponentsBuilder.fromUriString(redirectUri)
-                    .query(parameters)
+    private ResponseEntity<String> generateErrorResponse(String error) {
+        validateErrorPageUrl();
+        URI location = UriComponentsBuilder.fromUriString(errorPageUrl)
                     .queryParam("error", error)
                     .build()
                     .toUri();
-        }
         return createRedirectResponse(error, location);
     }
 

@@ -48,7 +48,7 @@ You will need to add below environment variables to run the server. These values
 file in the root directory.:
 
 | Variable Name                 | Description                                                                                                         | Required | Default Value |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- | :------: | :-----------: |
+|-------------------------------|---------------------------------------------------------------------------------------------------------------------|:--------:| :-----------: |
 | DB_HOST                       | Represents the hostname of the database that needs to be connected.                                                 |   YES    |       -       |
 | DB_NAME                       | Represents the name of the database that needs to be connected.                                                     |   YES    |       -       |
 | DB_USER                       | Represents the user of the database that needs to be connected.                                                     |   YES    |       -       |
@@ -59,6 +59,7 @@ file in the root directory.:
 | ENABLE_SWAGGER                | Represents the enabling or disabling the swagger.                                                                   |    NO    |       -       |
 | USER_IDENTITY_SERVICE_URL     | Represents the identity service url to get user identity info.                                                      |    NO    |       -       |
 | ENABLE_ID_TOKEN               | Represents the enabling or disabling id_token generation by getting user identity infor from user identity service. |    NO    |      NO       |
+| ERROR_PAGE_URL                | Represents the page url to redirect on authorize error                                                              |   YES    |      NO       |
 
 #### Starting the Server
 

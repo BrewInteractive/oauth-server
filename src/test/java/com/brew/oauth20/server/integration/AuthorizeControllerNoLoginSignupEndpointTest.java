@@ -22,7 +22,7 @@ class AuthorizeControllerNoLoginSignupEndpointTest extends BaseAuthorizeControll
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(authorizedRedirectUri)
+        assertThat(locationHeader).contains(errorPageUrl)
                 .contains("error=server_error");
     }
 }
