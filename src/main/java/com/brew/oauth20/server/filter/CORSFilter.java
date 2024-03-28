@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.filter;
 
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -117,7 +118,7 @@ public class CORSFilter extends OncePerRequestFilter {
                 // and verify that the client is allowing cors origins
                 var clientId = readClientId(request);
                 if (clientId == null || clientId.isBlank())
-                    throw new IllegalStateException("Can't find CORS Configuration");
+                    throw new ClientAuthenticationFailedException();
                 else {
                     var webOrigins = clientService.getWebOrigins(clientId);
 
@@ -143,7 +144,7 @@ public class CORSFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && !authorizationHeader.isEmpty()) {
             var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-            if (clientCredentials.isPresent()) clientId = clientCredentials.get().getFirst();
+            if (clientCredentials.isPresent()) clientId = clientCredentials.get().getClientId();
         }
         return clientId;
     }

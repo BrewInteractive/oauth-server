@@ -1,10 +1,12 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.exception.OAuthException;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -31,43 +33,36 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
     }
 
     @Override
-    public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.code))
-            return new ValidationResultModel(false, "invalid_request");
-        return super.validate(authorizationHeader, tokenRequest);
+    public Boolean validate(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.getCode()))
+            throw new OAuthException(OAuthError.INVALID_REQUEST);
+        return super.validate(clientCredentials, tokenRequest);
     }
 
     @Override
-    public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        try {
-            var validationResult = validate(authorizationHeader, tokenRequest);
+    public TokenModel generateToken(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        validate(clientCredentials, tokenRequest);
 
-            if (Boolean.FALSE.equals(validationResult.getResult()))
-                return new TokenResultModel(null, validationResult.getError());
+        var activeAuthorizationCode = this.authorizationCodeService.getAuthorizationCode(
+                tokenRequest.getCode(),
+                tokenRequest.getRedirectUri(),
+                true);
 
-            var activeAuthorizationCode = this.authorizationCodeService.getAuthorizationCode(tokenRequest.code, tokenRequest.redirect_uri, true);
+        if (activeAuthorizationCode == null)
+            throw new ClientAuthenticationFailedException();
 
-            if (activeAuthorizationCode == null)
-                return new TokenResultModel(null, "invalid_request");
+        var userId = activeAuthorizationCode.getClientUser().getUserId();
+        var customClaims = this.getCustomClaims(client, userId);
 
-            var userId = activeAuthorizationCode.getClientUser().getUserId();
-
-            var customClaims = this.getCustomClaims(client, userId);
-
-            String refreshToken = null;
-            if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
-                var refreshTokenEntity = this.refreshTokenService.createRefreshToken(client.clientId(), userId, client.refreshTokenExpiresInDays());
-                refreshToken = refreshTokenEntity.getToken();
-            }
-            var accessToken = this.tokenService.generateToken(client, userId, activeAuthorizationCode.getScope(), customClaims);
+        String refreshToken = null;
+        if (Boolean.TRUE.equals(client.issueRefreshTokens())) {
+            var refreshTokenEntity = this.refreshTokenService.createRefreshToken(activeAuthorizationCode.getClientUser(), client.refreshTokenExpiresInDays());
+            refreshToken = refreshTokenEntity.getToken();
+        }
+        var accessToken = this.tokenService.generateToken(client, userId, activeAuthorizationCode.getScope(), customClaims);
 
             var idToken = this.generateIdToken(accessToken, client, userId, activeAuthorizationCode.getScope(), customClaims);
 
-            var tokenModel = this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
-
-            return new TokenResultModel(tokenModel, null);
-        } catch (ClientsUserNotFoundException e) {
-            return new TokenResultModel(null, "unauthorized_client");
-        }
+        return this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
     }
 }

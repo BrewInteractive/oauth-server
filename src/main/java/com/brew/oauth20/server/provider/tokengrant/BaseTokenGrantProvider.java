@@ -2,13 +2,16 @@ package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.HookType;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.CustomClaimService;
 import com.brew.oauth20.server.service.TokenService;
 import com.brew.oauth20.server.service.UserIdentityService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -40,31 +43,15 @@ public abstract class BaseTokenGrantProvider {
         this.env = env;
     }
 
-    public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        String clientId;
-        String clientSecret;
-        if (StringUtils.isEmpty(authorizationHeader)) {
-            clientId = tokenRequest.client_id;
-            clientSecret = tokenRequest.client_secret;
-        } else {
-            var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-            if (clientCredentials.isEmpty())
-                return new ValidationResultModel(false, "unauthorized_client");
-            clientId = clientCredentials.get().getFirst();
-            clientSecret = clientCredentials.get().getSecond();
-        }
-
-        client = clientService.getClient(clientId, clientSecret);
-
+    public Boolean validate(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        client = clientService.getClient(clientCredentials.getClientId(), clientCredentials.getClientSecret());
         if (client == null)
-            return new ValidationResultModel(false, "unauthorized_client");
+            throw new ClientAuthenticationFailedException();
 
-        ClientValidator clientValidator = new ClientValidator(client);
-
-        return clientValidator.validate(tokenRequest.grant_type);
+        return new ClientValidator(client).validate(tokenRequest.getGrantType());
     }
 
-    public abstract TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest);
+    public abstract TokenModel generateToken(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest);
 
     protected Map<String, Object> getCustomClaims(ClientModel client, String userId) {
         var customClaimHook = client.hookList().stream().filter(x -> x.hookType().equals(HookType.custom_claim)).findFirst();

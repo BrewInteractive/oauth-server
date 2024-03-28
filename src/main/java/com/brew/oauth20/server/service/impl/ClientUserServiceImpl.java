@@ -33,7 +33,7 @@ public class ClientUserServiceImpl implements ClientUserService {
         if (client.isEmpty())
             throw new ClientNotFoundException(clientId);
 
-        ClientUser clientUser = ClientUser.builder()
+        var clientUser = ClientUser.builder()
                 .client(client.get())
                 .userId(userId)
                 .build();
