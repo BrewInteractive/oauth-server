@@ -81,6 +81,6 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
         Exception exception = assertThrows(OAuthException.class, () -> provider.validate(clientId, url, scope));
-        assertThat(exception.getMessage()).isEqualTo(expectedException.getMessage());
+        assertThat(exception).usingRecursiveComparison().isEqualTo(expectedException);
     }
 }
