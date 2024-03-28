@@ -229,6 +229,17 @@ class TokenGrantProviderAuthorizationCodeTest {
         );
     }
 
+    private static Stream<Arguments> should_not_generate_token_from_valid_request_if_authorization_code_is_not_active() {
+        var clientModel = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.authorization_code});
+        TokenRequestModel validTokenRequest = createValidTokenRequest(clientModel);
+
+        return Stream.of(
+                Arguments.of(clientModel,
+                        validTokenRequest)
+        );
+    }
+
+
     @BeforeAll
     static void init() {
         faker = new Faker();
@@ -318,6 +329,23 @@ class TokenGrantProviderAuthorizationCodeTest {
 
         // Assert
         assertThat(result).usingRecursiveComparison().isEqualTo(tokenModel);
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    void should_not_generate_token_from_valid_request_if_authorization_code_is_not_active(ClientModel clientModel,
+                                                                                          TokenRequestModel tokenRequest) {
+        // Arrange
+        var clientCredentialsModel = new ClientCredentialsModel(clientModel.clientId(), clientModel.clientSecret());
+
+        when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
+                .thenReturn(clientModel);
+        when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirectUri(), true))
+                .thenReturn(null);
+
+        // Act & Assert
+        assertThatThrownBy(() -> tokenGrantProviderAuthorizationCode.generateToken(clientCredentialsModel, tokenRequest))
+                .isInstanceOf(ClientAuthenticationFailedException.class);
     }
 
     @MethodSource
