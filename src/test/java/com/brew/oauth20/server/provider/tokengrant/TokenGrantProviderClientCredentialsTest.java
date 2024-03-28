@@ -1,9 +1,13 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.TokenService;
 import com.github.javafaker.Faker;
@@ -25,6 +29,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -90,37 +95,37 @@ class TokenGrantProviderClientCredentialsTest {
                 Arguments.of(client,
                         validTokenRequest,
                         clientCredentials,
-                        new ValidationResultModel(true, null)
+                        true,
+                        null
                 ),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         validTokenRequest,
                         clientCredentials,
-                        new ValidationResultModel(true, null)
+                        true,
+                        null
                 ),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         validTokenRequest,
                         clientCredentials,
-                        new ValidationResultModel(true, null)
+                        true,
+                        null
                 ),
-                //invalid case client credentials from authorization code
-                Arguments.of(client,
-                        validTokenRequest,
-                        null,
-                        new ValidationResultModel(false, "unauthorized_client")
-                ),
-                //no client credentials provided case
+
+                // token request without client
                 Arguments.of(client,
                         tokenRequestWithoutClient,
                         clientCredentials,
-                        new ValidationResultModel(false, "unauthorized_client")
+                        null,
+                        new ClientAuthenticationFailedException()
                 ),
                 //client not found case
                 Arguments.of(null,
                         validTokenRequest,
                         clientCredentials,
-                        new ValidationResultModel(false, "unauthorized_client")
+                        null,
+                        new ClientAuthenticationFailedException()
                 )
         );
     }
@@ -144,18 +149,25 @@ class TokenGrantProviderClientCredentialsTest {
     void should_validate_client_credentials_provider(ClientModel clientModel,
                                                      TokenRequestModel tokenRequest,
                                                      ClientCredentialsModel clientCredentialsModel,
-                                                     Boolean expectedResult
+                                                     Boolean expectedResult,
+                                                     Exception expectedException
     ) {
         // Arrange
         if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
             when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
 
-        // Act
-        var result = tokenGrantProviderClientCredentials.validate(clientCredentialsModel, tokenRequest);
+        // Act && Assert
+        if (expectedResult != null) {
+            var actualResult = tokenGrantProviderClientCredentials.validate(clientCredentialsModel, tokenRequest);
+            assertThat(actualResult).isEqualTo(expectedResult);
+        }
+        if (expectedException != null) {
+            assertThatThrownBy(() -> tokenGrantProviderClientCredentials.validate(clientCredentialsModel, tokenRequest))
+                    .isInstanceOf(expectedException.getClass())
+                    .hasMessage(expectedException.getMessage());
+        }
 
-        // Assert
-        assertThat(result).isEqualTo(expectedResult);
     }
 
     @MethodSource
