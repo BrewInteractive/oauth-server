@@ -14,8 +14,8 @@ class TokenRequestModelValidatorTest {
         // Arrange
         TokenRequestModelValidator validator = new TokenRequestModelValidator();
         TokenRequestModel validModel = TokenRequestModel.builder()
-                .grant_type("authorization_code")
-                .redirect_uri("https://example.com/callback")
+                .grantType("authorization_code")
+                .redirectUri("https://example.com/callback")
                 .build();
 
         ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
@@ -32,8 +32,8 @@ class TokenRequestModelValidatorTest {
         // Arrange
         TokenRequestModelValidator validator = new TokenRequestModelValidator();
         TokenRequestModel invalidModel = TokenRequestModel.builder()
-                .grant_type("authorization_code")
-                .redirect_uri("")
+                .grantType("authorization_code")
+                .redirectUri("")
                 .build();
 
         ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);
@@ -65,8 +65,8 @@ class TokenRequestModelValidatorTest {
         // Arrange
         TokenRequestModelValidator validator = new TokenRequestModelValidator();
         TokenRequestModel model = TokenRequestModel.builder()
-                .grant_type("client_credentials")
-                .redirect_uri("https://example.com/callback")
+                .grantType("client_credentials")
+                .redirectUri("https://example.com/callback")
                 .build();
 
         ConstraintValidatorContext context = mock(ConstraintValidatorContext.class);

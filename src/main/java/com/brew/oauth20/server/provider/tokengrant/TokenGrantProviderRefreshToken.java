@@ -1,10 +1,11 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.exception.ClientsUserNotFoundException;
+import com.brew.oauth20.server.exception.OAuthException;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
@@ -30,33 +31,25 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     }
 
     @Override
-    public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.getRefresh_token()))
-            return new ValidationResultModel(false, "invalid_request");
-        return super.validate(authorizationHeader, tokenRequest);
+    public Boolean validate(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(tokenRequest.getRefreshToken()))
+            throw new OAuthException(OAuthError.INVALID_REQUEST);
+        return super.validate(clientCredentials, tokenRequest);
     }
 
     @Override
-    public TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest) {
-        try {
-            var validationResult = validate(authorizationHeader, tokenRequest);
+    public TokenModel generateToken(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        validate(clientCredentials, tokenRequest);
 
-            if (Boolean.FALSE.equals(validationResult.getResult()))
-                return new TokenResultModel(null, validationResult.getError());
+        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.getRefreshToken(), client.refreshTokenExpiresInDays());
 
-            var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.getRefresh_token(), client.refreshTokenExpiresInDays());
+        var userId = refreshToken.getClientUser().getUserId();
 
-            var userId = refreshToken.getClientUser().getUserId();
+        var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), tokenRequest.getAdditionalClaims());
 
-            var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), tokenRequest.getAdditional_claims());
+        var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), tokenRequest.getAdditionalClaims());
 
-            var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), tokenRequest.getAdditional_claims());
+        return this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
 
-            var tokenModel = this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
-
-            return new TokenResultModel(tokenModel, null);
-        } catch (ClientsUserNotFoundException e) {
-            return new TokenResultModel(null, "unauthorized_client");
-        }
     }
 }

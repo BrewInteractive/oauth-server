@@ -1,11 +1,15 @@
 package com.brew.oauth20.server.controller;
 
 import com.brew.oauth20.server.component.UserCookieManager;
+import com.brew.oauth20.server.controller.base.BaseController;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.exception.ClientNotFoundException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
 import com.brew.oauth20.server.model.AuthorizeRequestModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
+import com.brew.oauth20.server.provider.authorizetype.BaseAuthorizeTypeProvider;
 import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
@@ -14,7 +18,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 @RestController
-public class AuthorizeController {
+public class AuthorizeController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeController.class);
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieManager userCookieManager;
@@ -66,7 +69,8 @@ public class AuthorizeController {
 
     @NotNull
     private static String[] getAuthorizedScopes(ClientUser clientUser) {
-        return clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope()).toArray(String[]::new);
+        return clientUser.getClientUserScopes().stream().map(clientUserScope -> clientUserScope.getScope().getScope())
+                .toArray(String[]::new);
     }
 
     private static boolean scopeExists(AuthorizeRequestModel authorizeRequest) {
@@ -99,54 +103,46 @@ public class AuthorizeController {
                                              HttpServletRequest request,
                                              String parameters) {
         try {
-            var errorResponse = validateClientRequest(authorizeRequest, validationResult);
-            if (errorResponse != null) {
-                logger.error("invalid_request");
-                return errorResponse;
-            }
+            validateRequest(validationResult);
+            validateAuthorizeType(authorizeRequest);
 
             /* check user cookie */
             var userIdOptional = userCookieManager.getUser(request);
-
             /* not logged-in user redirect login signup */
             if (userIdOptional.isEmpty())
                 return redirectToLoginSignup(parameters);
 
-            var clientUser = clientUserService.getOrCreate(authorizeRequest.getClient_id(), userIdOptional.get());
-            var consentResponse = validateClientUserConsent(authorizeRequest, parameters, clientUser);
-            if (consentResponse != null) return consentResponse;
+            var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
+            if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
+                return redirectToConsent(parameters);
 
             return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
-        } catch (UnsupportedServiceTypeException e) {
+        } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("unsupported_response_type");
+            return generateErrorResponse(e.getMessage());
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return generateErrorResponse("server_error");
+            return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
         }
     }
 
-    @Nullable
-    private ResponseEntity<String> validateClientUserConsent(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
+    private ClientUser obtainClientUser(AuthorizeRequestModel authorizeRequest, String userId) {
+        try {
+            return clientUserService.getOrCreate(authorizeRequest.getClient_id(), userId);
+        } catch (ClientNotFoundException e) {
+            throw new OAuthException(OAuthError.INVALID_CLIENT);
+        }
+    }
+
+    private Boolean consentRequired(AuthorizeRequestModel authorizeRequest,
+                                    ClientUser clientUser) {
         if (scopeExists(authorizeRequest)) {
             var scopeValidator = new ScopeValidator(authorizeRequest.getScope());
-            if (!scopeValidator.validateScope(getAuthorizedScopes(clientUser)))
-                return redirectToConsent(parameters);
+            return !scopeValidator.validateScope(getAuthorizedScopes(clientUser));
         }
-        return null;
+        return false;
     }
 
-    @Nullable
-    private ResponseEntity<String> validateClientRequest(AuthorizeRequestModel authorizeRequest, BindingResult validationResult) {
-        /* request parameters validation */
-        if (validationResult.hasErrors())
-            return generateErrorResponse("invalid_request");
-
-        var authorizeTypeValidationResult = validateAuthorizeType(authorizeRequest);
-        if (Boolean.FALSE.equals(authorizeTypeValidationResult.getResult()))
-            return generateErrorResponse(authorizeTypeValidationResult.getError());
-        return null;
-    }
 
     @NotNull
     private ResponseEntity<String> redirectToConsent(String parameters) {
@@ -175,28 +171,47 @@ public class AuthorizeController {
             throw new IllegalStateException("ERROR_PAGE_URL is not set in the environment variables");
     }
 
-    private ValidationResultModel validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
-        /* authorize type validator */
-        var authorizeTypeProvider = authorizeTypeProviderFactory
-                .getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
 
-        return authorizeTypeProvider.validate(authorizeRequest.getClient_id(), authorizeRequest.getRedirect_uri(), authorizeRequest.getScope());
+    private void validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
+        var authorizeTypeProvider = createAuthorizeTypeProvider(authorizeRequest);
+        authorizeTypeProvider.validate(
+                authorizeRequest.getClient_id(),
+                authorizeRequest.getRedirect_uri(),
+                authorizeRequest.getScope());
     }
 
     @NotNull
-    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters, ClientUser clientUser) {
-        if (authorizeRequest.getResponse_type().equals("token"))
-            throw new UnsupportedServiceTypeException();
-        else {
-            var expiresMs = env.getProperty("oauth.authorization_code_expires_ms", DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
-            var code = authorizationCodeService.createAuthorizationCode(authorizeRequest.getRedirect_uri(),
-                    Long.parseLong(expiresMs),
-                    clientUser,
-                    authorizeRequest.getScope());
+    private BaseAuthorizeTypeProvider createAuthorizeTypeProvider(AuthorizeRequestModel authorizeRequest) {
+        BaseAuthorizeTypeProvider authorizeTypeProvider;
+        try {
+            if (authorizeRequest.getResponse_type().equals("token")) // Unsupported right now
+                throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
 
-            /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters, clientUser.getUserId());
+            authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
+            if (authorizeTypeProvider == null)
+                throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
+        } catch (UnsupportedServiceTypeException e) {
+            throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
         }
+        return authorizeTypeProvider;
+    }
+
+    @NotNull
+    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters,
+                                                         ClientUser clientUser) {
+
+        var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
+                DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+        var code = authorizationCodeService.createAuthorizationCode(
+                authorizeRequest.getRedirect_uri(),
+                Long.parseLong(expiresMs),
+                clientUser,
+                authorizeRequest.getScope());
+
+        /* logged-in user redirect with authorization code */
+        return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters,
+                clientUser.getUserId());
+
     }
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
@@ -215,9 +230,9 @@ public class AuthorizeController {
     private ResponseEntity<String> generateErrorResponse(String error) {
         validateErrorPageUrl();
         URI location = UriComponentsBuilder.fromUriString(errorPageUrl)
-                    .queryParam("error", error)
-                    .build()
-                    .toUri();
+                .queryParam("error", error)
+                .build()
+                .toUri();
         return createRedirectResponse(error, location);
     }
 

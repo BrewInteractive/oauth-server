@@ -3,6 +3,7 @@ package com.brew.oauth20.server.service.impl;
 import com.brew.oauth20.server.data.Client;
 import com.brew.oauth20.server.mapper.ClientMapper;
 import com.brew.oauth20.server.mapper.WebOriginMapper;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.repository.ClientRepository;
@@ -11,7 +12,6 @@ import com.brew.oauth20.server.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -54,14 +54,15 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Optional<Pair<String, String>> decodeClientCredentials(String basicAuthHeader) {
+    public Optional<ClientCredentialsModel> decodeClientCredentials(String basicAuthHeader) {
         try {
-            byte[] decodedBytes = Base64.getDecoder().decode(basicAuthHeader);
+            var encodedPart = basicAuthHeader.replaceFirst("Basic ", "");
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedPart);
             String decodedAuthHeaderValue = new String(decodedBytes);
             String[] values = decodedAuthHeaderValue.split(":");
-            String firstValue = Arrays.stream(values).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
-            String secondValue = Arrays.stream(values).skip(1).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
-            return Optional.of(Pair.of(firstValue, secondValue));
+            String clientId = Arrays.stream(values).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
+            String clientSecret = Arrays.stream(values).skip(1).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
+            return Optional.of(new ClientCredentialsModel(clientId, clientSecret));
         } catch (IllegalArgumentException | NoSuchElementException e) {
             logger.error(e.getMessage(), e);
             return Optional.empty();

@@ -2,11 +2,12 @@ package com.brew.oauth20.server.utils.validators;
 
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.model.ClientModel;
 import com.brew.oauth20.server.model.GrantModel;
 import com.brew.oauth20.server.model.RedirectUriModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.testUtils.FakerUtils;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,9 +21,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SuppressWarnings("ALL")
+@SuppressWarnings("java:S5778")
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ClientValidatorTest {
     private static Faker faker;
@@ -98,14 +101,13 @@ class ClientValidatorTest {
         var clientModel = new ClientModelFixture().createRandomOne();
         var validResponseType = getValidResponseType(clientModel);
         var validRedirectUri = getValidRedirectUri(clientModel);
-        var expectedResult = new ValidationResultModel(true, null);
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, null);
+        var result = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, null);
 
         // Assert
-        assertEquals(expectedResult, actualResult);
+        assertTrue(result);
     }
 
     @Test
@@ -116,14 +118,13 @@ class ClientValidatorTest {
         var validResponseType = getValidResponseType(clientModel);
         var validRedirectUri = getValidRedirectUri(clientModel);
         var validScope = getValidScope(clientModel);
-        var expectedResult = new ValidationResultModel(true, null);
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, validScope);
+        var result = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, validScope);
 
         // Assert
-        assertEquals(expectedResult, actualResult);
+        assertTrue(result);
     }
 
     @Test
@@ -132,14 +133,13 @@ class ClientValidatorTest {
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
         var validGrantType = getValidGrantType(clientModel);
-        var expectedResult = new ValidationResultModel(true, null);
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validGrantType.getGrantType());
+        var result = clientValidator.validate(validGrantType.getGrantType());
 
         // Assert
-        assertEquals(expectedResult, actualResult);
+        assertTrue(result);
     }
 
     @Test
@@ -148,14 +148,13 @@ class ClientValidatorTest {
         var clientModel = new ClientModelFixture().createRandomOne();
         var validResponseType = getValidResponseType(clientModel);
         var validRedirectUri = getValidRedirectUri(clientModel);
-        var expectedResult = new ValidationResultModel(true, null);
 
         // Act
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, "");
+        var result = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, "");
 
         // Assert
-        assertEquals(expectedResult, actualResult);
+        assertTrue(result);
     }
 
     @MethodSource
@@ -166,14 +165,12 @@ class ClientValidatorTest {
         var clientModel = new ClientModelFixture().createRandomOne(grantSize, responseTypeOptions);
         var validRedirectUri = getValidRedirectUri(clientModel);
         var validScope = getValidScope(clientModel);
-        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+        var expectedException = new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
 
-        // Act
+        // Act && Assert
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(invalidResponseType.name(), validRedirectUri, validScope);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        var actualException = assertThrows(OAuthException.class, () -> clientValidator.validate(invalidResponseType.name(), validRedirectUri, validScope));
+        assertThat(actualException).usingRecursiveComparison().isEqualTo(expectedException);
     }
 
     @Test
@@ -184,14 +181,12 @@ class ClientValidatorTest {
         var validResponseType = getValidResponseType(clientModel);
         var invalidRedirectUri = FakerUtils.createRandomRedirectUri(faker);
         var validScope = getValidScope(clientModel);
-        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+        var expectedException = new OAuthException(OAuthError.INVALID_GRANT);
 
-        // Act
+        // Act && Assert
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri, validScope);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        var actualException = assertThrows(OAuthException.class, () -> clientValidator.validate(validResponseType.getResponseType(), invalidRedirectUri, validScope));
+        assertThat(actualException).usingRecursiveComparison().isEqualTo(expectedException);
     }
 
     @Test
@@ -202,14 +197,12 @@ class ClientValidatorTest {
         var validResponseType = getValidResponseType(clientModel);
         var validRedirectUri = getValidRedirectUri(clientModel);
         var invalidScope = faker.lordOfTheRings().location();
-        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+        var expectedException = new OAuthException(OAuthError.INVALID_SCOPE);
 
-        // Act
+        // Act && Assert
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, invalidScope);
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        var actualException = assertThrows(OAuthException.class, () -> clientValidator.validate(validResponseType.getResponseType(), validRedirectUri, invalidScope));
+        assertThat(actualException).usingRecursiveComparison().isEqualTo(expectedException);
     }
 
     @MethodSource
@@ -218,15 +211,11 @@ class ClientValidatorTest {
 
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne(grantSize, grantTypeOptions);
-        var expectedResult = new ValidationResultModel(false, "unauthorized_client");
+        var expectedException = new OAuthException(OAuthError.INVALID_SCOPE);
 
-        // Act
+        // Act && Assert
         var clientValidator = new ClientValidator(clientModel);
-        var actualResult = clientValidator.validate(invalidGrantType.name());
-
-        // Assert
-        assertEquals(expectedResult, actualResult);
+        var actualException = assertThrows(OAuthException.class, () -> clientValidator.validate(invalidGrantType.name()));
+        assertThat(actualException).usingRecursiveComparison().isEqualTo(expectedException);
     }
-
-
 }

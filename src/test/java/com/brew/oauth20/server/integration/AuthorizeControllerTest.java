@@ -66,7 +66,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
                 .contains("error=unauthorized_client");
         assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
     }
@@ -74,7 +75,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"GET", "POST"})
-    void should_redirect_unauthorized_redirect_uri_unauthorized_client_test(String httpMethod) throws Exception {
+    void should_redirect_invalid_grant_when_invalid_redirect_uri_used_test(String httpMethod) throws Exception {
         // Act
         ResultActions resultActions;
         if (httpMethod.equals(HttpMethod.GET.name()))
@@ -86,9 +87,10 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
-                .contains("error=unauthorized_client");
-        assertThat(response.getContentAsString()).isEqualTo("unauthorized_client");
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
+                .contains("error=invalid_grant");
+        assertThat(response.getContentAsString()).isEqualTo("invalid_grant");
     }
 
     @ParameterizedTest
@@ -105,7 +107,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
@@ -149,7 +152,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(locationHeader).contains(loginSignupEndpoint)
+        assertThat(locationHeader)
+                .contains(loginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
@@ -173,7 +177,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
 
-        assertThat(locationHeader).contains(loginSignupEndpoint)
+        assertThat(locationHeader)
+                .contains(loginSignupEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
@@ -202,7 +207,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(consentEndpoint)
+        assertThat(locationHeader)
+                .contains(consentEndpoint)
                 .contains("response_type=code")
                 .contains("client_id=%s".formatted(authorizedClientId))
                 .contains("redirect_uri=%s".formatted(authorizedRedirectUri))
@@ -292,7 +298,7 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"GET", "POST"})
-    void should_throw_UnsupportedServiceTypeException_when_token_response_type_used(String httpMethod) throws Exception {
+    void should_return_unsupported_response_type_when_token_response_type_used(String httpMethod) throws Exception {
         // Arrange
         String tokenResponseType = "token"; // This is the unsupported response type
 
@@ -308,7 +314,8 @@ class AuthorizeControllerTest extends BaseAuthorizeControllerTest {
         MockHttpServletResponse response = resultActions.andReturn().getResponse();
         String locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
                 .contains("error=unsupported_response_type");
         assertThat(response.getContentAsString()).isEqualTo("unsupported_response_type");
     }
