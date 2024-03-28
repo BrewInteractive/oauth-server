@@ -1,5 +1,6 @@
 package com.brew.oauth20.server.filter;
 
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.fixture.WebOriginModelFixture;
 import com.brew.oauth20.server.model.WebOriginModel;
 import com.brew.oauth20.server.service.ClientService;
@@ -197,7 +198,7 @@ class CORSFilterTest {
     }
 
     @Test
-    void should_throw_illegal_state_exception_for_invalid_client_id() {
+    void should_throw_client_authentication_failed_for_invalid_client_id() {
         // Mocking the request and response objects
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -213,7 +214,7 @@ class CORSFilterTest {
         when(clientService.getWebOrigins(clientId)).thenReturn(Collections.emptyList());
 
         // Perform the filter operation and check for the IllegalStateException
-        assertThrows(IllegalStateException.class, () -> corsFilter.doFilterInternal(request, response, filterChain));
+        assertThrows(ClientAuthenticationFailedException.class, () -> corsFilter.doFilterInternal(request, response, filterChain));
     }
 
     @Test
