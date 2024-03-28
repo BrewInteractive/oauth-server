@@ -3,8 +3,14 @@ package com.brew.oauth20.server.provider.tokengrant;
 import com.brew.oauth20.server.data.ActiveAuthorizationCode;
 import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.fixture.*;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.*;
 import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
@@ -21,15 +27,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
-import org.springframework.data.util.Pair;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -70,65 +75,46 @@ class TokenGrantProviderAuthorizationCodeTest {
         tokenRequestWithoutClient.setClientId("");
         tokenRequestWithoutClient.setClientSecret("");
 
-        var authorizationHeader = createAuthorizationHeader(client);
-
-        var clientCredentialsPair = Pair.of(client.clientId(), client.clientSecret());
+        var clientCredentials = new ClientCredentialsModel(client.clientId(), client.clientSecret());
 
         return Stream.of(
                 //valid case client credentials from authorization code
                 Arguments.of(client,
-                        authorizationHeader,
                         validTokenRequest,
-                        clientCredentialsPair,
-                        new ValidationResultModel(true, null)
-                ),
+                        clientCredentials,
+                        true,
+                        null),
                 //valid case client credentials from request model
                 Arguments.of(client,
-                        "",
                         validTokenRequest,
-                        clientCredentialsPair,
-                        new ValidationResultModel(true, null)
-                ),
+                        clientCredentials,
+                        true,
+                        null),
                 //valid case client credentials from request model
                 Arguments.of(client,
-                        null,
                         validTokenRequest,
-                        clientCredentialsPair,
-                        new ValidationResultModel(true, null)
-                ),
-                //invalid case client credentials from authorization code
-                Arguments.of(client,
-                        authorizationHeader,
-                        validTokenRequest,
-                        null,
-                        new ValidationResultModel(false, "unauthorized_client")
-                ),
+                        clientCredentials,
+                        true,
+                        null),
                 //no auth code provided case
                 Arguments.of(client,
-                        authorizationHeader,
                         tokenRequestWithoutCode,
-                        clientCredentialsPair,
-                        new ValidationResultModel(false, "invalid_request")
-                ),
+                        clientCredentials,
+                        null,
+                        new OAuthException(OAuthError.INVALID_REQUEST)),
                 //no client credentials provided case
                 Arguments.of(client,
-                        "",
                         tokenRequestWithoutClient,
-                        clientCredentialsPair,
-                        new ValidationResultModel(false, "unauthorized_client")
-                ),
+                        clientCredentials,
+                        null,
+                        new ClientAuthenticationFailedException()),
                 //client not found case
                 Arguments.of(null,
-                        authorizationHeader,
                         validTokenRequest,
-                        clientCredentialsPair,
-                        new ValidationResultModel(false, "unauthorized_client")
-                )
+                        clientCredentials,
+                        null,
+                        new ClientAuthenticationFailedException())
         );
-    }
-
-    private static String createAuthorizationHeader(ClientModel client) {
-        return Base64.getEncoder().withoutPadding().encodeToString((client.clientId() + ":" + client.clientSecret()).getBytes());
     }
 
     private static Stream<Arguments> should_generate_token_from_valid_request_client_issues_refresh_tokens() {
@@ -268,18 +254,25 @@ class TokenGrantProviderAuthorizationCodeTest {
     void should_validate_authorization_code_provider(ClientModel clientModel,
                                                      TokenRequestModel tokenRequest,
                                                      ClientCredentialsModel clientCredentialsModel,
-                                                     Boolean expectedResult
-    ) {
+                                                     Boolean expectedResult,
+                                                     Exception expectedException) {
         // Arrange
         if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
             when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
 
-        // Act
-        var result = tokenGrantProviderAuthorizationCode.validate(clientCredentialsModel, tokenRequest);
+        // Act && Assert
+        if (expectedResult != null) {
+            var actualResult = tokenGrantProviderAuthorizationCode.validate(clientCredentialsModel, tokenRequest);
+            assertThat(actualResult).isEqualTo(expectedResult);
+        }
 
-        // Assert
-        assertThat(result).isEqualTo(expectedResult);
+        if (expectedException != null) {
+            assertThatThrownBy(() -> tokenGrantProviderAuthorizationCode.validate(clientCredentialsModel, tokenRequest))
+                    .isInstanceOf(expectedException.getClass())
+                    .hasMessage(expectedException.getMessage());
+        }
+
     }
 
     @MethodSource
