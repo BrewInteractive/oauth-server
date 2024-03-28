@@ -53,13 +53,13 @@ public class TokenController extends BaseController {
 
         } catch (ClientAuthenticationFailedException e) {
             logger.error(e.getMessage(), e);
-            return new ResponseEntity<>(OAuthError.INVALID_CLIENT, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(OAuthError.INVALID_CLIENT.getValue(), HttpStatus.UNAUTHORIZED);
         } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return new ResponseEntity<>(OAuthError.SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(OAuthError.SERVER_ERROR.getValue(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
