@@ -2,11 +2,17 @@ package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.fixture.RefreshTokenFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
 import com.brew.oauth20.server.fixture.UserIdentityInfoFixture;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.RefreshTokenService;
 import com.brew.oauth20.server.service.TokenService;
@@ -32,6 +38,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -80,38 +87,39 @@ class TokenGrantProviderRefreshTokenTest {
                 //valid case client credentials from authorization code
                 Arguments.of(client,
                         validTokenRequest,
+                        clientCredentials,
                         true,
-                        clientCredentials),
+                        null),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         validTokenRequest,
+                        clientCredentials,
                         true,
-                        clientCredentials),
+                        null),
                 //valid case client credentials from request model
                 Arguments.of(client,
                         validTokenRequest,
+                        clientCredentials,
                         true,
-                        clientCredentials),
-                //invalid case client credentials from authorization code
-                Arguments.of(client,
-                        validTokenRequest,
-                        new ValidationResultModel(false, "unauthorized_client"),
                         null),
                 //no refresh code provided case
                 Arguments.of(client,
                         tokenRequestWithoutRefreshToken,
-                        new ValidationResultModel(false, "invalid_request"),
-                        clientCredentials),
+                        clientCredentials,
+                        null,
+                        new OAuthException(OAuthError.INVALID_REQUEST)),
                 //no client credentials provided case
                 Arguments.of(client,
                         tokenRequestWithoutClient,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        clientCredentials),
+                        clientCredentials,
+                        null,
+                        new ClientAuthenticationFailedException()),
                 //client not found case
                 Arguments.of(null,
                         validTokenRequest,
-                        new ValidationResultModel(false, "unauthorized_client"),
-                        clientCredentials)
+                        clientCredentials,
+                        null,
+                        new ClientAuthenticationFailedException())
         );
     }
 
@@ -192,18 +200,25 @@ class TokenGrantProviderRefreshTokenTest {
     @ParameterizedTest
     void should_validate_refresh_token_provider(ClientModel clientModel,
                                                 TokenRequestModel tokenRequest,
+                                                ClientCredentialsModel clientCredentialsModel,
                                                 Boolean expectedResult,
-                                                ClientCredentialsModel clientCredentialsModel) {
+                                                Exception expectedException) {
         // Arrange
         if (!tokenRequest.getClientId().isEmpty() && !tokenRequest.getClientSecret().isEmpty())
             when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                     .thenReturn(clientModel);
 
-        // Act
-        var result = tokenGrantProviderRefreshToken.validate(clientCredentialsModel, tokenRequest);
+        // Act && Assert
+        if (expectedResult != null) {
+            var actualResult = tokenGrantProviderRefreshToken.validate(clientCredentialsModel, tokenRequest);
+            assertThat(actualResult).isEqualTo(expectedResult);
+        }
+        if (expectedException != null) {
+            assertThatThrownBy(() -> tokenGrantProviderRefreshToken.validate(clientCredentialsModel, tokenRequest))
+                    .isInstanceOf(expectedException.getClass())
+                    .hasMessage(expectedException.getMessage());
+        }
 
-        // Assert
-        assertThat(result).isEqualTo(expectedResult);
     }
 
     @MethodSource
