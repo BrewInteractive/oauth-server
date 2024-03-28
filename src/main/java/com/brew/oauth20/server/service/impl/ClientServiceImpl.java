@@ -56,7 +56,8 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Optional<ClientCredentialsModel> decodeClientCredentials(String basicAuthHeader) {
         try {
-            byte[] decodedBytes = Base64.getDecoder().decode(basicAuthHeader);
+            var encodedPart = basicAuthHeader.replaceFirst("Basic ", "");
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedPart);
             String decodedAuthHeaderValue = new String(decodedBytes);
             String[] values = decodedAuthHeaderValue.split(":");
             String clientId = Arrays.stream(values).findFirst().orElseThrow(() -> new NoSuchElementException("Auth header is malformed"));
