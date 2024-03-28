@@ -184,6 +184,9 @@ public class AuthorizeController extends BaseController {
     private BaseAuthorizeTypeProvider createAuthorizeTypeProvider(AuthorizeRequestModel authorizeRequest) {
         BaseAuthorizeTypeProvider authorizeTypeProvider;
         try {
+            if (authorizeRequest.getResponse_type().equals("token")) // Unsupported right now
+                throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
+
             authorizeTypeProvider = authorizeTypeProviderFactory.getService(ResponseType.fromValue(authorizeRequest.getResponse_type()));
             if (authorizeTypeProvider == null)
                 throw new OAuthException(OAuthError.UNSUPPORTED_RESPONSE_TYPE);
@@ -196,21 +199,19 @@ public class AuthorizeController extends BaseController {
     @NotNull
     private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters,
                                                          ClientUser clientUser) {
-        if (authorizeRequest.getResponse_type().equals("token"))
-            throw new UnsupportedServiceTypeException();
-        else {
-            var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
-                    DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
-            var code = authorizationCodeService.createAuthorizationCode(
-                    authorizeRequest.getRedirect_uri(),
-                    Long.parseLong(expiresMs),
-                    clientUser,
-                    authorizeRequest.getScope());
 
-            /* logged-in user redirect with authorization code */
-            return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters,
-                    clientUser.getUserId());
-        }
+        var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
+                DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+        var code = authorizationCodeService.createAuthorizationCode(
+                authorizeRequest.getRedirect_uri(),
+                Long.parseLong(expiresMs),
+                clientUser,
+                authorizeRequest.getScope());
+
+        /* logged-in user redirect with authorization code */
+        return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters,
+                clientUser.getUserId());
+
     }
 
     private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
