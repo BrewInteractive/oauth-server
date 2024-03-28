@@ -252,8 +252,7 @@ public class AuthorizeController extends BaseController {
         return createRedirectResponse("", location);
     }
 
-    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters,
-                                                           String userId) {
+    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
         var location = UriComponentsBuilder.fromUriString(redirectUri)
                 .query(parameters)
                 .queryParam("code", code)

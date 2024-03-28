@@ -9,7 +9,6 @@ public enum OAuthError {
     UNAUTHORIZED_CLIENT("unauthorized_client"),
     UNSUPPORTED_GRANT_TYPE("unsupported_grant_type"),
     UNSUPPORTED_RESPONSE_TYPE("unsupported_response_type"),
-
     SERVER_ERROR("server_error");
 
     private final String value;
