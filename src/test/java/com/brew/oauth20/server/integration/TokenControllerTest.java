@@ -25,11 +25,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Base64;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SuppressWarnings("ALL")
@@ -48,6 +51,7 @@ class TokenControllerTest {
     private String authorizedClientSecret;
     private String authorizedRefreshToken;
     private String authorizedState;
+    private String authorizedAuthorizationHeader;
     private ResponseEntity<JsonNode> userIdentityResponse;
     @Autowired
     private MockMvc mockMvc;
@@ -144,6 +148,7 @@ class TokenControllerTest {
         authorizedAuthCode = authorizationCode.getCode();
         authorizedState = faker.lordOfTheRings().location();
         userIdentityResponse = userIdentityInfoFixture.createRandomOneJsonResponse();
+        authorizedAuthorizationHeader = "Basic " + Base64.getEncoder().encodeToString(String.format("%s:%s", authorizedClientId, authorizedClientSecret).getBytes()).toString();
     }
 
     @AfterAll
@@ -161,7 +166,6 @@ class TokenControllerTest {
         Mockito.reset(restTemplateUserIdentityService);
     }
 
-    //region /oauth/token tests
     @Test
     void should_return_token_grant_type_authorization_code_ok_test() throws Exception {
         when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
@@ -189,6 +193,52 @@ class TokenControllerTest {
                 .contains("token_type")
                 .contains("state");
         resultActions.andExpect(status().isOk());
+    }
+
+    @Test
+    void should_return_token_with_authorization_header_test() throws Exception {
+        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{" +
+                        "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                        ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
+                        ",\"code\":\"" + authorizedAuthCode + "\"" +
+                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
+                        ",\"state\":\"" + authorizedState + "\"" +
+                        "}")
+                .header("Authorization", authorizedAuthorizationHeader));
+        MvcResult mvcResult = resultActions.andReturn();
+        MockHttpServletResponse response = mvcResult.getResponse();
+        var responseString = response.getContentAsString();
+
+        assertThat(responseString).contains("Bearer")
+                .contains("id_token")
+                .contains("access_token")
+                .contains("refresh_token")
+                .contains("expires_in")
+                .contains("token_type")
+                .contains("state");
+        resultActions.andExpect(status().isOk());
+    }
+
+    @Test
+    void should_return_unauthorized_with_invalid_authorization_header_test() throws Exception {
+        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+
+        ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{" +
+                                "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                                ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
+                                ",\"code\":\"" + authorizedAuthCode + "\"" +
+                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
+                                ",\"state\":\"" + authorizedState + "\"" +
+                                "}")
+                        .header("Authorization", "Basic dummyauth"))
+                .andExpect(content().string("invalid_client"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -309,7 +359,7 @@ class TokenControllerTest {
     }
 
     @Test
-    void should_return_error_invalid_grant_type_test() throws Exception {
+    void should_return_error_unsupported_grant_type_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -322,7 +372,7 @@ class TokenControllerTest {
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
 
-        assertThat(response.getContentAsString()).contains("invalid_grant");
+        assertThat(response.getContentAsString()).contains("unsupported_grant_type");
         resultActions.andExpect(status().isBadRequest());
     }
 
@@ -356,7 +406,7 @@ class TokenControllerTest {
 
 
     @Test
-    void should_return_error_grant_type_refresh_token_unauthorized_client_test() throws Exception {
+    void should_return_invalid_client_error_when_client_is_invalid_test() throws Exception {
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -369,9 +419,26 @@ class TokenControllerTest {
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
 
-        assertThat(response.getContentAsString()).contains("unauthorized_client");
-        resultActions.andExpect(status().isBadRequest());
+        assertThat(response.getContentAsString()).contains("invalid_client");
+        resultActions.andExpect(status().isUnauthorized());
     }
-    //endregion
 
+    @Test
+    void should_return_server_error_when_an_unexpected_exception_occurs_test() throws Exception {
+        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenThrow(new RuntimeException("Intentional exception for testing"));
+
+        this.mockMvc.perform(post("/oauth/token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{" +
+                                "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
+                                ",\"client_id\":\"" + authorizedClientId + "\"" +
+                                ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
+                                ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
+                                ",\"code\":\"" + authorizedAuthCode + "\"" +
+                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
+                                ",\"state\":\"" + authorizedState + "\"" +
+                                "}"))
+                .andExpect(content().string("server_error"))
+                .andExpect(status().isInternalServerError());
+    }
 }

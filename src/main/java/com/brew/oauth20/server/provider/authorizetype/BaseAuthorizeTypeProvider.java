@@ -1,7 +1,8 @@
 package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.exception.OAuthException;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
 
@@ -14,11 +15,11 @@ public abstract class BaseAuthorizeTypeProvider {
         this.clientService = clientService;
     }
 
-    public ValidationResultModel validate(String clientId, String redirectUri, String scope) {
+    public Boolean validate(String clientId, String redirectUri, String scope) {
         var clientModel = clientService.getClient(clientId);
 
         if (clientModel == null)
-            return new ValidationResultModel(false, "unauthorized_client");
+            throw new OAuthException(OAuthError.UNAUTHORIZED_CLIENT);
 
         return new ClientValidator(clientModel).validate(responseType.getResponseType(), redirectUri, scope);
     }

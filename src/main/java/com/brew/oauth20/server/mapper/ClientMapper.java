@@ -1,13 +1,7 @@
 package com.brew.oauth20.server.mapper;
 
-import com.brew.oauth20.server.data.Client;
-import com.brew.oauth20.server.data.ClientGrant;
-import com.brew.oauth20.server.data.ClientScope;
-import com.brew.oauth20.server.data.RedirectUri;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.GrantModel;
-import com.brew.oauth20.server.model.RedirectUriModel;
-import com.brew.oauth20.server.model.ScopeModel;
+import com.brew.oauth20.server.data.*;
+import com.brew.oauth20.server.model.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -22,6 +16,7 @@ public interface ClientMapper {
     @Mapping(source = "clientGrants", target = "grantList", qualifiedByName = "mapClientGrants")
     @Mapping(source = "clientScopes", target = "scopeList", qualifiedByName = "mapClientScopes")
     @Mapping(source = "redirectUris", target = "redirectUriList", qualifiedByName = "mapRedirectUris")
+    @Mapping(source = "hooks", target = "hookList", qualifiedByName = "mapHooks")
     ClientModel toDTO(Client client);
 
     @Named("mapClientGrants")
@@ -46,6 +41,14 @@ public interface ClientMapper {
         return clientScopes
                 .stream()
                 .map(x -> new ScopeModel(x.getId(), x.getScope()))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    @Named("mapHooks")
+    default ArrayList<HookModel> mapHooks(Set<Hook> hooks) {
+        return hooks
+                .stream()
+                .map(x -> new HookModel(x.getId(), x.getEndpoint(), x.getHookType(), new ArrayList<>(HookHeaderMapper.INSTANCE.toModelList(x.getHookHeaders()))))
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 }

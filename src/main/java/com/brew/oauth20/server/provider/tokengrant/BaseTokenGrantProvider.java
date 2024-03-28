@@ -1,12 +1,17 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.model.*;
+import com.brew.oauth20.server.data.enums.HookType;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
+import com.brew.oauth20.server.model.ClientModel;
+import com.brew.oauth20.server.model.TokenModel;
+import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.service.ClientService;
+import com.brew.oauth20.server.service.CustomClaimService;
 import com.brew.oauth20.server.service.TokenService;
 import com.brew.oauth20.server.service.UserIdentityService;
 import com.brew.oauth20.server.utils.validators.ClientValidator;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -17,6 +22,7 @@ public abstract class BaseTokenGrantProvider {
     private static final String DEFAULT_ID_TOKEN_ENABLED = "false";
     private static final String BEARER_TOKEN_TYPE = "Bearer";
     private final ClientService clientService;
+    private final CustomClaimService customClaimService;
     private final UserIdentityService userIdentityService;
     private final Environment env;
     protected TokenService tokenService;
@@ -27,39 +33,32 @@ public abstract class BaseTokenGrantProvider {
     @Autowired
     protected BaseTokenGrantProvider(ClientService clientService,
                                      TokenService tokenService,
+                                     CustomClaimService customClaimService,
                                      UserIdentityService userIdentityService,
                                      Environment env) {
         this.clientService = clientService;
         this.tokenService = tokenService;
+        this.customClaimService = customClaimService;
         this.userIdentityService = userIdentityService;
         this.env = env;
     }
 
-    public ValidationResultModel validate(String authorizationHeader, TokenRequestModel tokenRequest) {
-        String clientId;
-        String clientSecret;
-        if (StringUtils.isEmpty(authorizationHeader)) {
-            clientId = tokenRequest.client_id;
-            clientSecret = tokenRequest.client_secret;
-        } else {
-            var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
-            if (clientCredentials.isEmpty())
-                return new ValidationResultModel(false, "unauthorized_client");
-            clientId = clientCredentials.get().getFirst();
-            clientSecret = clientCredentials.get().getSecond();
-        }
-
-        client = clientService.getClient(clientId, clientSecret);
-
+    public Boolean validate(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
+        client = clientService.getClient(clientCredentials.getClientId(), clientCredentials.getClientSecret());
         if (client == null)
-            return new ValidationResultModel(false, "unauthorized_client");
+            throw new ClientAuthenticationFailedException();
 
-        ClientValidator clientValidator = new ClientValidator(client);
-
-        return clientValidator.validate(tokenRequest.grant_type);
+        return new ClientValidator(client).validate(tokenRequest.getGrantType());
     }
 
-    public abstract TokenResultModel generateToken(String authorizationHeader, TokenRequestModel tokenRequest);
+    public abstract TokenModel generateToken(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest);
+
+    protected Map<String, Object> getCustomClaims(ClientModel client, String userId) {
+        var customClaimHook = client.hookList().stream().filter(x -> x.hookType().equals(HookType.custom_claim)).findFirst();
+        if (customClaimHook.isEmpty())
+            return Map.of();
+        return customClaimService.getCustomClaims(customClaimHook.get(), userId);
+    }
 
     protected String generateIdToken(String accessToken, ClientModel client, String userId, String scope, Map<String, Object> additionalClaims) {
         if (!isIdTokenEnabled())
@@ -70,7 +69,6 @@ public abstract class BaseTokenGrantProvider {
             additionalClaims = new HashMap<>(Map.of());
         additionalClaims.putAll(userIdentityInfo);
         return this.tokenService.generateToken(client, userId, scope, additionalClaims);
-
     }
 
     private boolean isIdTokenEnabled() {

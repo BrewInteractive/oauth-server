@@ -1,9 +1,10 @@
 package com.brew.oauth20.server.provider.authorizetype;
 
 import com.brew.oauth20.server.data.enums.ResponseType;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
 import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.ValidationResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.ClientService;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,6 +24,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -46,14 +48,14 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var url = client.redirectUriList().get(0).redirectUri();
         var scope = client.scopeList().get(0).scope().getScope();
         return Stream.of(
-                Arguments.of(client, faker.letterify("????????????????"), url, scope, new ValidationResultModel(true, null))
+                Arguments.of(client, faker.letterify("????????????????"), url, scope, true)
         );
     }
 
 
     @MethodSource
     @ParameterizedTest
-    void should_return_valid_result(ClientModel clientModel, String clientId, String url, String scope, ValidationResultModel expectedValidationResult) {
+    void should_return_valid_result(ClientModel clientModel, String clientId, String url, String scope, Boolean expectedValidationResult) {
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(clientModel);
@@ -70,15 +72,15 @@ public class AuthorizeTypeProviderAuthorizationCodeTest {
         var clientId = UUID.randomUUID().toString();
         var url = faker.internet().url();
         var scope = faker.lordOfTheRings().location();
+        var expectedException = new OAuthException(OAuthError.UNAUTHORIZED_CLIENT);
+
         Mockito.reset(clientService);
         when(clientService.getClient(clientId))
                 .thenReturn(null);
 
         var provider = new AuthorizeTypeProviderAuthorizationCode(clientService);
 
-        var validationResult = provider.validate(clientId, url, scope);
-
-        assertThat(validationResult.getResult()).isFalse();
-        assertThat(validationResult.getError()).isEqualTo("unauthorized_client");
+        Exception exception = assertThrows(OAuthException.class, () -> provider.validate(clientId, url, scope));
+        assertThat(exception).usingRecursiveComparison().isEqualTo(expectedException);
     }
 }
