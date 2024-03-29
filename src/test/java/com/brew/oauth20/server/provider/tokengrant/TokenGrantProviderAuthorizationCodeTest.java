@@ -6,10 +6,7 @@ import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.fixture.*;
-import com.brew.oauth20.server.model.ClientCredentialsModel;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.model.enums.OAuthError;
 import com.brew.oauth20.server.service.*;
 import com.github.javafaker.Faker;
@@ -35,8 +32,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -48,6 +44,7 @@ class TokenGrantProviderAuthorizationCodeTest {
     private static TokenRequestModelFixture tokenRequestModelFixture;
     private static RefreshTokenFixture refreshTokenFixture;
     private static UserIdentityInfoFixture userIdentityInfoFixture;
+    private static CustomClaimFixture customClaimFixture;
     private static ActiveAuthorizationCodeFixture activeAuthorizationCodeFixture;
     @Mock
     AuthorizationCodeService authorizationCodeService;
@@ -55,6 +52,8 @@ class TokenGrantProviderAuthorizationCodeTest {
     TokenService tokenService;
     @Mock
     ClientService clientService;
+    @Mock
+    CustomClaimService customClaimService;
     @Mock
     RefreshTokenService refreshTokenService;
     @Mock
@@ -127,7 +126,8 @@ class TokenGrantProviderAuthorizationCodeTest {
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        var customClaims = customClaimFixture.createRandomOne();
+        customClaims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdTokenAndRefreshToken = TokenModel.builder()
                 .accessToken(accessToken)
@@ -154,6 +154,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                         activeAuthorizationCode,
                         refreshToken,
                         userIdentityInfo,
+                        customClaims,
                         true,
                         tokenModelWithIdTokenAndRefreshToken),
 
@@ -162,6 +163,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                         activeAuthorizationCode,
                         refreshToken,
                         null,
+                        customClaims,
                         false,
                         tokenModelWithRefreshTokenOnly)
         );
@@ -193,7 +195,8 @@ class TokenGrantProviderAuthorizationCodeTest {
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        var customClaims = customClaimFixture.createRandomOne();
+        customClaims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdTokenOnly = TokenModel.builder()
                 .accessToken(accessToken)
@@ -217,6 +220,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                         validTokenRequest,
                         activeAuthorizationCode,
                         userIdentityInfo,
+                        customClaims,
                         true,
                         tokenModelWithIdTokenOnly),
 
@@ -224,6 +228,7 @@ class TokenGrantProviderAuthorizationCodeTest {
                         validTokenRequest,
                         activeAuthorizationCode,
                         null,
+                        customClaims,
                         false,
                         tokenModelWithoutIdTokenAndRefreshToken)
         );
@@ -244,6 +249,7 @@ class TokenGrantProviderAuthorizationCodeTest {
     static void init() {
         faker = new Faker();
         clientModelFixture = new ClientModelFixture();
+        customClaimFixture = new CustomClaimFixture();
         tokenRequestModelFixture = new TokenRequestModelFixture();
         refreshTokenFixture = new RefreshTokenFixture();
         userIdentityInfoFixture = new UserIdentityInfoFixture();
@@ -253,6 +259,7 @@ class TokenGrantProviderAuthorizationCodeTest {
     @BeforeEach
     void reset() {
         Mockito.reset(clientService);
+        Mockito.reset(customClaimService);
         Mockito.reset(refreshTokenService);
         Mockito.reset(authorizationCodeService);
         Mockito.reset(tokenService);
@@ -293,19 +300,22 @@ class TokenGrantProviderAuthorizationCodeTest {
                                                                                ActiveAuthorizationCode activeAuthorizationCode,
                                                                                RefreshToken refreshToken,
                                                                                Map<String, Object> userIdentityInfo,
+                                                                               Map<String, Object> customClaims,
                                                                                Boolean idTokenEnabled,
-                                                                               TokenModel tokenModel
-    ) {
+                                                                               TokenModel tokenModel) {
         // Arrange
         var accessToken = tokenModel.getAccessToken();
+        var userId = activeAuthorizationCode.getClientUser().getUserId();
         var clientCredentialsModel = new ClientCredentialsModel(clientModel.clientId(), clientModel.clientSecret());
 
 
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
+        when(customClaimService.getCustomClaims(any(HookModel.class), eq(userId)))
+                .thenReturn(customClaims);
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirectUri(), true))
                 .thenReturn(activeAuthorizationCode);
-        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), tokenRequest.getAdditionalClaims()))
+        when(tokenService.generateToken(clientModel, userId, activeAuthorizationCode.getScope(), customClaims))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -315,7 +325,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         if (idTokenEnabled) {
             var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
-            mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
+            mergedAdditionalClaims.putAll(customClaims);
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
             when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), mergedAdditionalClaims))
@@ -354,18 +364,22 @@ class TokenGrantProviderAuthorizationCodeTest {
                                                                                    TokenRequestModel tokenRequest,
                                                                                    ActiveAuthorizationCode activeAuthorizationCode,
                                                                                    Map<String, Object> userIdentityInfo,
+                                                                                   Map<String, Object> customClaims,
                                                                                    Boolean idTokenEnabled,
                                                                                    TokenModel tokenModel
     ) {
         // Arrange
         var accessToken = tokenModel.getAccessToken();
+        var userId = activeAuthorizationCode.getClientUser().getUserId();
         var clientCredentialsModel = new ClientCredentialsModel(clientModel.clientId(), clientModel.clientSecret());
 
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
+        when(customClaimService.getCustomClaims(any(HookModel.class), eq(userId)))
+                .thenReturn(customClaims);
         when(authorizationCodeService.getAuthorizationCode(tokenRequest.getCode(), tokenRequest.getRedirectUri(), true))
                 .thenReturn(activeAuthorizationCode);
-        when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), tokenRequest.getAdditionalClaims()))
+        when(tokenService.generateToken(clientModel, userId, activeAuthorizationCode.getScope(), customClaims))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -373,7 +387,7 @@ class TokenGrantProviderAuthorizationCodeTest {
         if (idTokenEnabled) {
             var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
-            mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
+            mergedAdditionalClaims.putAll(customClaims);
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
             when(tokenService.generateToken(clientModel, activeAuthorizationCode.getClientUser().getUserId(), activeAuthorizationCode.getScope(), mergedAdditionalClaims))

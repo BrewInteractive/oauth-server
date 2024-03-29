@@ -61,7 +61,7 @@ public class TokenGrantProviderAuthorizationCode extends BaseTokenGrantProvider 
         }
         var accessToken = this.tokenService.generateToken(client, userId, activeAuthorizationCode.getScope(), customClaims);
 
-            var idToken = this.generateIdToken(accessToken, client, userId, activeAuthorizationCode.getScope(), customClaims);
+        var idToken = this.generateIdToken(accessToken, client, userId, activeAuthorizationCode.getScope(), customClaims);
 
         return this.buildToken(accessToken, refreshToken, idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
     }

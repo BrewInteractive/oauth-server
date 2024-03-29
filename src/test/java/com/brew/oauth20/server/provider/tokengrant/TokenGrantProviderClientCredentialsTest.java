@@ -3,12 +3,11 @@ package com.brew.oauth20.server.provider.tokengrant;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.fixture.ClientModelFixture;
+import com.brew.oauth20.server.fixture.CustomClaimFixture;
 import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
-import com.brew.oauth20.server.model.ClientCredentialsModel;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.service.ClientService;
+import com.brew.oauth20.server.service.CustomClaimService;
 import com.brew.oauth20.server.service.TokenService;
 import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
@@ -26,10 +25,13 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -39,20 +41,24 @@ class TokenGrantProviderClientCredentialsTest {
 
     private static Faker faker;
     private static ClientModelFixture clientModelFixture;
+    private static CustomClaimFixture customClaimFixture;
     private static TokenRequestModelFixture tokenRequestModelFixture;
 
     @Mock
     TokenService tokenService;
     @Mock
     ClientService clientService;
+    @Mock
+    CustomClaimService customClaimService;
 
     @InjectMocks
     private TokenGrantProviderClientCredentials tokenGrantProviderClientCredentials;
 
     private static Stream<Arguments> should_generate_token_from_valid_request() {
         var client = clientModelFixture.createRandomOne(1, new GrantType[]{GrantType.client_credentials});
-
         TokenRequestModel validTokenRequest = createValidTokenRequest(client);
+
+        var customClaims = customClaimFixture.createRandomOne();
 
         var accessToken = faker.regexify("[A-Za-z0-9]{150}");
 
@@ -66,6 +72,7 @@ class TokenGrantProviderClientCredentialsTest {
         return Stream.of(
                 Arguments.of(client,
                         validTokenRequest,
+                        customClaims,
                         tokenModel)
 
         );
@@ -135,12 +142,14 @@ class TokenGrantProviderClientCredentialsTest {
     static void init() {
         faker = new Faker();
         clientModelFixture = new ClientModelFixture();
+        customClaimFixture = new CustomClaimFixture();
         tokenRequestModelFixture = new TokenRequestModelFixture();
     }
 
     @BeforeEach
     public void setUp() {
         Mockito.reset(clientService);
+        Mockito.reset(customClaimService);
         Mockito.reset(tokenService);
     }
 
@@ -174,6 +183,7 @@ class TokenGrantProviderClientCredentialsTest {
     @ParameterizedTest
     void should_generate_token_from_valid_request(ClientModel clientModel,
                                                   TokenRequestModel tokenRequestModel,
+                                                  Map<String, Object> customClaims,
                                                   TokenModel tokenModel) {
 
         // Arrange
@@ -183,8 +193,10 @@ class TokenGrantProviderClientCredentialsTest {
 
         when(clientService.getClient(tokenRequestModel.getClientId(), tokenRequestModel.getClientSecret()))
                 .thenReturn(clientModel);
+        when(customClaimService.getCustomClaims(any(HookModel.class), eq(null)))
+                .thenReturn(customClaims);
 
-        when(tokenService.generateToken(clientModel, tokenRequestModel.getAdditionalClaims()))
+        when(tokenService.generateToken(clientModel, customClaims))
                 .thenReturn(accessToken);
 
         // Act

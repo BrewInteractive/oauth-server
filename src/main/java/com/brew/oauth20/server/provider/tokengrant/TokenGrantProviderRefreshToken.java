@@ -17,7 +17,8 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     private final RefreshTokenService refreshTokenService;
 
     @Autowired
-    protected TokenGrantProviderRefreshToken(ClientService clientService,
+    protected TokenGrantProviderRefreshToken(
+            ClientService clientService,
             TokenService tokenService,
             CustomClaimService customClaimService,
             UserIdentityService userIdentityService,

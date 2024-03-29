@@ -1,10 +1,7 @@
 package com.brew.oauth20.server.provider.tokengrant;
 
 import com.brew.oauth20.server.data.enums.GrantType;
-import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.service.RefreshTokenService;
-import com.brew.oauth20.server.service.TokenService;
-import com.brew.oauth20.server.service.UserIdentityService;
+import com.brew.oauth20.server.service.*;
 import com.brew.oauth20.server.service.factory.TokenGrantProviderFactory;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -28,6 +25,8 @@ class TokenGrantProviderFactoryTest {
     @Mock
     TokenService tokenService;
     @Mock
+    CustomClaimService customClaimService;
+    @Mock
     RefreshTokenService refreshTokenService;
     @Mock
     UserIdentityService userIdentityService;
@@ -42,7 +41,7 @@ class TokenGrantProviderFactoryTest {
     void should_return_token_grant_refresh_token_provider_object() {
         Mockito.reset(context);
         Class<?> classType = TokenGrantProviderRefreshToken.class;
-        TokenGrantProviderRefreshToken mockTokenProvider = new TokenGrantProviderRefreshToken(clientService, tokenService, userIdentityService, env, refreshTokenService);
+        TokenGrantProviderRefreshToken mockTokenProvider = new TokenGrantProviderRefreshToken(clientService, tokenService, customClaimService, userIdentityService, env, refreshTokenService);
         when((BaseTokenGrantProvider) context.getBean(classType)).thenReturn(mockTokenProvider);
         when((BaseTokenGrantProvider) context.getBean(classType)).thenReturn(mockTokenProvider);
 
