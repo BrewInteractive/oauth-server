@@ -1,7 +1,7 @@
 package com.brew.oauth20.server.service;
 
 import com.brew.oauth20.server.data.enums.HookType;
-import com.brew.oauth20.server.exception.UserIdentityServiceException;
+import com.brew.oauth20.server.exception.CustomClaimHookException;
 import com.brew.oauth20.server.fixture.CustomClaimFixture;
 import com.brew.oauth20.server.fixture.HookModelFixture;
 import com.brew.oauth20.server.http.RestTemplateWrapper;
@@ -105,6 +105,6 @@ class CustomClaimServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> customClaimService.getCustomClaims(hookModel, userId))
-                .isInstanceOf(UserIdentityServiceException.class);
+                .isInstanceOf(CustomClaimHookException.class);
     }
 }
