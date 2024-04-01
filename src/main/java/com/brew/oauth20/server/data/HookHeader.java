@@ -29,10 +29,10 @@ public class HookHeader {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @Column(name = "key", columnDefinition = "text", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "[key]", columnDefinition = "text", nullable = false, length = Integer.MAX_VALUE)
     private String key;
 
-    @Column(name = "value", columnDefinition = "text", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "[value]", columnDefinition = "text", nullable = false, length = Integer.MAX_VALUE)
     private String value;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
