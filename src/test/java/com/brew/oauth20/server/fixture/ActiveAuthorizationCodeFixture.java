@@ -47,7 +47,7 @@ public class ActiveAuthorizationCodeFixture extends Fixture<ActiveAuthorizationC
                         OffsetDateTime.ofInstant(faker.date().future(5, TimeUnit.HOURS).toInstant(), ZoneOffset.UTC))
                 .supply(field(ActiveAuthorizationCode::getRedirectUri), () -> url != null ? url : faker.internet().url())
                 .supply(field(ActiveAuthorizationCode::getClientUser), () -> clientUser != null ? clientUser : clientUserFixture.createRandomOne())
-                .supply(field(ActiveAuthorizationCode::getScope), () -> ScopeUtils.createScopeString(FakerUtils.createRandomScopeList(faker, Scope.values())))
+                .supply(field(ActiveAuthorizationCode::getScope), () -> ScopeUtils.createScopeString(FakerUtils.createRandomEnumList(faker, Scope.values())))
                 .toModel();
     }
 

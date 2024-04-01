@@ -46,11 +46,11 @@ class UserIdentityServiceTest {
     void should_get_user_identity_info_model() {
         // Arrange
         String accessToken = faker.letterify("?".repeat(64));
-        HttpHeaders expectedHeaders = new HttpHeaders();
-        expectedHeaders.setContentType(MediaType.APPLICATION_JSON);
-        expectedHeaders.add("Authorization", accessToken);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.add("Authorization", accessToken);
         MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(requestBody, expectedHeaders);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(requestBody, httpHeaders);
         Map<String, Object> expectedModel = new UserIdentityInfoFixture().createRandomOne();
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode jNode = objectMapper.valueToTree(expectedModel);
@@ -68,12 +68,12 @@ class UserIdentityServiceTest {
     void should_throw_exception_on_http_server_error() {
         // Arrange
         String accessToken = faker.letterify("?".repeat(64));
-        HttpHeaders expectedHeaders = new HttpHeaders();
-        expectedHeaders.setContentType(MediaType.APPLICATION_JSON);
-        expectedHeaders.add("Authorization", accessToken);
-        MultiValueMap<String, Object> expectedRequestBody = new LinkedMultiValueMap<>();
-        HttpEntity<MultiValueMap<String, Object>> expectedRequestEntity = new HttpEntity<>(expectedRequestBody, expectedHeaders);
-        when(restTemplate.exchange(userIdentityServiceUrl, HttpMethod.GET, expectedRequestEntity, JsonNode.class))
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.add("Authorization", accessToken);
+        MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(requestBody, httpHeaders);
+        when(restTemplate.exchange(userIdentityServiceUrl, HttpMethod.GET, requestEntity, JsonNode.class))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         // Act & Assert

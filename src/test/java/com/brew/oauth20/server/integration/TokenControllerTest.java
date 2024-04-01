@@ -2,6 +2,7 @@ package com.brew.oauth20.server.integration;
 
 import com.brew.oauth20.server.data.ActiveRefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.data.enums.HookType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.fixture.*;
 import com.brew.oauth20.server.http.RestTemplateWrapper;
@@ -46,6 +47,7 @@ class TokenControllerTest {
     @Value("${id_token.user_identity_service_url}")
     String userIdentityServiceUrl;
     private String authorizedRedirectUri;
+    private String authorizedCustomClaimHookEndpoint;
     private String authorizedAuthCode;
     private String authorizedClientId;
     private String authorizedClientSecret;
@@ -53,6 +55,7 @@ class TokenControllerTest {
     private String authorizedState;
     private String authorizedAuthorizationHeader;
     private ResponseEntity<JsonNode> userIdentityResponse;
+    private ResponseEntity<JsonNode> customClaimResponse;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -74,7 +77,9 @@ class TokenControllerTest {
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
     @MockBean
-    private RestTemplateWrapper restTemplateUserIdentityService;
+    private RestTemplateWrapper restTemplate;
+    @Autowired
+    private HookRepository hookRepository;
 
     @BeforeAll
     void setup() {
@@ -82,11 +87,13 @@ class TokenControllerTest {
         var clientsGrantFixture = new ClientGrantFixture();
         var grantFixture = new GrantFixture();
         var redirectUrisFixture = new RedirectUriFixture();
+        var hookFixture = new HookFixture();
         var authorizationCodeFixture = new AuthorizationCodeFixture();
         var activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
         var clientsUserFixture = new ClientUserFixture();
         var activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
         var userIdentityInfoFixture = new UserIdentityInfoFixture();
+        var customClaimFixture = new CustomClaimFixture();
 
         var authCodeGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.authorization_code});
         var clientCredGrant = grantFixture.createRandomOne(new ResponseType[]{ResponseType.code}, new GrantType[]{GrantType.client_credentials});
@@ -94,6 +101,7 @@ class TokenControllerTest {
         var clientsGrantAuthCode = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var clientsGrantClientCred = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
         var clientsGrantRefreshToken = clientsGrantFixture.createRandomOne(new ResponseType[]{ResponseType.code});
+        var customClaimHook = hookFixture.createRandomOne(new HookType[]{HookType.custom_claim});
         var redirectUris = redirectUrisFixture.createRandomOne();
         var activeAuthorizationCode = activeAuthorizationCodeFixture.createRandomOne(redirectUris.getRedirectUri());
 
@@ -142,12 +150,17 @@ class TokenControllerTest {
         clientsGrantRefreshToken.setGrant(savedRefreshTokenGrant);
         clientGrantRepository.save(clientsGrantRefreshToken);
 
+        customClaimHook.setClient(savedClient);
+        hookRepository.save(customClaimHook);
+
         authorizedClientId = client.getClientId();
         authorizedClientSecret = client.getClientSecret();
         authorizedRedirectUri = redirectUris.getRedirectUri();
         authorizedAuthCode = authorizationCode.getCode();
         authorizedState = faker.lordOfTheRings().location();
+        authorizedCustomClaimHookEndpoint = customClaimHook.getEndpoint();
         userIdentityResponse = userIdentityInfoFixture.createRandomOneJsonResponse();
+        customClaimResponse = customClaimFixture.createRandomOneJsonResponse();
         authorizedAuthorizationHeader = "Basic " + Base64.getEncoder().encodeToString(String.format("%s:%s", authorizedClientId, authorizedClientSecret).getBytes()).toString();
     }
 
@@ -163,12 +176,13 @@ class TokenControllerTest {
 
     @BeforeEach
     void reset() {
-        Mockito.reset(restTemplateUserIdentityService);
+        Mockito.reset(restTemplate);
     }
 
     @Test
     void should_return_token_grant_type_authorization_code_ok_test() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
 
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -178,14 +192,14 @@ class TokenControllerTest {
                         ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                         ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                         ",\"code\":\"" + authorizedAuthCode + "\"" +
-                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                         ",\"state\":\"" + authorizedState + "\"" +
                         "}"));
         MvcResult mvcResult = resultActions.andReturn();
         MockHttpServletResponse response = mvcResult.getResponse();
         var responseString = response.getContentAsString();
 
-        assertThat(responseString).contains("Bearer")
+        assertThat(responseString)
+                .contains("Bearer")
                 .contains("id_token")
                 .contains("access_token")
                 .contains("refresh_token")
@@ -197,7 +211,8 @@ class TokenControllerTest {
 
     @Test
     void should_return_token_with_authorization_header_test() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
 
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -205,7 +220,6 @@ class TokenControllerTest {
                         "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
                         ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                         ",\"code\":\"" + authorizedAuthCode + "\"" +
-                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                         ",\"state\":\"" + authorizedState + "\"" +
                         "}")
                 .header("Authorization", authorizedAuthorizationHeader));
@@ -213,7 +227,8 @@ class TokenControllerTest {
         MockHttpServletResponse response = mvcResult.getResponse();
         var responseString = response.getContentAsString();
 
-        assertThat(responseString).contains("Bearer")
+        assertThat(responseString)
+                .contains("Bearer")
                 .contains("id_token")
                 .contains("access_token")
                 .contains("refresh_token")
@@ -225,15 +240,12 @@ class TokenControllerTest {
 
     @Test
     void should_return_unauthorized_with_invalid_authorization_header_test() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
-
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{" +
                                 "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
                                 ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                                 ",\"code\":\"" + authorizedAuthCode + "\"" +
-                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                                 ",\"state\":\"" + authorizedState + "\"" +
                                 "}")
                         .header("Authorization", "Basic dummyauth"))
@@ -261,6 +273,8 @@ class TokenControllerTest {
 
     @Test
     void should_return_token_grant_type_client_credentials_ok_test() throws Exception {
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
+        
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -284,6 +298,8 @@ class TokenControllerTest {
 
     @Test
     void should_return_token_grant_type_client_credentials_ok_test_without_redirect_url() throws Exception {
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
+
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{" +
@@ -295,7 +311,8 @@ class TokenControllerTest {
         MockHttpServletResponse response = mvcResult.getResponse();
         var responseString = response.getContentAsString();
 
-        assertThat(responseString).contains("Bearer")
+        assertThat(responseString)
+                .contains("Bearer")
                 .contains("access_token")
                 .contains("expires_in")
                 .contains("token_type")
@@ -305,7 +322,8 @@ class TokenControllerTest {
 
     @Test
     void should_return_token_grant_type_refresh_token_ok_test() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
 
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -321,7 +339,8 @@ class TokenControllerTest {
         MockHttpServletResponse response = mvcResult.getResponse();
         var responseString = response.getContentAsString();
 
-        assertThat(responseString).contains("Bearer")
+        assertThat(responseString)
+                .contains("Bearer")
                 .contains("id_token")
                 .contains("access_token")
                 .contains("refresh_token")
@@ -333,7 +352,8 @@ class TokenControllerTest {
 
     @Test
     void should_return_token_grant_type_refresh_token_ok_test_without_redirect_url() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenReturn(userIdentityResponse);
+        when(restTemplate.exchange(eq(authorizedCustomClaimHookEndpoint), eq(HttpMethod.POST), any(), eq(JsonNode.class))).thenReturn(customClaimResponse);
 
         ResultActions resultActions = this.mockMvc.perform(post("/oauth/token")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -348,7 +368,8 @@ class TokenControllerTest {
         MockHttpServletResponse response = mvcResult.getResponse();
         var responseString = response.getContentAsString();
 
-        assertThat(responseString).contains("Bearer")
+        assertThat(responseString)
+                .contains("Bearer")
                 .contains("id_token")
                 .contains("access_token")
                 .contains("refresh_token")
@@ -425,7 +446,7 @@ class TokenControllerTest {
 
     @Test
     void should_return_server_error_when_an_unexpected_exception_occurs_test() throws Exception {
-        when(restTemplateUserIdentityService.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenThrow(new RuntimeException("Intentional exception for testing"));
+        when(restTemplate.exchange(eq(userIdentityServiceUrl), eq(HttpMethod.GET), any(), eq(JsonNode.class))).thenThrow(new RuntimeException("Intentional exception for testing"));
 
         this.mockMvc.perform(post("/oauth/token")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -435,7 +456,6 @@ class TokenControllerTest {
                                 ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                                 ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                                 ",\"code\":\"" + authorizedAuthCode + "\"" +
-                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                                 ",\"state\":\"" + authorizedState + "\"" +
                                 "}"))
                 .andExpect(content().string("server_error"))

@@ -2,31 +2,15 @@ package com.brew.oauth20.server.testUtils;
 
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.data.enums.ResponseType;
-import com.brew.oauth20.server.data.enums.Scope;
 import com.github.javafaker.Faker;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class FakerUtils {
-
-    private static final ResponseType[] defaultResponseTypeOptions = new ResponseType[]{
-            ResponseType.code,
-            ResponseType.token};
-
-    public static @NotNull UUID createRandomUUID(Faker faker) {
-        return UUID.fromString(faker.internet().uuid().replaceAll("_", ""));
-    }
-
-    public static ResponseType createRandomResponseType(Faker faker) {
-        return createRandomResponseType(faker, defaultResponseTypeOptions);
-    }
-
-    public static ResponseType createRandomResponseType(@NotNull Faker faker, String[] responseTypeOptions) {
-        var responseTypeString = faker.options().option(responseTypeOptions);
-        return ResponseType.valueOf(responseTypeString);
-    }
-
     public static ResponseType createRandomResponseType(@NotNull Faker faker, ResponseType[] responseTypeOptions) {
         return faker.options().option(responseTypeOptions);
     }
@@ -35,26 +19,26 @@ public class FakerUtils {
         return faker.options().option(grantTypeOptions);
     }
 
-    public static Scope createRandomScope(@NotNull Faker faker, Scope[] scopeOptions) {
-        return faker.options().option(scopeOptions);
+    public static <T> T createRandomEnum(@NotNull Faker faker, T[] enumOptions) {
+        return faker.options().option(enumOptions);
     }
 
-    public static Set<Scope> createRandomScopeList(@NotNull Faker faker, Scope[] scopeOptions) {
-        var totalScopeCount = scopeOptions.length;
-        var numberOfScopesToCreate = faker.random().nextInt(1, totalScopeCount);
-        var createdScopes = new HashSet<Scope>();
-        var availableScopeOptions = new ArrayList<>(Arrays.asList(scopeOptions));
+    public static <T> Set<T> createRandomEnumList(@NotNull Faker faker, T[] enumOptions) {
+        var totalEnumCount = enumOptions.length;
+        var numberOfEnumsToCreate = faker.random().nextInt(1, totalEnumCount);
+        var createdEnums = new HashSet<T>();
+        var availableEnumOptions = new ArrayList<>(List.of(enumOptions));
 
-        for (int i = 0; i < numberOfScopesToCreate; i++) {
+        for (int i = 0; i < numberOfEnumsToCreate; i++) {
             // Update available scopes (filter out the already created ones)
-            availableScopeOptions.removeAll(createdScopes);
-            createdScopes.add(createRandomScope(faker, availableScopeOptions.toArray(new Scope[0])));
+            availableEnumOptions.removeAll(createdEnums);
+            createdEnums.add(createRandomEnum(faker, (T[]) availableEnumOptions.toArray()));
         }
-        return createdScopes;
+        return createdEnums;
     }
 
-    public static String createRandomRedirectUri(@NotNull Faker faker) {
-        return faker.internet().url();
+    public static String createRandomUri(@NotNull Faker faker) {
+        return "https://" + faker.internet().url();
     }
 
     public static String createRandomWebOrigin(@NotNull Faker faker) {

@@ -6,10 +6,7 @@ import com.brew.oauth20.server.model.ClientCredentialsModel;
 import com.brew.oauth20.server.model.TokenModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
 import com.brew.oauth20.server.model.enums.OAuthError;
-import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.service.RefreshTokenService;
-import com.brew.oauth20.server.service.TokenService;
-import com.brew.oauth20.server.service.UserIdentityService;
+import com.brew.oauth20.server.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -20,12 +17,14 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     private final RefreshTokenService refreshTokenService;
 
     @Autowired
-    protected TokenGrantProviderRefreshToken(ClientService clientService,
-                                             TokenService tokenService,
-                                             UserIdentityService userIdentityService,
-                                             Environment env,
-                                             RefreshTokenService refreshTokenService) {
-        super(clientService, tokenService, userIdentityService, env);
+    protected TokenGrantProviderRefreshToken(
+            ClientService clientService,
+            TokenService tokenService,
+            CustomClaimService customClaimService,
+            UserIdentityService userIdentityService,
+            Environment env,
+            RefreshTokenService refreshTokenService) {
+        super(clientService, tokenService, customClaimService, userIdentityService, env);
         this.refreshTokenService = refreshTokenService;
         this.grantType = GrantType.refresh_token;
     }
@@ -41,15 +40,19 @@ public class TokenGrantProviderRefreshToken extends BaseTokenGrantProvider {
     public TokenModel generateToken(ClientCredentialsModel clientCredentials, TokenRequestModel tokenRequest) {
         validate(clientCredentials, tokenRequest);
 
-        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.getRefreshToken(), client.refreshTokenExpiresInDays());
+        var refreshToken = refreshTokenService.revokeRefreshToken(client.clientId(), tokenRequest.getRefreshToken(),
+                client.refreshTokenExpiresInDays());
 
         var userId = refreshToken.getClientUser().getUserId();
 
-        var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), tokenRequest.getAdditionalClaims());
+        var customClaims = this.getCustomClaims(client, userId);
 
-        var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), tokenRequest.getAdditionalClaims());
+        var accessToken = tokenService.generateToken(client, userId, refreshToken.getScope(), customClaims);
 
-        return this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(), client.tokenExpiresInSeconds());
+        var idToken = this.generateIdToken(accessToken, client, userId, refreshToken.getScope(), customClaims);
+
+        return this.buildToken(accessToken, refreshToken.getToken(), idToken, tokenRequest.getState(),
+                client.tokenExpiresInSeconds());
 
     }
 }

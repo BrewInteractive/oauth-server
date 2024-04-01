@@ -4,19 +4,10 @@ import com.brew.oauth20.server.data.RefreshToken;
 import com.brew.oauth20.server.data.enums.GrantType;
 import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
 import com.brew.oauth20.server.exception.OAuthException;
-import com.brew.oauth20.server.fixture.ClientModelFixture;
-import com.brew.oauth20.server.fixture.RefreshTokenFixture;
-import com.brew.oauth20.server.fixture.TokenRequestModelFixture;
-import com.brew.oauth20.server.fixture.UserIdentityInfoFixture;
-import com.brew.oauth20.server.model.ClientCredentialsModel;
-import com.brew.oauth20.server.model.ClientModel;
-import com.brew.oauth20.server.model.TokenModel;
-import com.brew.oauth20.server.model.TokenRequestModel;
+import com.brew.oauth20.server.fixture.*;
+import com.brew.oauth20.server.model.*;
 import com.brew.oauth20.server.model.enums.OAuthError;
-import com.brew.oauth20.server.service.ClientService;
-import com.brew.oauth20.server.service.RefreshTokenService;
-import com.brew.oauth20.server.service.TokenService;
-import com.brew.oauth20.server.service.UserIdentityService;
+import com.brew.oauth20.server.service.*;
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +30,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -49,6 +39,7 @@ import static org.mockito.Mockito.when;
 class TokenGrantProviderRefreshTokenTest {
     private static Faker faker;
     private static ClientModelFixture clientModelFixture;
+    private static CustomClaimFixture customClaimFixture;
     private static TokenRequestModelFixture tokenRequestModelFixture;
     private static RefreshTokenFixture refreshTokenFixture;
     private static UserIdentityInfoFixture userIdentityInfoFixture;
@@ -58,6 +49,8 @@ class TokenGrantProviderRefreshTokenTest {
     TokenService tokenService;
     @Mock
     ClientService clientService;
+    @Mock
+    CustomClaimService customClaimService;
     @Mock
     UserIdentityService userIdentityService;
     @Mock
@@ -137,7 +130,8 @@ class TokenGrantProviderRefreshTokenTest {
         var idToken = faker.regexify("[A-Za-z0-9]{150}");
         var userIdentityInfo = userIdentityInfoFixture.createRandomOne();
         var firstUserIdentityInfo = userIdentityInfo.entrySet().stream().findFirst().get();
-        validTokenRequest.getAdditionalClaims().put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
+        var customClaims = customClaimFixture.createRandomOne();
+        customClaims.put(firstUserIdentityInfo.getKey(), firstUserIdentityInfo.getValue());
 
         var tokenModelWithIdToken = TokenModel.builder()
                 .accessToken(accessToken)
@@ -162,6 +156,7 @@ class TokenGrantProviderRefreshTokenTest {
                         validTokenRequest,
                         refreshToken,
                         userIdentityInfo,
+                        customClaims,
                         true,
                         tokenModelWithIdToken,
                         clientCredentials),
@@ -170,6 +165,7 @@ class TokenGrantProviderRefreshTokenTest {
                         validTokenRequest,
                         refreshToken,
                         null,
+                        customClaims,
                         false,
                         tokenModelWithoutIdToken,
                         clientCredentials)
@@ -181,6 +177,7 @@ class TokenGrantProviderRefreshTokenTest {
     static void init() {
         faker = new Faker();
         clientModelFixture = new ClientModelFixture();
+        customClaimFixture = new CustomClaimFixture();
         tokenRequestModelFixture = new TokenRequestModelFixture();
         refreshTokenFixture = new RefreshTokenFixture();
         userIdentityInfoFixture = new UserIdentityInfoFixture();
@@ -190,6 +187,7 @@ class TokenGrantProviderRefreshTokenTest {
     @BeforeEach
     void reset() {
         Mockito.reset(clientService);
+        Mockito.reset(customClaimService);
         Mockito.reset(refreshTokenService);
         Mockito.reset(tokenService);
         Mockito.reset(userIdentityService);
@@ -227,18 +225,21 @@ class TokenGrantProviderRefreshTokenTest {
                                                   TokenRequestModel tokenRequest,
                                                   RefreshToken refreshToken,
                                                   Map<String, Object> userIdentityInfo,
+                                                  Map<String, Object> customClaims,
                                                   Boolean idTokenEnabled,
                                                   TokenModel tokenModel,
                                                   ClientCredentialsModel clientCredentialsModel) {
 
         // Arrange
         var accessToken = tokenModel.getAccessToken();
+        var userId = refreshToken.getClientUser().getUserId();
         when(clientService.getClient(tokenRequest.getClientId(), tokenRequest.getClientSecret()))
                 .thenReturn(clientModel);
-
+        when(customClaimService.getCustomClaims(any(HookModel.class), eq(userId)))
+                .thenReturn(customClaims);
         when(refreshTokenService.revokeRefreshToken(tokenRequest.getClientId(), tokenRequest.getRefreshToken(), clientModel.refreshTokenExpiresInDays()))
                 .thenReturn(refreshToken);
-        when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), tokenRequest.getAdditionalClaims()))
+        when(tokenService.generateToken(clientModel, userId, refreshToken.getScope(), customClaims))
                 .thenReturn(accessToken);
         when(env.getProperty(eq("id_token.enabled"), anyString()))
                 .thenReturn(idTokenEnabled.toString());
@@ -247,7 +248,7 @@ class TokenGrantProviderRefreshTokenTest {
         if (idTokenEnabled) {
             var idToken = tokenModel.getIdToken();
             var mergedAdditionalClaims = new HashMap<String, Object>();
-            mergedAdditionalClaims.putAll(tokenRequest.getAdditionalClaims());
+            mergedAdditionalClaims.putAll(customClaims);
             mergedAdditionalClaims.putAll(userIdentityInfo);
 
             when(tokenService.generateToken(clientModel, refreshToken.getClientUser().getUserId(), refreshToken.getScope(), mergedAdditionalClaims))

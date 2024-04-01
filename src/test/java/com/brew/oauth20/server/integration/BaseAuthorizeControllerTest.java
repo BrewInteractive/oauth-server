@@ -5,6 +5,7 @@ import com.brew.oauth20.server.data.ClientScope;
 import com.brew.oauth20.server.data.ClientUser;
 import com.brew.oauth20.server.data.RedirectUri;
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.data.enums.HookType;
 import com.brew.oauth20.server.data.enums.ResponseType;
 import com.brew.oauth20.server.data.enums.Scope;
 import com.brew.oauth20.server.fixture.*;
@@ -44,6 +45,7 @@ abstract class BaseAuthorizeControllerTest {
     protected ClientFixture clientFixture;
     protected GrantFixture grantFixture;
     protected ClientGrantFixture clientGrantFixture;
+    protected HookFixture hookFixture;
     protected RedirectUriFixture redirectUriFixture;
     protected ClientScopeFixture clientScopeFixture;
     protected ClientUserFixture clientUserFixture;
@@ -79,6 +81,8 @@ abstract class BaseAuthorizeControllerTest {
     @Autowired
     protected ClientScopeRepository clientScopeRepository;
     @Autowired
+    protected HookRepository hookRepository;
+    @Autowired
     protected ClientUserRepository clientUserRepository;
     @Autowired
     protected ClientUserScopeRepository clientUserScopeRepository;
@@ -94,11 +98,13 @@ abstract class BaseAuthorizeControllerTest {
 
         createClientGrants(savedClient);
 
-        RedirectUri savedRedirectUri = createRedirectUri(savedClient);
+        var savedRedirectUri = createRedirectUri(savedClient);
 
-        Set<ClientScope> savedClientScopes = createClientScopes(savedClient);
+        createHooks(savedClient);
 
-        ClientUser savedClientUser = createClientUser(savedClient);
+        var savedClientScopes = createClientScopes(savedClient);
+
+        var savedClientUser = createClientUser(savedClient);
 
         createClientUserScopes(savedClientScopes, savedClientUser);
 
@@ -113,7 +119,7 @@ abstract class BaseAuthorizeControllerTest {
         authorizedState = faker.lordOfTheRings().character().replace(" ", "");
         authorizedScope = ScopeUtils.createScopeString(savedClientScopes.stream().map(ClientScope::getScope).collect(Collectors.toSet()));
 
-        notAuthorizedRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        notAuthorizedRedirectUri = FakerUtils.createRandomUri(faker);
     }
 
     private void createClientUserScopes(Set<ClientScope> clientScopes, ClientUser savedClientUser) {
@@ -132,6 +138,11 @@ abstract class BaseAuthorizeControllerTest {
         var clientScopes = clientScopeFixture.createRandomUniqueList(savedClient, Scope.values());
         clientScopeRepository.saveAll(clientScopes);
         return clientScopes;
+    }
+
+    private void createHooks(Client savedClient) {
+        var hooks = hookFixture.createRandomUniqueList(savedClient, HookType.values());
+        hookRepository.saveAll(hooks);
     }
 
     @NotNull
@@ -171,6 +182,7 @@ abstract class BaseAuthorizeControllerTest {
         this.redirectUriFixture = new RedirectUriFixture();
         this.clientScopeFixture = new ClientScopeFixture();
         this.clientUserFixture = new ClientUserFixture();
+        this.hookFixture = new HookFixture();
         this.activeAuthorizationCodeFixture = new ActiveAuthorizationCodeFixture();
         this.activeRefreshTokenFixture = new ActiveRefreshTokenFixture();
         this.clientUserScopeFixture = new ClientUserScopeFixture();

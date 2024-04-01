@@ -30,7 +30,7 @@ public class RedirectUriFixture extends Fixture<RedirectUri> {
 
     private Model<RedirectUri> redirectUris(Client client) {
         return Instancio.of(RedirectUri.class)
-                .supply(field(RedirectUri::getRedirectUri), () -> FakerUtils.createRandomRedirectUri(faker))
+                .supply(field(RedirectUri::getRedirectUri), () -> FakerUtils.createRandomUri(faker))
                 .supply(field(RedirectUri::getClient), () -> client)
                 .toModel();
     }

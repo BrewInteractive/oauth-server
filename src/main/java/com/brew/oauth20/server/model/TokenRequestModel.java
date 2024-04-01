@@ -9,8 +9,6 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
 @SuppressWarnings({"java:S116", "java:S1104"})
 @Data
 @Builder
@@ -28,5 +26,4 @@ public class TokenRequestModel {
     private String code;
     private String refreshToken;
     private String state;
-    private Map<String, Object> additionalClaims;
 }
