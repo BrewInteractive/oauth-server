@@ -56,7 +56,7 @@ public abstract class BaseTokenGrantProvider {
     protected Map<String, Object> getCustomClaims(ClientModel client, String userId) {
         var customClaimHook = client.hookList().stream().filter(x -> x.hookType().equals(HookType.custom_claim)).findFirst();
         if (customClaimHook.isEmpty())
-            return Map.of();
+            return new HashMap<>(Map.of());
         return customClaimService.getCustomClaims(customClaimHook.get(), userId);
     }
 
