@@ -178,7 +178,6 @@ class TokenControllerTest {
                         ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                         ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                         ",\"code\":\"" + authorizedAuthCode + "\"" +
-                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                         ",\"state\":\"" + authorizedState + "\"" +
                         "}"));
         MvcResult mvcResult = resultActions.andReturn();
@@ -205,7 +204,6 @@ class TokenControllerTest {
                         "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
                         ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                         ",\"code\":\"" + authorizedAuthCode + "\"" +
-                        ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                         ",\"state\":\"" + authorizedState + "\"" +
                         "}")
                 .header("Authorization", authorizedAuthorizationHeader));
@@ -233,7 +231,6 @@ class TokenControllerTest {
                                 "\"redirect_uri\":\"" + authorizedRedirectUri + "\"" +
                                 ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                                 ",\"code\":\"" + authorizedAuthCode + "\"" +
-                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                                 ",\"state\":\"" + authorizedState + "\"" +
                                 "}")
                         .header("Authorization", "Basic dummyauth"))
@@ -435,7 +432,6 @@ class TokenControllerTest {
                                 ",\"client_secret\":\"" + authorizedClientSecret + "\"" +
                                 ",\"grant_type\":" + "\"" + GrantType.authorization_code.getGrantType() + "\"" +
                                 ",\"code\":\"" + authorizedAuthCode + "\"" +
-                                ",\"additional_claims\":{\"claim1\":\"value1\"}" +
                                 ",\"state\":\"" + authorizedState + "\"" +
                                 "}"))
                 .andExpect(content().string("server_error"))
