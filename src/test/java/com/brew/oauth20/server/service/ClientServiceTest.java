@@ -92,11 +92,11 @@ class ClientServiceTest {
         var decodeHeader = client.getClientId() + ":" + client.getClientSecret();
         String encodedHeader = Base64.getEncoder().withoutPadding().encodeToString(decodeHeader.getBytes());
 
-        var pairResult = clientService.decodeClientCredentials(encodedHeader);
+        var actualResult = clientService.decodeClientCredentials(encodedHeader);
 
-        assertThat(pairResult).isNotEmpty();
-        assertThat(pairResult.get().getFirst()).isEqualTo(client.getClientId());
-        assertThat(pairResult.get().getSecond()).isEqualTo(client.getClientSecret());
+        assertThat(actualResult).isNotEmpty();
+        assertThat(actualResult.get().getClientId()).isEqualTo(client.getClientId());
+        assertThat(actualResult.get().getClientSecret()).isEqualTo(client.getClientSecret());
     }
 
     @Test

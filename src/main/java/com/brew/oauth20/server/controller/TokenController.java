@@ -1,12 +1,19 @@
 package com.brew.oauth20.server.controller;
 
+import com.brew.oauth20.server.controller.base.BaseController;
 import com.brew.oauth20.server.data.enums.GrantType;
+import com.brew.oauth20.server.exception.ClientAuthenticationFailedException;
+import com.brew.oauth20.server.exception.OAuthException;
 import com.brew.oauth20.server.exception.UnsupportedServiceTypeException;
+import com.brew.oauth20.server.model.ClientCredentialsModel;
 import com.brew.oauth20.server.model.TokenRequestModel;
-import com.brew.oauth20.server.model.TokenResultModel;
+import com.brew.oauth20.server.model.enums.OAuthError;
+import com.brew.oauth20.server.provider.tokengrant.BaseTokenGrantProvider;
+import com.brew.oauth20.server.service.ClientService;
 import com.brew.oauth20.server.service.factory.TokenGrantProviderFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +25,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class TokenController {
+public class TokenController extends BaseController {
     private static final Logger logger = LoggerFactory.getLogger(TokenController.class);
     private static final String AUTHORIZATION_HEADER_KEY = "Authorization";
     private final TokenGrantProviderFactory tokenGrantProviderFactory;
+    private final ClientService clientService;
 
     @Autowired
-    public TokenController(TokenGrantProviderFactory tokenGrantProviderFactory) {
+    public TokenController(ClientService clientService,
+                           TokenGrantProviderFactory tokenGrantProviderFactory) {
+        this.clientService = clientService;
         this.tokenGrantProviderFactory = tokenGrantProviderFactory;
     }
 
@@ -33,29 +43,45 @@ public class TokenController {
                                             BindingResult validationResult,
                                             HttpServletRequest request) {
         try {
-            if (validationResult.hasErrors()) {
-                logger.error("invalid_request");
-                return new ResponseEntity<>(new TokenResultModel(null, "invalid_request"), HttpStatus.BAD_REQUEST);
-            }
+            validateRequest(validationResult);
+            var clientCredentials = getClientCredentials(request.getHeader(AUTHORIZATION_HEADER_KEY), tokenRequestModel);
 
-            var authorizationHeaderValue = request.getHeader(AUTHORIZATION_HEADER_KEY);
+            var tokenGrantProvider = createTokenGrantProvider(tokenRequestModel);
 
-            var tokenGrantProvider = tokenGrantProviderFactory
-                    .getService(GrantType.fromValue(tokenRequestModel.grant_type));
+            var token = tokenGrantProvider.generateToken(clientCredentials, tokenRequestModel);
+            return new ResponseEntity<>(token, HttpStatus.OK);
 
-            var tokenResponse = tokenGrantProvider.generateToken(authorizationHeaderValue, tokenRequestModel);
-
-            if (tokenResponse.getError() != null) {
-                return new ResponseEntity<>(tokenResponse.getError(), HttpStatus.BAD_REQUEST);
-            } else {
-                return new ResponseEntity<>(tokenResponse.getResult(), HttpStatus.OK);
-            }
-        } catch (UnsupportedServiceTypeException e) {
+        } catch (ClientAuthenticationFailedException e) {
             logger.error(e.getMessage(), e);
-            return new ResponseEntity<>("invalid_grant", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(OAuthError.INVALID_CLIENT.getValue(), HttpStatus.UNAUTHORIZED);
+        } catch (OAuthException e) {
+            logger.error(e.getMessage(), e);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return new ResponseEntity<>("system_error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(OAuthError.SERVER_ERROR.getValue(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private ClientCredentialsModel getClientCredentials(String authorizationHeader, TokenRequestModel tokenRequest) {
+        if (!StringUtils.isEmpty(authorizationHeader)) {
+            var clientCredentials = clientService.decodeClientCredentials(authorizationHeader);
+            if (clientCredentials.isEmpty())
+                throw new ClientAuthenticationFailedException();
+            return clientCredentials.get();
+        }
+        return new ClientCredentialsModel(tokenRequest.getClientId(), tokenRequest.getClientSecret());
+    }
+
+    private BaseTokenGrantProvider createTokenGrantProvider(TokenRequestModel tokenRequestModel) {
+        try {
+            var tokenGrantProvider = tokenGrantProviderFactory
+                    .getService(GrantType.fromValue(tokenRequestModel.getGrantType()));
+            if (tokenGrantProvider == null)
+                throw new OAuthException(OAuthError.UNSUPPORTED_GRANT_TYPE);
+            return tokenGrantProvider;
+        } catch (UnsupportedServiceTypeException e) {
+            throw new OAuthException(OAuthError.UNSUPPORTED_GRANT_TYPE);
         }
     }
 }
