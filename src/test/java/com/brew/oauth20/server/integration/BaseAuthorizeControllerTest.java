@@ -140,7 +140,6 @@ abstract class BaseAuthorizeControllerTest {
         return clientScopes;
     }
 
-    @NotNull
     private void createHooks(Client savedClient) {
         var hooks = hookFixture.createRandomUniqueList(savedClient, HookType.values());
         hookRepository.saveAll(hooks);
