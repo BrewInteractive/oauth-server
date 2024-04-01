@@ -179,7 +179,7 @@ class ClientValidatorTest {
         // Arrange
         var clientModel = new ClientModelFixture().createRandomOne();
         var validResponseType = getValidResponseType(clientModel);
-        var invalidRedirectUri = FakerUtils.createRandomRedirectUri(faker);
+        var invalidRedirectUri = FakerUtils.createRandomUri(faker);
         var validScope = getValidScope(clientModel);
         var expectedException = new OAuthException(OAuthError.INVALID_GRANT);
 

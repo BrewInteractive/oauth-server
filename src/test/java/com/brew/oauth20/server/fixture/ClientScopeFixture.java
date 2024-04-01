@@ -21,7 +21,7 @@ public class ClientScopeFixture extends Fixture<ClientScope> {
     }
 
     public Set<ClientScope> createRandomUniqueList(Client client, Scope[] scopeOptions) {
-        var uniqueScopes = FakerUtils.createRandomScopeList(faker, scopeOptions);
+        var uniqueScopes = FakerUtils.createRandomEnumList(faker, scopeOptions);
         var clientScopes = new HashSet<ClientScope>();
         for (var scope : uniqueScopes) {
             var clientScope = Instancio.of(clientsScope(client, scope))
@@ -33,7 +33,7 @@ public class ClientScopeFixture extends Fixture<ClientScope> {
 
     private Model<ClientScope> clientsScope(Scope[] scopeOptions) {
         return Instancio.of(ClientScope.class)
-                .supply(field(ClientScope::getScope), () -> FakerUtils.createRandomScope(faker, scopeOptions))
+                .supply(field(ClientScope::getScope), () -> FakerUtils.createRandomEnum(faker, scopeOptions))
                 .supply(field(ClientScope::getClient), () -> null)
                 .toModel();
     }

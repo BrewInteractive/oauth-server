@@ -21,7 +21,7 @@ public class ScopeModelFixture extends Fixture<GrantModel> {
 
     private Model<ScopeModel> scopeModel(Scope[] scopeOptions) {
         return Instancio.of(ScopeModel.class)
-                .supply(field(ScopeModel::scope), () -> FakerUtils.createRandomScope(faker, scopeOptions))
+                .supply(field(ScopeModel::scope), () -> FakerUtils.createRandomEnum(faker, scopeOptions))
                 .toModel();
     }
 }

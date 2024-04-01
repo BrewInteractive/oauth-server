@@ -24,7 +24,7 @@ import java.util.UUID;
 @Table(name = "hooks")
 public class Hook {
     @OneToMany(mappedBy = "hook", fetch = FetchType.LAZY)
-    @ToString.Exclude // added "fetch = FetchType.LAZY"
+    @ToString.Exclude
     private final Set<HookHeader> hookHeaders = new LinkedHashSet<>();
     @Id
     @Column(name = "id", nullable = false)

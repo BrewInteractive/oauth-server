@@ -24,7 +24,7 @@ public class RedirectUriModelFixture extends Fixture<RedirectUriModel> {
 
     private Model<RedirectUriModel> validModel() {
         return Instancio.of(RedirectUriModel.class)
-                .supply(field(RedirectUriModel::redirectUri), () -> FakerUtils.createRandomRedirectUri(faker))
+                .supply(field(RedirectUriModel::redirectUri), () -> FakerUtils.createRandomUri(faker))
                 .toModel();
     }
 }
