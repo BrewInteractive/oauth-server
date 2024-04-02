@@ -1,7 +1,6 @@
 package com.brew.oauth20.server.integration;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -16,13 +15,16 @@ class AuthorizeControllerNoLoginSignupEndpointTest extends BaseAuthorizeControll
     void should_return_server_error_if_login_signup_endpoint_is_not_set() throws Exception {
 
         // Act
-        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code");
+        ResultActions resultActions = postAuthorize(authorizedRedirectUri, authorizedClientId, "code", extraParameters);
 
         // Assert
-        MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        String locationHeader = response.getHeader(LOCATION);
+        var response = resultActions.andReturn().getResponse();
+        var locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
-                .contains("error=server_error");
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
+                .contains("error=server_error")
+                .doesNotContain(extraParameterKey);
+        assertThat(response.getContentAsString()).isEqualTo("server_error");
     }
 }
