@@ -217,11 +217,14 @@ abstract class BaseAuthorizeControllerTest {
         requestBodyMap.put("redirect_uri", redirectUri);
         requestBodyMap.put("client_id", clientId);
         requestBodyMap.put("response_type", responseType);
-        requestBodyMap.put("state", state);
-        requestBodyMap.put("scope", scope);
         requestBodyMap.putAll(extraParameters);
 
+        if (state != null && !state.isEmpty())
+            requestBodyMap.put("state", state);
+        if (scope != null && !scope.isEmpty())
+            requestBodyMap.put("scope", scope);
         var requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
+
 
         if (userId.isEmpty())
             return this.mockMvc.perform(post("/oauth/authorize")
@@ -253,26 +256,24 @@ abstract class BaseAuthorizeControllerTest {
         for (var entry : extraParameters.entrySet())
             queryParams.put(entry.getKey(), List.of(entry.getValue()));
 
-        if (userId.isPresent()) {
-            var cookieValue = createCookieValue(userId.get());
-            return this.mockMvc.perform(get("/oauth/authorize")
-                    .cookie(new Cookie("user", cookieValue))
-                    .queryParam("redirect_uri", redirectUri)
-                    .queryParam("client_id", clientId)
-                    .queryParam("response_type", responseType)
-                    .queryParam("state", state)
-                    .queryParam("scope", scope)
-                    .queryParams(queryParams)
-            );
-        }
-        return this.mockMvc.perform(get("/oauth/authorize")
+        var requestBuilder = get("/oauth/authorize")
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", responseType)
-                .queryParam("state", state)
-                .queryParam("scope", scope)
-                .queryParams(queryParams)
-        );
+                .queryParams(queryParams);
+
+        if (state != null && !state.isEmpty())
+            requestBuilder = requestBuilder.queryParam("state", state);
+        if (scope != null && !scope.isEmpty())
+            requestBuilder = requestBuilder.queryParam("scope", scope);
+
+        if (userId.isPresent()) {
+            var cookieValue = createCookieValue(userId.get());
+            requestBuilder = requestBuilder.cookie(new Cookie("user", cookieValue));
+
+        }
+        return this.mockMvc.perform(requestBuilder);
+
 
     }
 
