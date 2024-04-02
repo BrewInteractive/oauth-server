@@ -1,7 +1,6 @@
 package com.brew.oauth20.server.integration;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -20,13 +19,16 @@ class AuthorizeControllerNoConsentEndpointTest extends BaseAuthorizeControllerTe
         clientUserScopeRepository.delete(allClientUserScopes.get(0));
 
         // Act
-        ResultActions resultActions = postAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope);
+        ResultActions resultActions = postAuthorizeWithUserId(authorizedRedirectUri, authorizedClientId, "code", authorizedUserId, authorizedState, authorizedScope, extraParameters);
 
         // Assert
-        MockHttpServletResponse response = resultActions.andReturn().getResponse();
-        String locationHeader = response.getHeader(LOCATION);
+        var response = resultActions.andReturn().getResponse();
+        var locationHeader = response.getHeader(LOCATION);
         resultActions.andExpect(status().isFound());
-        assertThat(locationHeader).contains(errorPageUrl)
-                .contains("error=server_error");
+        assertThat(locationHeader)
+                .contains(errorPageUrl)
+                .contains("error=server_error")
+                .doesNotContain(extraParameterKey);
+        assertThat(response.getContentAsString()).isEqualTo("server_error");
     }
 }
