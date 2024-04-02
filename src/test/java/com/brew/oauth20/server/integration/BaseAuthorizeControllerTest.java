@@ -99,7 +99,7 @@ abstract class BaseAuthorizeControllerTest {
     @BeforeEach
     void setup() {
         this.faker = new Faker();
-        createExtraParamaters();
+        createExtraParameters();
         createFixtures();
 
         var savedClient = createClient();
@@ -120,7 +120,7 @@ abstract class BaseAuthorizeControllerTest {
 
     }
 
-    private void createExtraParamaters() {
+    private void createExtraParameters() {
         extraParameterKey = faker.letterify("extra_parameter_???");
         extraParameterValue = faker.letterify("value_???");
         extraParameters = new LinkedMultiValueMap<>();
