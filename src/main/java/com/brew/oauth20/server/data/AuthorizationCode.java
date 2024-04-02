@@ -46,7 +46,7 @@ public class AuthorizationCode {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @Column(name = "scope", nullable = false)
+    @Column(name = "scope")
     private String scope;
 
     @Override
