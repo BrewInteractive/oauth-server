@@ -5,6 +5,7 @@ import com.brew.oauth20.server.exception.CustomClaimHookException;
 import com.brew.oauth20.server.fixture.CustomClaimFixture;
 import com.brew.oauth20.server.fixture.HookModelFixture;
 import com.brew.oauth20.server.http.RestTemplateWrapper;
+import com.brew.oauth20.server.model.CustomClaimsRequestModel;
 import com.brew.oauth20.server.model.HookModel;
 import com.brew.oauth20.server.service.impl.CustomClaimServiceImpl;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.Map;
@@ -44,14 +44,16 @@ class CustomClaimServiceTest {
     }
 
     @NotNull
-    private static HttpEntity<LinkedMultiValueMap<Object, Object>> createValidRequest(HookModel hookModel, String userId) {
+    private static HttpEntity<CustomClaimsRequestModel> createValidRequest(HookModel hookModel, String userId) {
         var httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         for (var hookHeader : hookModel.hookHeaderList())
             httpHeaders.add(hookHeader.key(), hookHeader.value());
 
-        var requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("user_id", userId);
+        var requestBody = CustomClaimsRequestModel
+                .builder()
+                .userId(userId)
+                .build();
         return new HttpEntity<>(requestBody, httpHeaders);
     }
 
@@ -76,7 +78,7 @@ class CustomClaimServiceTest {
         var userId = faker.letterify("?").repeat(20);
         var expectedModel = customClaimFixture.createRandomOne();
 
-        HttpEntity<LinkedMultiValueMap<Object, Object>> requestEntity = createValidRequest(hookModel, userId);
+        var requestEntity = createValidRequest(hookModel, userId);
         ResponseEntity<JsonNode> responseEntity = createValidResponse(expectedModel);
 
         when(restTemplate.exchange(hookModel.endpoint(), HttpMethod.POST, requestEntity, JsonNode.class))
@@ -98,7 +100,7 @@ class CustomClaimServiceTest {
         var hookModel = hookModelFixture.createRandomOne(HookType.custom_claim, 1);
         var userId = faker.letterify("?").repeat(20);
 
-        HttpEntity<LinkedMultiValueMap<Object, Object>> requestEntity = createValidRequest(hookModel, userId);
+        var requestEntity = createValidRequest(hookModel, userId);
 
         when(restTemplate.exchange(hookModel.endpoint(), HttpMethod.POST, requestEntity, JsonNode.class))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));

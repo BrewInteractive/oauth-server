@@ -2,6 +2,7 @@ package com.brew.oauth20.server.service.impl;
 
 import com.brew.oauth20.server.exception.CustomClaimHookException;
 import com.brew.oauth20.server.http.RestTemplateWrapper;
+import com.brew.oauth20.server.model.CustomClaimsRequestModel;
 import com.brew.oauth20.server.model.HookModel;
 import com.brew.oauth20.server.service.CustomClaimService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.Map;
@@ -29,13 +28,16 @@ public class CustomClaimServiceImpl implements CustomClaimService {
     }
 
     @NotNull
-    private static HttpEntity<MultiValueMap<String, Object>> createRequest(HookModel customClaimHook, String userId) {
+    private static HttpEntity<CustomClaimsRequestModel> createRequest(HookModel customClaimHook, String userId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         for (var hookHeader : customClaimHook.hookHeaderList())
             headers.add(hookHeader.key(), hookHeader.value());
-        MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("user_id", userId);
+        var requestBody = CustomClaimsRequestModel
+                .builder()
+                .userId(userId)
+                .build();
+
         return new HttpEntity<>(requestBody, headers);
     }
 
