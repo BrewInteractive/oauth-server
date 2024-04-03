@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class AuthorizeController extends BaseController {
+    public static final String AUTHORIZATION_CODE_EXPIRES_MS_SETTING = "oauth.authorization_code_expires_ms";
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeController.class);
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieManager userCookieManager;
@@ -242,8 +243,7 @@ public class AuthorizeController extends BaseController {
                                                          String redirectUriParameters,
                                                          ClientUser clientUser) {
 
-        var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
-                DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+        var expiresMs = env.getProperty(AUTHORIZATION_CODE_EXPIRES_MS_SETTING, DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
         var code = authorizationCodeService.createAuthorizationCode(
                 authorizeRequest.getRedirect_uri(),
                 Long.parseLong(expiresMs),
