@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/BrewInteractive/oauth-server/compare/v1.11.2...v2.0.0) (2024-04-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* clients won't send additional_claims parameter to /oauth/token endpoint.
+
+### Features
+
+* error page redirect ([c56f974](https://github.com/BrewInteractive/oauth-server/commit/c56f974c7839c256360ac91da972ea70e2a74f4e))
+* implemented CustomClaimService. ([6aed317](https://github.com/BrewInteractive/oauth-server/commit/6aed317583bde54b3079e781cb00ed21c89dd96e))
+* remove additional_claims parameter from TokenRequestModel and add custom claim hook service. ([02f714f](https://github.com/BrewInteractive/oauth-server/commit/02f714f1142429794147608f190665f9cd20aeb2))
+* removed invalid parameters while redirecting to redirect uri. ([2c13476](https://github.com/BrewInteractive/oauth-server/commit/2c13476cec602a0cf4553ac96de2196f8d4a9a5e))
+
+
+### Bug Fixes
+
+* authorization header must be start with "Basic". ([b47ee92](https://github.com/BrewInteractive/oauth-server/commit/b47ee927bde45e4705bbd8b0e280f1638004fddd))
+* fixed /authorize tests. ([ba43ffb](https://github.com/BrewInteractive/oauth-server/commit/ba43ffb43cae292f1175cf1200a137c827741061))
+* fixed entity. ([a595659](https://github.com/BrewInteractive/oauth-server/commit/a5956591e04cb89cba1b99eed22c6f51e1e6157f))
+* fixed error returns. ([4676c4a](https://github.com/BrewInteractive/oauth-server/commit/4676c4a3780ac0fc82e2a34d0882b2abd22b4c9c))
+* fixed TokenGrantProviderAuthorizationCode tests. ([92cdadf](https://github.com/BrewInteractive/oauth-server/commit/92cdadfb86f5f62965b69a52f448399c60ead2b8))
+* fixed TokenGrantProviderClientCredentials tests. ([db40475](https://github.com/BrewInteractive/oauth-server/commit/db40475b3b511f7867ea4164d6adb1bd99482a32))
+* fixed TokenGrantProviderRefreshToken tests. ([a3954bf](https://github.com/BrewInteractive/oauth-server/commit/a3954bfa7a3ed5a29779c8c2f9a3791195b0d4f7))
+* fixing error messages. ([49e8336](https://github.com/BrewInteractive/oauth-server/commit/49e8336caf0db9fbb10d754e869821499ec2ab63))
+* make scope nullable. ([ab7b75a](https://github.com/BrewInteractive/oauth-server/commit/ab7b75a1d3ff1778f1191b0570acae38ca951f61))
+* return as HashMap. ([80d1a40](https://github.com/BrewInteractive/oauth-server/commit/80d1a40b2193effc9c314ebef41eb75ec5b0247c))
+
 ### [1.11.2](https://github.com/BrewInteractive/oauth-server/compare/v1.11.1...v1.11.2) (2024-03-11)
 
 ### [1.11.1](https://github.com/BrewInteractive/oauth-server/compare/v1.11.0...v1.11.1) (2024-03-11)
