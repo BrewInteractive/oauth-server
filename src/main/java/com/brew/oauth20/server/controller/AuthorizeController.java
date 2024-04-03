@@ -34,7 +34,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -103,9 +102,14 @@ public class AuthorizeController extends BaseController {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
     }
 
-    private Map<String, String> readRequestParameters(HttpServletRequest request) throws IOException {
-        var inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
-        return objectMapper.readValue(inputStreamBytes, Map.class);
+    private Map<String, String> readRequestParameters(HttpServletRequest request) {
+        try {
+            var inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
+            return objectMapper.readValue(inputStreamBytes, Map.class);
+        } catch (Exception e) {
+            throw new OAuthException(OAuthError.INVALID_REQUEST);
+        }
+
     }
 
     @GetMapping(value = "/oauth/authorize")
@@ -114,39 +118,9 @@ public class AuthorizeController extends BaseController {
             BindingResult validationResult,
             HttpServletRequest request,
             HttpServletResponse response) {
-        var requestParameters = convertToMap(request.getParameterMap());
-        return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
-    }
-
-    @PostMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-                                                BindingResult validationResult,
-                                                HttpServletRequest request) throws IOException {
-
-        var requestParameters = readRequestParameters(request);
-        return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
-    }
-
-    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-                                             BindingResult validationResult,
-                                             HttpServletRequest request,
-                                             String parameters,
-                                             String redirectUriParameters) {
         try {
-            validateRequest(validationResult);
-            validateAuthorizeType(authorizeRequest);
-
-            /* check user cookie */
-            var userIdOptional = userCookieManager.getUser(request);
-            /* not logged-in user redirect login signup */
-            if (userIdOptional.isEmpty())
-                return redirectToLoginSignup(parameters);
-
-            var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
-            if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
-                return redirectToConsent(parameters);
-
-            return redirectToRedirectUri(authorizeRequest, redirectUriParameters, clientUser);
+            var requestParameters = convertToMap(request.getParameterMap());
+            return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
         } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
             return generateErrorResponse(e.getMessage());
@@ -154,6 +128,45 @@ public class AuthorizeController extends BaseController {
             logger.error(e.getMessage(), e);
             return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
         }
+    }
+
+    @PostMapping(value = "/oauth/authorize")
+    public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
+        try {
+            var requestParameters = readRequestParameters(request);
+            return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
+        } catch (OAuthException e) {
+            logger.error(e.getMessage(), e);
+            return generateErrorResponse(e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
+        }
+    }
+
+    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
+                                             BindingResult validationResult,
+                                             HttpServletRequest request,
+                                             String parameters,
+                                             String redirectUriParameters) {
+
+        validateRequest(validationResult);
+        validateAuthorizeType(authorizeRequest);
+
+        /* check user cookie */
+        var userIdOptional = userCookieManager.getUser(request);
+        /* not logged-in user redirect login signup */
+        if (userIdOptional.isEmpty())
+            return redirectToLoginSignup(parameters);
+
+        var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
+        if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
+            return redirectToConsent(parameters);
+
+        return redirectToRedirectUri(authorizeRequest, redirectUriParameters, clientUser);
+
     }
 
     private ClientUser obtainClientUser(AuthorizeRequestModel authorizeRequest, String userId) {
