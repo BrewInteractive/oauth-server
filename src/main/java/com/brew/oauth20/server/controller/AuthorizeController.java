@@ -48,6 +48,7 @@ public class AuthorizeController extends BaseController {
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final ClientUserService clientUserService;
     private final Environment env;
+    private final ObjectMapper objectMapper;
 
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
@@ -63,12 +64,14 @@ public class AuthorizeController extends BaseController {
                                AuthorizationCodeService authorizationCodeService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
                                ClientUserService clientUserService,
-                               Environment env) {
+                               Environment env,
+                               ObjectMapper objectMapper) {
         this.userCookieManager = userCookieManager;
         this.authorizationCodeService = authorizationCodeService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.clientUserService = clientUserService;
         this.env = env;
+        this.objectMapper = objectMapper;
     }
 
     @NotNull
@@ -94,15 +97,15 @@ public class AuthorizeController extends BaseController {
         return queryStringBuilder.toString();
     }
 
-    private static Map<String, String> readRequestParameters(HttpServletRequest request) throws IOException {
-        var inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
-        return new ObjectMapper().readValue(inputStreamBytes, Map.class);
-    }
-
     private static Map<String, String> convertToMap(Map<String, String[]> parameterMap) {
         return parameterMap.entrySet().stream()
                 .filter(entry -> entry.getValue().length > 0 && entry.getValue()[0] != null && !entry.getValue()[0].isBlank())
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
+    }
+
+    private Map<String, String> readRequestParameters(HttpServletRequest request) throws IOException {
+        var inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
+        return objectMapper.readValue(inputStreamBytes, Map.class);
     }
 
     @GetMapping(value = "/oauth/authorize")
