@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/BrewInteractive/oauth-server/compare/v2.0.1...v2.0.2) (2024-04-03)
+
+
+### Bug Fixes
+
+* fixed get custom claims endpoint. ([4b7deb3](https://github.com/BrewInteractive/oauth-server/commit/4b7deb3aef24de09e0cf459952046bfde4a49657))
+
 ### [2.0.1](https://github.com/BrewInteractive/oauth-server/compare/v2.0.0...v2.0.1) (2024-04-03)
 
 ## [2.0.0](https://github.com/BrewInteractive/oauth-server/compare/v1.11.2...v2.0.0) (2024-04-03)
