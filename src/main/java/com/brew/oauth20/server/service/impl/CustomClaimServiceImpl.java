@@ -47,7 +47,8 @@ public class CustomClaimServiceImpl implements CustomClaimService {
             var requestEntity = createRequest(customClaimHook, userId);
             var responseEntity = restTemplate.exchange(customClaimHook.endpoint(), HttpMethod.POST, requestEntity, JsonNode.class);
             var objectMapper = new ObjectMapper();
-            return objectMapper.convertValue(responseEntity.getBody(), Map.class);
+            var customClaims = objectMapper.convertValue(responseEntity.getBody(), Map.class);
+            return (Map<String, Object>) customClaims.get("custom_claims");
         } catch (HttpServerErrorException e) {
             throw new CustomClaimHookException(e);
         }
