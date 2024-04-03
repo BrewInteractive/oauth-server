@@ -14,6 +14,7 @@ import com.brew.oauth20.server.service.AuthorizationCodeService;
 import com.brew.oauth20.server.service.ClientUserService;
 import com.brew.oauth20.server.service.factory.AuthorizeTypeProviderFactory;
 import com.brew.oauth20.server.utils.validators.ScopeValidator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,16 +28,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class AuthorizeController extends BaseController {
+    public static final String AUTHORIZATION_CODE_EXPIRES_MS_SETTING = "oauth.authorization_code_expires_ms";
     private static final Logger logger = LoggerFactory.getLogger(AuthorizeController.class);
     private static final String DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS = "300000";
     private final UserCookieManager userCookieManager;
@@ -44,6 +48,7 @@ public class AuthorizeController extends BaseController {
     private final AuthorizeTypeProviderFactory authorizeTypeProviderFactory;
     private final ClientUserService clientUserService;
     private final Environment env;
+    private final ObjectMapper objectMapper;
 
     @Value("${oauth.login_signup_endpoint}")
     private String loginSignupEndpoint;
@@ -59,12 +64,14 @@ public class AuthorizeController extends BaseController {
                                AuthorizationCodeService authorizationCodeService,
                                AuthorizeTypeProviderFactory authorizeTypeProviderFactory,
                                ClientUserService clientUserService,
-                               Environment env) {
+                               Environment env,
+                               ObjectMapper objectMapper) {
         this.userCookieManager = userCookieManager;
         this.authorizationCodeService = authorizationCodeService;
         this.authorizeTypeProviderFactory = authorizeTypeProviderFactory;
         this.clientUserService = clientUserService;
         this.env = env;
+        this.objectMapper = objectMapper;
     }
 
     @NotNull
@@ -74,11 +81,36 @@ public class AuthorizeController extends BaseController {
     }
 
     private static boolean scopeExists(AuthorizeRequestModel authorizeRequest) {
-        return authorizeRequest.getScope() != null && !authorizeRequest.getScope().isBlank();
+        return StringUtils.hasText(authorizeRequest.getScope());
     }
 
-    private static boolean stateExists(AuthorizeRequestModel authorizeRequest) {
-        return authorizeRequest.getState() != null && !authorizeRequest.getState().isBlank();
+    @NotNull
+    private static String createQueryString(Map<String, String> requestParameters) {
+        var queryStringBuilder = new StringBuilder();
+        for (var entry : requestParameters.entrySet()) {
+            if (!StringUtils.hasText(entry.getValue()))
+                continue;
+            if (!queryStringBuilder.isEmpty())
+                queryStringBuilder.append("&");
+            queryStringBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        return queryStringBuilder.toString();
+    }
+
+    private static Map<String, String> convertToMap(Map<String, String[]> parameterMap) {
+        return parameterMap.entrySet().stream()
+                .filter(entry -> entry.getValue().length > 0 && entry.getValue()[0] != null && !entry.getValue()[0].isBlank())
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue()[0]));
+    }
+
+    private Map<String, String> readRequestParameters(HttpServletRequest request) {
+        try {
+            var inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
+            return objectMapper.readValue(inputStreamBytes, Map.class);
+        } catch (Exception e) {
+            throw new OAuthException(OAuthError.INVALID_REQUEST);
+        }
+
     }
 
     @GetMapping(value = "/oauth/authorize")
@@ -87,36 +119,9 @@ public class AuthorizeController extends BaseController {
             BindingResult validationResult,
             HttpServletRequest request,
             HttpServletResponse response) {
-        return authorize(authorizeRequest, validationResult, request,
-                URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8));
-    }
-
-    @PostMapping(value = "/oauth/authorize")
-    public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
-                                                BindingResult validationResult,
-                                                HttpServletRequest request) {
-        return authorize(authorizeRequest, validationResult, request, convertToParameters(authorizeRequest));
-    }
-
-    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
-                                             BindingResult validationResult,
-                                             HttpServletRequest request,
-                                             String parameters) {
         try {
-            validateRequest(validationResult);
-            validateAuthorizeType(authorizeRequest);
-
-            /* check user cookie */
-            var userIdOptional = userCookieManager.getUser(request);
-            /* not logged-in user redirect login signup */
-            if (userIdOptional.isEmpty())
-                return redirectToLoginSignup(parameters);
-
-            var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
-            if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
-                return redirectToConsent(parameters);
-
-            return redirectToRedirectUri(authorizeRequest, parameters, clientUser);
+            var requestParameters = convertToMap(request.getParameterMap());
+            return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
         } catch (OAuthException e) {
             logger.error(e.getMessage(), e);
             return generateErrorResponse(e.getMessage());
@@ -124,6 +129,45 @@ public class AuthorizeController extends BaseController {
             logger.error(e.getMessage(), e);
             return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
         }
+    }
+
+    @PostMapping(value = "/oauth/authorize")
+    public ResponseEntity<String> authorizePost(@Valid @RequestBody AuthorizeRequestModel authorizeRequest,
+                                                BindingResult validationResult,
+                                                HttpServletRequest request) {
+        try {
+            var requestParameters = readRequestParameters(request);
+            return authorize(authorizeRequest, validationResult, request, convertToParameters(requestParameters), convertToRedirectUriParameters(requestParameters));
+        } catch (OAuthException e) {
+            logger.error(e.getMessage(), e);
+            return generateErrorResponse(e.getMessage());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return generateErrorResponse(OAuthError.SERVER_ERROR.getValue());
+        }
+    }
+
+    private ResponseEntity<String> authorize(AuthorizeRequestModel authorizeRequest,
+                                             BindingResult validationResult,
+                                             HttpServletRequest request,
+                                             String parameters,
+                                             String redirectUriParameters) {
+
+        validateRequest(validationResult);
+        validateAuthorizeType(authorizeRequest);
+
+        /* check user cookie */
+        var userIdOptional = userCookieManager.getUser(request);
+        /* not logged-in user redirect login signup */
+        if (userIdOptional.isEmpty())
+            return redirectToLoginSignup(parameters);
+
+        var clientUser = obtainClientUser(authorizeRequest, userIdOptional.get());
+        if (Boolean.TRUE.equals(consentRequired(authorizeRequest, clientUser)))
+            return redirectToConsent(parameters);
+
+        return redirectToRedirectUri(authorizeRequest, redirectUriParameters, clientUser);
+
     }
 
     private ClientUser obtainClientUser(AuthorizeRequestModel authorizeRequest, String userId) {
@@ -142,7 +186,6 @@ public class AuthorizeController extends BaseController {
         }
         return false;
     }
-
 
     @NotNull
     private ResponseEntity<String> redirectToConsent(String parameters) {
@@ -171,7 +214,6 @@ public class AuthorizeController extends BaseController {
             throw new IllegalStateException("ERROR_PAGE_URL is not set in the environment variables");
     }
 
-
     private void validateAuthorizeType(AuthorizeRequestModel authorizeRequest) {
         var authorizeTypeProvider = createAuthorizeTypeProvider(authorizeRequest);
         authorizeTypeProvider.validate(
@@ -197,11 +239,11 @@ public class AuthorizeController extends BaseController {
     }
 
     @NotNull
-    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest, String parameters,
+    private ResponseEntity<String> redirectToRedirectUri(AuthorizeRequestModel authorizeRequest,
+                                                         String redirectUriParameters,
                                                          ClientUser clientUser) {
 
-        var expiresMs = env.getProperty("oauth.authorization_code_expires_ms",
-                DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
+        var expiresMs = env.getProperty(AUTHORIZATION_CODE_EXPIRES_MS_SETTING, DEFAULT_AUTHORIZATION_CODE_EXPIRES_MS);
         var code = authorizationCodeService.createAuthorizationCode(
                 authorizeRequest.getRedirect_uri(),
                 Long.parseLong(expiresMs),
@@ -209,22 +251,26 @@ public class AuthorizeController extends BaseController {
                 authorizeRequest.getScope());
 
         /* logged-in user redirect with authorization code */
-        return generateSuccessResponse(code, authorizeRequest.getRedirect_uri(), parameters,
-                clientUser.getUserId());
+        return generateSuccessResponse(
+                code,
+                authorizeRequest.getRedirect_uri(),
+                redirectUriParameters);
 
     }
 
-    private String convertToParameters(AuthorizeRequestModel authorizeRequest) {
-        var queryStringBuilder = new StringBuilder();
-        queryStringBuilder
-                .append("response_type=").append(authorizeRequest.getResponse_type())
-                .append("&redirect_uri=").append(authorizeRequest.getRedirect_uri())
-                .append("&client_id=").append(authorizeRequest.getClient_id());
-        if (scopeExists(authorizeRequest))
-            queryStringBuilder.append("&scope=").append(authorizeRequest.getScope());
-        if (stateExists(authorizeRequest))
-            queryStringBuilder.append("&state=").append(authorizeRequest.getState());
-        return queryStringBuilder.toString();
+    private String convertToParameters(Map<String, String> requestParameters) {
+        return createQueryString(requestParameters);
+    }
+
+    private String convertToRedirectUriParameters(Map<String, String> requestParameters) {
+        var sanitizedMap = requestParameters.entrySet().stream()
+                .filter(entry -> !entry.getKey().equals("response_type"))
+                .filter(entry -> !entry.getKey().equals("redirect_uri"))
+                .filter(entry -> !entry.getKey().equals("client_id"))
+                .filter(entry -> !entry.getKey().equals("scope"))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return createQueryString(sanitizedMap);
     }
 
     private ResponseEntity<String> generateErrorResponse(String error) {
@@ -252,11 +298,10 @@ public class AuthorizeController extends BaseController {
         return createRedirectResponse("", location);
     }
 
-    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters, String userId) {
+    private ResponseEntity<String> generateSuccessResponse(String code, String redirectUri, String parameters) {
         var location = UriComponentsBuilder.fromUriString(redirectUri)
                 .query(parameters)
                 .queryParam("code", code)
-                .queryParam("user_id", userId)
                 .build()
                 .toUri();
         return createRedirectResponse("", location);

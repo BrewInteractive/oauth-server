@@ -26,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.util.LinkedMultiValueMap;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -66,6 +67,9 @@ abstract class BaseAuthorizeControllerTest {
     protected String authorizedState;
     protected String authorizedScope;
     protected String notAuthorizedRedirectUri;
+    protected String extraParameterKey;
+    protected String extraParameterValue;
+    protected HashMap<String, String> extraParameters;
     @Autowired
     protected AuthorizationCodeRepository authorizationCodeRepository;
     @Autowired
@@ -92,6 +96,7 @@ abstract class BaseAuthorizeControllerTest {
     @BeforeEach
     void setup() {
         this.faker = new Faker();
+        createExtraParameters();
         createFixtures();
 
         var savedClient = createClient();
@@ -110,6 +115,13 @@ abstract class BaseAuthorizeControllerTest {
 
         exposeTestVariables(savedClient, savedClientUser, savedRedirectUri, savedClientScopes);
 
+    }
+
+    private void createExtraParameters() {
+        extraParameterKey = faker.letterify("extra_parameter_???");
+        extraParameterValue = faker.letterify("value_???");
+        extraParameters = new HashMap<>();
+        extraParameters.put(extraParameterKey, extraParameterValue);
     }
 
     private void exposeTestVariables(Client savedClient, ClientUser savedClientUser, RedirectUri savedRedirectUri, Set<ClientScope> savedClientScopes) {
@@ -200,18 +212,21 @@ abstract class BaseAuthorizeControllerTest {
         grantRepository.deleteAllInBatch();
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId) throws Exception {
-        Map<String, String> requestBodyMap = new HashMap<>();
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId, HashMap<String, String> extraParameters) throws Exception {
+        var requestBodyMap = new LinkedHashMap<String, String>();
         requestBodyMap.put("redirect_uri", redirectUri);
         requestBodyMap.put("client_id", clientId);
         requestBodyMap.put("response_type", responseType);
-        requestBodyMap.put("state", state);
-        requestBodyMap.put("scope", scope);
+        requestBodyMap.putAll(extraParameters);
 
-        String requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
+        if (state != null && !state.isEmpty())
+            requestBodyMap.put("state", state);
+        if (scope != null && !scope.isEmpty())
+            requestBodyMap.put("scope", scope);
+        var requestBody = new ObjectMapper().writeValueAsString(requestBodyMap);
+
 
         if (userId.isEmpty())
-
             return this.mockMvc.perform(post("/oauth/authorize")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestBody));
@@ -224,64 +239,70 @@ abstract class BaseAuthorizeControllerTest {
 
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty());
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, HashMap<String, String> extraParameters) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty(), extraParameters);
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty());
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, HashMap<String, String> extraParameters) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty(), extraParameters);
     }
 
-    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty());
+    protected ResultActions postAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, HashMap<String, String> extraParameters) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty(), extraParameters);
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId) throws Exception {
-        if (userId.isEmpty())
-            return this.mockMvc.perform(get("/oauth/authorize")
-                    .queryParam("redirect_uri", redirectUri)
-                    .queryParam("client_id", clientId)
-                    .queryParam("response_type", responseType)
-                    .queryParam("state", state)
-                    .queryParam("scope", scope)
-            );
-        var cookieValue = createCookieValue(userId.get());
-        return this.mockMvc.perform(get("/oauth/authorize")
-                .cookie(new Cookie("user", cookieValue))
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, Optional<String> userId, HashMap<String, String> extraParameters) throws Exception {
+        var queryParams = new LinkedMultiValueMap<String, String>();
+        for (var entry : extraParameters.entrySet())
+            queryParams.put(entry.getKey(), List.of(entry.getValue()));
+
+        var requestBuilder = get("/oauth/authorize")
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("client_id", clientId)
                 .queryParam("response_type", responseType)
-                .queryParam("state", state)
-                .queryParam("scope", scope)
-        );
+                .queryParams(queryParams);
+
+        if (state != null && !state.isEmpty())
+            requestBuilder = requestBuilder.queryParam("state", state);
+        if (scope != null && !scope.isEmpty())
+            requestBuilder = requestBuilder.queryParam("scope", scope);
+
+        if (userId.isPresent()) {
+            var cookieValue = createCookieValue(userId.get());
+            requestBuilder = requestBuilder.cookie(new Cookie("user", cookieValue));
+
+        }
+        return this.mockMvc.perform(requestBuilder);
+
+
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty());
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, HashMap<String, String> extraParameters) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.empty(), extraParameters);
     }
 
-    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId));
+    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, HashMap<String, String> extraParameters) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId), extraParameters);
     }
 
-    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId));
+    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, HashMap<String, String> extraParameters) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, "", "", Optional.ofNullable(userId), extraParameters);
     }
 
-    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId));
+    protected ResultActions getAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope, HashMap<String, String> extraParameters) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId), extraParameters);
     }
 
-    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope) throws Exception {
-        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId));
+    protected ResultActions postAuthorizeWithUserId(String redirectUri, String clientId, String responseType, String userId, String state, String scope, HashMap<String, String> extraParameters) throws Exception {
+        return postAuthorize(redirectUri, clientId, responseType, state, scope, Optional.ofNullable(userId), extraParameters);
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty());
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, HashMap<String, String> extraParameters) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, "", Optional.empty(), extraParameters);
     }
 
-    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope) throws Exception {
-        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty());
+    protected ResultActions getAuthorize(String redirectUri, String clientId, String responseType, String state, String scope, HashMap<String, String> extraParameters) throws Exception {
+        return getAuthorize(redirectUri, clientId, responseType, state, scope, Optional.empty(), extraParameters);
     }
 
     @SneakyThrows
