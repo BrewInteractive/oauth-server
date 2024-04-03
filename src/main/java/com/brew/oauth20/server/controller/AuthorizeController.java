@@ -88,7 +88,7 @@ public class AuthorizeController extends BaseController {
     private static String createQueryString(Map<String, String> requestParameters) {
         var queryStringBuilder = new StringBuilder();
         for (var entry : requestParameters.entrySet()) {
-            if (entry.getValue() == null || entry.getValue().isBlank())
+            if (!StringUtils.hasText(entry.getValue()))
                 continue;
             if (!queryStringBuilder.isEmpty())
                 queryStringBuilder.append("&");
