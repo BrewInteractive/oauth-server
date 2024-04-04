@@ -177,7 +177,7 @@
                         <path>
                             <groupId>org.mapstruct</groupId>
                             <artifactId>mapstruct-processor</artifactId>
-                            <version>1.4.2.Final</version>
+                            <version>1.5.5.Final</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -240,7 +240,7 @@
                                     <path>
                                         <groupId>org.mapstruct</groupId>
                                         <artifactId>mapstruct-processor</artifactId>
-                                        <version>1.4.2.Final</version>
+                                        <version>1.5.5.Final</version>
                                     </path>
                                 </annotationProcessorPaths>
                             </configuration>
